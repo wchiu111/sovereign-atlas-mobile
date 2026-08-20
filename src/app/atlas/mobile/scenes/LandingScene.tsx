@@ -246,7 +246,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         <div
           style={{
             position: "absolute",
-            top: 0,
+            top: 24,
             left: 0,
             right: 0,
             padding: "20px 22px 0",

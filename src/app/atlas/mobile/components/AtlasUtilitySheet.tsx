@@ -4,7 +4,7 @@
  * Pass 2.5:
  * - Activator is the thicker horizontal line at the utility-layer boundary.
  * - The layer reveals from above the viewport and moves downward with the finger.
- * - No lower bulge, secondary handle, or footer protrusion.
+ * - No lower bulge, secondary handle, or footer protrusion.\n * - Handle, backdrop, and sheet are positioned relative to the Atlas viewport.
  *
  * Phase 3:
  * - Search is the only active utility destination.
@@ -139,17 +139,17 @@ export default function AtlasUtilitySheet() {
         onPointerUp={endDrag}
         onPointerCancel={cancelDrag}
         style={{
-          position: "fixed",
+          position: "absolute",
           left: "50%",
-          top: 0,
+          top: 16,
           transform: "translateX(-50%)",
           width: 132,
-          height: 44,
+          height: 18,
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "center",
           border: "none",
-          padding: "10px 0 0",
+          padding: "3px 0 0",
           background: "transparent",
           pointerEvents: "auto",
           cursor: open ? "n-resize" : "s-resize",
@@ -162,7 +162,7 @@ export default function AtlasUtilitySheet() {
           style={{
             display: "block",
             width: 44,
-            height: 5,
+            height: 4,
             borderRadius: 999,
             background: T.gold,
             opacity: 0.34 + activeProgress * 0.20,
@@ -175,7 +175,7 @@ export default function AtlasUtilitySheet() {
         aria-hidden={!open && !dragging}
         onClick={closeLayer}
         style={{
-          position: "fixed",
+          position: "absolute",
           inset: 0,
           background: `rgba(2,2,7,${Math.min(0.48, activeProgress * 0.48)})`,
           backdropFilter: overlayActive ? `blur(${activeProgress * 3}px)` : "none",
@@ -195,12 +195,12 @@ export default function AtlasUtilitySheet() {
         onPointerUp={endDrag}
         onPointerCancel={cancelDrag}
         style={{
-          position: "fixed",
+          position: "absolute",
           top: 0,
-          left: "50%",
-          width: "min(390px, 100vw)",
+          left: 0,
+          width: "100%",
           height: SHEET_HEIGHT,
-          transform: `translate3d(-50%, ${translateY}px, 0)`,
+          transform: `translate3d(0, ${translateY}px, 0)`,
           zIndex: 50,
           boxSizing: "border-box",
           border: "0.5px solid rgba(232,213,163,0.14)",
