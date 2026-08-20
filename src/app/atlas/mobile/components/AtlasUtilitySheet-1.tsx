@@ -20,7 +20,6 @@ type DragOrigin = "handle" | "sheet";
 type UtilityView = "menu" | "search";
 
 const SHEET_HEIGHT = 372;
-const HIDDEN_CLEARANCE = 48;
 const OPEN_THRESHOLD = 0.42;
 const TAP_SLOP = 8;
 
@@ -47,7 +46,7 @@ export default function AtlasUtilitySheet() {
   } | null>(null);
 
   const activeProgress = dragging ? progress : open ? 1 : 0;
-  const translateY = -(SHEET_HEIGHT + HIDDEN_CLEARANCE) + (SHEET_HEIGHT + HIDDEN_CLEARANCE) * activeProgress;
+  const translateY = -SHEET_HEIGHT + SHEET_HEIGHT * activeProgress;
 
   useEffect(() => {
     if (!dragging) setProgress(open ? 1 : 0);
@@ -128,8 +127,8 @@ export default function AtlasUtilitySheet() {
 
   return (
     <>
-      {/* The exposed edge of the hidden Utility Layer.
-          Plain thick line only — no diamond/motif. */}
+      {/* The visible boundary/activator of the hidden upper layer.
+          This local control is intentionally away from the native top-edge gesture zone. */}
       <button
         type="button"
         aria-label={open ? "Close Atlas utility layer" : "Open Atlas utility layer"}
@@ -141,15 +140,15 @@ export default function AtlasUtilitySheet() {
         style={{
           position: "fixed",
           left: "50%",
-          top: 0,
+          top: 108,
           transform: "translateX(-50%)",
-          width: 132,
+          width: 250,
           height: 44,
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "center",
           border: "none",
-          padding: "10px 0 0",
+          padding: 0,
           background: "transparent",
           pointerEvents: "auto",
           cursor: open ? "n-resize" : "s-resize",
@@ -160,15 +159,37 @@ export default function AtlasUtilitySheet() {
         <span
           aria-hidden="true"
           style={{
+            position: "relative",
             display: "block",
-            width: 44,
-            height: 5,
-            borderRadius: 999,
-            background: T.gold,
-            opacity: 0.34 + activeProgress * 0.20,
-            transition: dragging ? "none" : "opacity 180ms ease",
+            width: 214,
+            height: 10,
+            opacity: 0.52 + activeProgress * 0.16,
           }}
-        />
+        >
+          <span
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 4,
+              height: 1.5,
+              borderRadius: 999,
+              background: T.gold,
+            }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: 1,
+              width: 7,
+              height: 7,
+              border: `1px solid ${T.gold}`,
+              transform: "translateX(-50%) rotate(45deg)",
+              background: T.bg,
+            }}
+          />
+        </span>
       </button>
 
       <div
@@ -208,7 +229,7 @@ export default function AtlasUtilitySheet() {
           borderRadius: "0 0 30px 30px",
           background:
             "linear-gradient(180deg, rgba(14,15,20,0.985) 0%, rgba(8,9,13,0.992) 100%)",
-          boxShadow: activeProgress > 0.02 ? `0 22px 70px rgba(0,0,0,${0.16 + activeProgress * 0.42})` : "none",
+          boxShadow: `0 22px 70px rgba(0,0,0,${0.16 + activeProgress * 0.42})`,
           backdropFilter: "blur(28px)",
           WebkitBackdropFilter: "blur(28px)",
           pointerEvents: overlayActive ? "auto" : "none",

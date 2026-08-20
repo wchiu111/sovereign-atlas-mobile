@@ -283,7 +283,6 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             Three systems in orbit
           </div>
 
-          <AtlasUtilitySheet />
         </div>
       )}
 
@@ -303,6 +302,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
       {state === "system-awakened" && <OverviewInitial onExplore={onOverviewExpand} />}
       {state === "system-overview" && <OverviewScrolled onExplore={onExplore} onBack={onBack} />}
+      {state === "atlas-landing" && <AtlasUtilitySheet />}
     </>
   );
 }
