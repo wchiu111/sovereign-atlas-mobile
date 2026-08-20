@@ -5,11 +5,9 @@
 
 import { useEffect, type RefObject } from "react";
 
-// ── Frame ─────────────────────────────────────────────────────────────────────
 export const W = 390;
 export const H = 844;
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
 export const T = {
   bg:          "#05050A",
   gold:        "#E8D5A3",
@@ -20,34 +18,31 @@ export const T = {
   serif:       "'EB Garamond', Georgia, serif",
 } as const;
 
-// ── Animation ─────────────────────────────────────────────────────────────────
 export const EASE = "cubic-bezier(0.16,1,0.3,1)";
 export const DUR  = "0.95s";
 export const ANIM = `transform ${DUR} ${EASE}`;
 export const FADE = `opacity 0.75s ease`;
 
-// ── Portrait composition positions ────────────────────────────────────────────
 export const NEXUS   = { x: 195, y: 355 };
 export const BASE_R  = 18;
 export const EX_POS  = { x: 298, y: 178 };
 export const FW_POS  = { x: 195, y: 565 };
 export const ORBIT_R = 36;
 
-// ── Semantic state machine ─────────────────────────────────────────────────────
 export type MobileState =
-  | "atlas-landing"       // A: full atlas, all systems at rest
-  | "system-awakened"     // B: CS activated, moves to center
-  | "system-overview"     // C/D: CS overview surface, full scrollable
-  | "case-studies-focus"  // E: 4-project CS constellation
-  | "project-awakened"    // F: Agentic Insurance enlarged
-  | "project-overview"    // G: project overview panel
-  | "project-reading"     // H: reading surface
-  | "evidence-viewer"     // I: evidence image inspection
-  | "frameworks-focus"    // J: 6-framework constellation
-  | "framework-awakened"  // K: Behavioral Architecture enlarged
-  | "framework-overview"  // L: framework overview panel
-  | "framework-reading"   // M: BA layer navigation
-  | "framework-evidence"; // N: framework canvas/artifact
+  | "atlas-landing"
+  | "system-awakened"
+  | "system-overview"
+  | "case-studies-focus"
+  | "project-awakened"
+  | "project-overview"
+  | "project-reading"
+  | "evidence-viewer"
+  | "frameworks-focus"
+  | "framework-awakened"
+  | "framework-overview"
+  | "framework-reading"
+  | "framework-evidence";
 
 export const MOBILE_STATES: readonly MobileState[] = [
   "atlas-landing", "system-awakened", "system-overview",
@@ -57,7 +52,6 @@ export const MOBILE_STATES: readonly MobileState[] = [
   "framework-reading", "framework-evidence",
 ];
 
-// ── Systems data (shared across landing + scene files) ────────────────────────
 export interface Planet { angle: number; label: string; }
 export interface SystemDef {
   id: string; label: string; color: string;
@@ -100,17 +94,25 @@ export const SYSTEMS: SystemDef[] = [
   },
 ];
 
-// ── Starfield animation hook ───────────────────────────────────────────────────
 export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
     canvas.width  = W;
     canvas.height = H;
 
-    type Star = { x: number; y: number; r: number; base: number; phase: number; spd: number; gold: boolean; };
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    type Star = {
+      x: number; y: number; r: number;
+      base: number; phase: number; spd: number; gold: boolean;
+    };
+
     const stars: Star[] = Array.from({ length: 360 }, () => ({
       x:     Math.random() * W,
       y:     Math.random() * H,
@@ -121,10 +123,7 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
       gold:  Math.random() < 0.30,
     }));
 
-    let raf: number;
-    let t = 0;
-    function draw() {
-      t += 16;
+    function drawFrame(t: number) {
       ctx!.clearRect(0, 0, W, H);
       ctx!.fillStyle = T.bg;
       ctx!.fillRect(0, 0, W, H);
@@ -151,7 +150,7 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
       ctx!.fillRect(0, 0, W, H);
 
       for (const s of stars) {
-        const tw = Math.sin(t * s.spd + s.phase) * 0.22;
+        const tw = reduceMotion ? 0 : Math.sin(t * s.spd + s.phase) * 0.22;
         const o  = Math.max(0.04, Math.min(0.88, s.base + tw));
         ctx!.beginPath();
         ctx!.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -160,8 +159,23 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
           : `rgba(210,218,232,${o * 0.72})`;
         ctx!.fill();
       }
+    }
+
+    // Reduced motion preserves the atmosphere as a static field.
+    if (reduceMotion) {
+      drawFrame(0);
+      return;
+    }
+
+    let raf = 0;
+    let t = 0;
+
+    function draw() {
+      t += 16;
+      drawFrame(t);
       raf = requestAnimationFrame(draw);
     }
+
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

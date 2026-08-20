@@ -66,177 +66,256 @@ export default function MobileAtlas() {
   const isCSReading = (CS_READING_STATES as readonly string[]).includes(state);
   const isFW = (FW_STATES as readonly string[]).includes(state);
 
+  const isProjectEvidence = state === "evidence-viewer";
+  const isFrameworkReadingDepth = state === "framework-reading" || state === "framework-evidence";
+  const isFrameworkEvidence = state === "framework-evidence";
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#080810",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: debugMode ? 24 : 0,
-      padding: debugMode ? "48px 24px 60px" : 0,
-      fontFamily: T.mono,
-    }}>
-      {debugMode && (
-        <div style={{ color: "rgba(232,213,163,0.32)", fontSize: 9, letterSpacing: "0.32em" }}>
-          SOVEREIGN ATLAS · MOBILE PROTOTYPE · 390 × 844
+    <>
+      <style>{`
+        .mobile-atlas-root,
+        .mobile-atlas-root * {
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-atlas-root {
+          overscroll-behavior: contain;
+          touch-action: manipulation;
+        }
+
+        /* Preserve scrolling while removing browser chrome from the Atlas surface. */
+        .mobile-atlas-root * {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .mobile-atlas-root *::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
+
+        /* Motion is optional; hierarchy and destination remain intact. */
+        @media (prefers-reduced-motion: reduce) {
+          .mobile-atlas-root *,
+          .mobile-atlas-root *::before,
+          .mobile-atlas-root *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
+        }
+      `}</style>
+
+      <div
+        className="mobile-atlas-root"
+        style={{
+          minHeight: "100vh",
+          background: "#080810",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: debugMode ? 24 : 0,
+          padding: debugMode ? "48px 24px 60px" : 0,
+          fontFamily: T.mono,
+        }}
+      >
+        {debugMode && (
+          <div style={{ color: "rgba(232,213,163,0.32)", fontSize: 9, letterSpacing: "0.32em" }}>
+            SOVEREIGN ATLAS · MOBILE PROTOTYPE · 390 × 844
+          </div>
+        )}
+
+        <div style={{
+          position: "relative",
+          width: W,
+          height: H,
+          overflow: "hidden",
+          overscrollBehavior: "contain",
+          borderRadius: debugMode ? 48 : 0,
+          border: debugMode ? "1.5px solid rgba(232,213,163,0.10)" : "none",
+          boxShadow: debugMode
+            ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
+            : "none",
+          background: T.bg,
+          flexShrink: 0,
+        }}>
+          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
+
+          {isLanding && (
+            <LandingScene
+              state={state as "atlas-landing" | "system-awakened" | "system-overview"}
+              onSelectCaseStudies={() => setState("system-awakened")}
+              onSelectFrameworks={() => setState("frameworks-focus")}
+              onOverviewExpand={() => setState("system-overview")}
+              onExplore={() => setState("case-studies-focus")}
+              onBack={() => setState("atlas-landing")}
+            />
+          )}
+
+          {isCSFocus && (
+            <CaseStudiesScene
+              state={state as "case-studies-focus" | "project-awakened" | "project-overview"}
+              onSelectProject={() => setState("project-awakened")}
+              onProjectOverview={() => setState("project-overview")}
+              onExplore={() => setState("project-reading")}
+              onBack={() => setState("system-overview")}
+            />
+          )}
+
+          {/* Keep reading mounted under Evidence so return restores exact context. */}
+          {isCSReading && (
+            <>
+              <ReadingScene
+                state="project-reading"
+                onEvidence={() => setState("evidence-viewer")}
+                onBack={() => setState("project-overview")}
+              />
+              {isProjectEvidence && (
+                <ReadingScene
+                  state="evidence-viewer"
+                  onEvidence={() => setState("evidence-viewer")}
+                  onBack={() => setState("project-reading")}
+                />
+              )}
+            </>
+          )}
+
+          {isFW && !isFrameworkReadingDepth && (
+            <FrameworksScene
+              state={state as "frameworks-focus" | "framework-awakened" | "framework-overview"}
+              activeLayer={activeLayer}
+              setActiveLayer={setActiveLayer}
+              onSelectFramework={() => setState("framework-awakened")}
+              onFrameworkOverview={() => setState("framework-overview")}
+              onExplore={() => setState("framework-reading")}
+              onCanvas={() => setState("framework-evidence")}
+              onBack={() => {
+                if (state === "framework-overview") setState("frameworks-focus");
+                else if (state === "framework-awakened") setState("frameworks-focus");
+                else setState("atlas-landing");
+              }}
+            />
+          )}
+
+          {/* Keep framework reading mounted under artifact inspection. */}
+          {isFrameworkReadingDepth && (
+            <>
+              <FrameworksScene
+                state="framework-reading"
+                activeLayer={activeLayer}
+                setActiveLayer={setActiveLayer}
+                onSelectFramework={() => setState("framework-awakened")}
+                onFrameworkOverview={() => setState("framework-overview")}
+                onExplore={() => setState("framework-reading")}
+                onCanvas={() => setState("framework-evidence")}
+                onBack={() => setState("framework-overview")}
+              />
+              {isFrameworkEvidence && (
+                <FrameworksScene
+                  state="framework-evidence"
+                  activeLayer={activeLayer}
+                  setActiveLayer={setActiveLayer}
+                  onSelectFramework={() => setState("framework-awakened")}
+                  onFrameworkOverview={() => setState("framework-overview")}
+                  onExplore={() => setState("framework-reading")}
+                  onCanvas={() => setState("framework-evidence")}
+                  onBack={() => setState("framework-reading")}
+                />
+              )}
+            </>
+          )}
         </div>
-      )}
 
-      <div style={{
-        position: "relative",
-        width: W,
-        height: H,
-        overflow: "hidden",
-        borderRadius: debugMode ? 48 : 0,
-        border: debugMode ? "1.5px solid rgba(232,213,163,0.10)" : "none",
-        boxShadow: debugMode
-          ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
-          : "none",
-        background: T.bg,
-        flexShrink: 0,
-      }}>
-        <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
+        {debugMode && (
+          <>
+            <div style={{ color: "rgba(232,213,163,0.28)", fontSize: 8.5, letterSpacing: "0.22em", textAlign: "center" }}>
+              {STATE_LABELS[state]}
+            </div>
 
-        {isLanding && (
-          <LandingScene
-            state={state as "atlas-landing" | "system-awakened" | "system-overview"}
-            onSelectCaseStudies={() => setState("system-awakened")}
-            onSelectFrameworks={() => setState("frameworks-focus")}
-            onOverviewExpand={() => setState("system-overview")}
-            onExplore={() => setState("case-studies-focus")}
-            onBack={() => setState("atlas-landing")}
-          />
-        )}
+            <div style={{
+              borderTop: "0.5px solid rgba(232,213,163,0.10)",
+              paddingTop: 20,
+              width: "100%",
+              maxWidth: 560,
+            }}>
+              <div style={{
+                fontFamily: T.mono,
+                fontSize: 7,
+                letterSpacing: "0.22em",
+                color: "rgba(232,213,163,0.22)",
+                marginBottom: 14,
+                textAlign: "center",
+              }}>
+                DEV · STATE SWITCHER · NOT PART OF MOBILE EXPERIENCE
+              </div>
 
-        {isCSFocus && (
-          <CaseStudiesScene
-            state={state as "case-studies-focus" | "project-awakened" | "project-overview"}
-            onSelectProject={() => setState("project-awakened")}
-            onProjectOverview={() => setState("project-overview")}
-            onExplore={() => setState("project-reading")}
-            onBack={() => setState("system-overview")}
-          />
-        )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {STATE_GROUPS.map((group) => (
+                  <div key={group.label} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    <div style={{
+                      fontFamily: T.mono,
+                      fontSize: 6,
+                      letterSpacing: "0.18em",
+                      color: group.color,
+                      opacity: 0.28,
+                      minWidth: 80,
+                      paddingRight: 8,
+                      textAlign: "right",
+                    }}>
+                      {group.label}
+                    </div>
+                    <div style={{
+                      display: "flex",
+                      gap: 2,
+                      flexWrap: "wrap",
+                      background: `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.05)`,
+                      borderRadius: 4,
+                      padding: 2,
+                    }}>
+                      {group.states.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setState(s)}
+                          style={{
+                            background: state === s
+                              ? `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.16)`
+                              : "transparent",
+                            border: "none",
+                            color: state === s ? group.color : `${group.color}66`,
+                            fontFamily: T.mono,
+                            fontSize: 7.5,
+                            letterSpacing: "0.14em",
+                            padding: "7px 10px",
+                            cursor: "pointer",
+                            borderRadius: 3,
+                            transition: "all 0.2s ease",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {STATE_LABELS[s]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        {isCSReading && (
-          <ReadingScene
-            state={state as "project-reading" | "evidence-viewer"}
-            onEvidence={() => setState("evidence-viewer")}
-            onBack={() => {
-              if (state === "evidence-viewer") setState("project-reading");
-              else setState("project-overview");
-            }}
-          />
-        )}
-
-        {isFW && (
-          <FrameworksScene
-            state={state as "frameworks-focus" | "framework-awakened" | "framework-overview" | "framework-reading" | "framework-evidence"}
-            activeLayer={activeLayer}
-            setActiveLayer={setActiveLayer}
-            onSelectFramework={() => setState("framework-awakened")}
-            onFrameworkOverview={() => setState("framework-overview")}
-            onExplore={() => setState("framework-reading")}
-            onCanvas={() => setState("framework-evidence")}
-            onBack={() => {
-              if (state === "framework-evidence") setState("framework-reading");
-              else if (state === "framework-reading") setState("framework-overview");
-              else if (state === "framework-overview") setState("frameworks-focus");
-              else if (state === "framework-awakened") setState("frameworks-focus");
-              else setState("atlas-landing");
-            }}
-          />
+            <div style={{
+              color: "rgba(232,213,163,0.12)",
+              fontSize: 7.5,
+              letterSpacing: "0.14em",
+              textAlign: "center",
+              lineHeight: 1.7,
+            }}>
+              MOBILE PROTOTYPE · Phase 3 · Isolated from production Atlas
+            </div>
+          </>
         )}
       </div>
-
-      {debugMode && (
-        <>
-          <div style={{ color: "rgba(232,213,163,0.28)", fontSize: 8.5, letterSpacing: "0.22em", textAlign: "center" }}>
-            {STATE_LABELS[state]}
-          </div>
-
-          <div style={{
-            borderTop: "0.5px solid rgba(232,213,163,0.10)",
-            paddingTop: 20,
-            width: "100%",
-            maxWidth: 560,
-          }}>
-            <div style={{
-              fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.22em",
-              color: "rgba(232,213,163,0.22)",
-              marginBottom: 14,
-              textAlign: "center",
-            }}>
-              DEV · STATE SWITCHER · NOT PART OF MOBILE EXPERIENCE
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {STATE_GROUPS.map((group) => (
-                <div key={group.label} style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                  <div style={{
-                    fontFamily: T.mono,
-                    fontSize: 6,
-                    letterSpacing: "0.18em",
-                    color: group.color,
-                    opacity: 0.28,
-                    minWidth: 80,
-                    paddingRight: 8,
-                    textAlign: "right",
-                  }}>
-                    {group.label}
-                  </div>
-                  <div style={{
-                    display: "flex",
-                    gap: 2,
-                    flexWrap: "wrap",
-                    background: `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.05)`,
-                    borderRadius: 4,
-                    padding: 2,
-                  }}>
-                    {group.states.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setState(s)}
-                        style={{
-                          background: state === s
-                            ? `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.16)`
-                            : "transparent",
-                          border: "none",
-                          color: state === s ? group.color : `${group.color}66`,
-                          fontFamily: T.mono,
-                          fontSize: 7.5,
-                          letterSpacing: "0.14em",
-                          padding: "7px 10px",
-                          cursor: "pointer",
-                          borderRadius: 3,
-                          transition: "all 0.2s ease",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {STATE_LABELS[s]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{
-            color: "rgba(232,213,163,0.12)",
-            fontSize: 7.5,
-            letterSpacing: "0.14em",
-            textAlign: "center",
-            lineHeight: 1.7,
-          }}>
-            MOBILE PROTOTYPE · Phase 3 · Isolated from production Atlas
-          </div>
-        </>
-      )}
-    </div>
+    </>
   );
 }
