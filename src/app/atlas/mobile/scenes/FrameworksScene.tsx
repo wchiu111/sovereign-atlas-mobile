@@ -8,7 +8,6 @@ import { useState } from "react";
 import { T, ANIM, FADE, W, H } from "../components/mobileShared";
 import baEvidenceImg from "../../../../imports/frameworks/behavioral-architecture/01-governance/behavioral-architecture.jpg";
 
-// ── FW data ───────────────────────────────────────────────────────────────────
 interface FwDef { id: string; label: string; x: number; y: number; }
 
 const FW_FRAMEWORKS: FwDef[] = [
@@ -29,7 +28,6 @@ const BA_LAYERS = [
   { id: "regenerative-capacity", label: "REGENERATIVE CAPACITY", short: "R", deg:  -30 },
 ];
 
-// ── Visual config keyed by semantic state ─────────────────────────────────────
 type FWState = "frameworks-focus" | "framework-awakened" | "framework-overview" | "framework-reading" | "framework-evidence";
 
 const MD_STATE: Record<FWState, { x: number; y: number; orbitR: number; opacity: number }> = {
@@ -64,7 +62,6 @@ const CONN_OP: Record<FWState, number> = {
   "framework-evidence": 0.04,
 };
 
-// ── SVG: Frameworks parent anchor ─────────────────────────────────────────────
 function FWParentNode({ op }: { op: number }) {
   const c = T.frameworks;
   return (
@@ -82,7 +79,6 @@ function FWParentNode({ op }: { op: number }) {
   );
 }
 
-// ── SVG: Framework node ───────────────────────────────────────────────────────
 function FrameworkNode({
   label, cx, cy, awakened, onClick,
 }: {
@@ -95,23 +91,30 @@ function FrameworkNode({
   const outerR = awakened ? 36 : 20;
 
   return (
-    <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
-      <circle r={22} fill="transparent" onClick={onClick} style={{ cursor: "pointer" }} />
-      <circle r={outerR} fill={c} opacity={awakened ? 0.09 : 0.04}  style={{ transition: FADE }} />
-      <circle r={innerR} fill={c} opacity={awakened ? 0.19 : 0.10}  style={{ transition: FADE }} />
+    <g
+      onClick={onClick}
+      style={{
+        transform: `translate(${cx}px,${cy}px)`,
+        transition: ANIM,
+        cursor: onClick ? "pointer" : "default",
+      }}
+    >
+      <circle r={outerR} fill={c} opacity={awakened ? 0.09 : 0.04} pointerEvents="none" style={{ transition: FADE }} />
+      <circle r={innerR} fill={c} opacity={awakened ? 0.19 : 0.10} pointerEvents="none" style={{ transition: FADE }} />
       <circle r={awakened ? 26 : 16} fill="none" stroke={c} strokeWidth={0.5}
-        opacity={awakened ? 0.30 : 0.09} style={{ transition: FADE }} />
-      <circle r={coreR} fill={c} style={{ transition: FADE }} />
+        opacity={awakened ? 0.30 : 0.09} pointerEvents="none" style={{ transition: FADE }} />
+      <circle r={coreR} fill={c} pointerEvents="none" style={{ transition: FADE }} />
       <text y={coreR + 16} textAnchor="middle"
         fontFamily={T.mono} fontSize={7.5} letterSpacing="0.13em"
-        fill={c} opacity={0.52} style={{ transition: FADE }}>
+        fill={c} opacity={0.52} pointerEvents="none" style={{ transition: FADE }}>
         {label}
       </text>
+      {/* 44px minimum touch target sits above decorative SVG layers. */}
+      {onClick && <circle r={22} fill="transparent" pointerEvents="all" />}
     </g>
   );
 }
 
-// ── SVG: Constellation connections ────────────────────────────────────────────
 function FwConstellationConnections({ op }: { op: number }) {
   const c = T.frameworks;
   const [ag, md, ral, pn, rs, ak] = FW_FRAMEWORKS;
@@ -131,7 +134,6 @@ function FwConstellationConnections({ op }: { op: number }) {
   );
 }
 
-// ── SVG: BA layer stars ───────────────────────────────────────────────────────
 function LayerStars({
   mdX, mdY, radius, opacity,
 }: {
@@ -182,7 +184,6 @@ function LayerStars({
   );
 }
 
-// ── FW Focus top bar ──────────────────────────────────────────────────────────
 function FWFocusTopBar({ onBack }: { onBack: () => void }) {
   const c = T.frameworks;
   return (
@@ -207,7 +208,6 @@ function FWFocusTopBar({ onBack }: { onBack: () => void }) {
   );
 }
 
-// ── BA overview surface ───────────────────────────────────────────────────────
 function BehavioralOverviewSurface({ onExplore }: { onExplore: () => void }) {
   const c = T.frameworks;
   return (
@@ -258,6 +258,11 @@ function BehavioralOverviewSurface({ onExplore }: { onExplore: () => void }) {
         </div>
       ))}
       <div onClick={onExplore} style={{
+        minHeight: 44,
+        display: "flex",
+        alignItems: "center",
+        width: "fit-content",
+        paddingRight: 16,
         fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.18em",
         color: c, opacity: 0.88, cursor: "pointer", marginTop: 6,
       }}>
@@ -267,7 +272,6 @@ function BehavioralOverviewSurface({ onExplore }: { onExplore: () => void }) {
   );
 }
 
-// ── BA deeper view (framework-reading) ───────────────────────────────────────
 interface BehavioralDeeperViewProps {
   onCanvas: () => void;
   onBack: () => void;
@@ -323,7 +327,6 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
       )`,
       boxSizing: "border-box",
     }}>
-      {/* Top bar */}
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0,
         padding: "22px 22px 0",
@@ -341,12 +344,10 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
         </div>
       </div>
 
-      {/* Scrollable content */}
       <div style={{
         position: "absolute", top: 100, bottom: 0, left: 0, right: 0,
         overflowY: "auto", boxSizing: "border-box",
       }}>
-        {/* Layer cycle navigator */}
         <div style={{
           padding: "0 22px 16px",
           borderBottom: `0.5px solid rgba(106,184,138,0.12)`,
@@ -356,7 +357,6 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
             BEHAVIORAL LOOP
           </div>
           <svg viewBox="0 0 340 96" width="100%" style={{ overflow: "visible", display: "block" }}>
-            {/* Connection lines */}
             {([
               [0, 1], [1, 2], [2, 3],
             ] as [number, number][]).map(([from, to]) => {
@@ -376,35 +376,33 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
                 </g>
               );
             })}
-            {/* Return arc */}
             <path d="M 316 48 C 340 75 340 90 195 90 C 50 90 0 75 20 48"
               fill="none" stroke={c} strokeWidth={0.4} strokeDasharray="2 5" opacity={0.14} />
             <text x={195} y={86} textAnchor="middle" fontFamily={T.mono} fontSize={4} fill={c} opacity={0.20}>↩ LOOP</text>
-            {/* Layer nodes */}
             {layers.map((layer, i) => {
               const px = [20, 113, 220, 316][i];
               const py = [48, 24, 24, 48][i];
               const isActive = layer.id === activeLayer;
               return (
                 <g key={layer.id} onClick={() => setActiveLayer(layer.id)} style={{ cursor: "pointer" }}>
-                  <circle cx={px} cy={py} r={16} fill="transparent" />
                   <circle cx={px} cy={py} r={isActive ? 8 : 5}
-                    fill={c} opacity={isActive ? 1 : 0.28} />
+                    fill={c} opacity={isActive ? 1 : 0.28} pointerEvents="none" />
                   <circle cx={px} cy={py} r={isActive ? 16 : 10}
-                    fill={c} opacity={isActive ? 0.12 : 0.04} />
+                    fill={c} opacity={isActive ? 0.12 : 0.04} pointerEvents="none" />
                   <text x={px} y={py + (i === 0 || i === 3 ? 22 : -14)}
                     textAnchor="middle" fontFamily={T.mono} fontSize={5.5}
                     letterSpacing="0.10em" fill={c}
-                    opacity={isActive ? 0.88 : 0.36}>
+                    opacity={isActive ? 0.88 : 0.36} pointerEvents="none">
                     {layer.short} {layer.label}
                   </text>
+                  {/* 44px minimum touch target for each layer. */}
+                  <circle cx={px} cy={py} r={22} fill="transparent" pointerEvents="all" />
                 </g>
               );
             })}
           </svg>
         </div>
 
-        {/* Active layer content */}
         <div style={{ padding: "0 28px 80px" }}>
           <div style={{ fontFamily: T.serif, fontSize: 21, color: T.gold, opacity: 0.80, lineHeight: 1.30, marginBottom: 6 }}>
             {current.subtitle}
@@ -432,7 +430,6 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
             </div>
           </div>
 
-          {/* Evidence entry (Governance only) */}
           {current.hasEvidence && (
             <div
               onClick={onCanvas}
@@ -467,7 +464,6 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
   );
 }
 
-// ── Framework canvas / evidence (framework-evidence) ──────────────────────────
 function FrameworkCanvas({ onClose }: { onClose: () => void }) {
   const c = T.frameworks;
   return (
@@ -541,16 +537,15 @@ function FrameworkCanvas({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ── Scene ─────────────────────────────────────────────────────────────────────
 interface FrameworksSceneProps {
   state: FWState;
   activeLayer: string;
   setActiveLayer: (id: string) => void;
-  onSelectFramework: () => void;    // tap BA in focus → framework-awakened
-  onFrameworkOverview: () => void;  // tap BA in awakened → framework-overview
-  onExplore: () => void;            // framework-overview EXPLORE → framework-reading
-  onCanvas: () => void;             // framework-reading evidence → framework-evidence
-  onBack: () => void;               // context-sensitive back
+  onSelectFramework: () => void;
+  onFrameworkOverview: () => void;
+  onExplore: () => void;
+  onCanvas: () => void;
+  onBack: () => void;
 }
 
 export default function FrameworksScene({
@@ -573,11 +568,9 @@ export default function FrameworksScene({
 
   return (
     <>
-      {/* ── FW constellation SVG ── */}
       {showConstellation && (
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}
           style={{ position: "absolute", inset: 0 }} aria-hidden>
-          {/* Faint radial lines from FW_CTR */}
           {[0, 60, 120, 180, 240, 300].map((deg) => {
             const r = (deg * Math.PI) / 180;
             return (
@@ -599,7 +592,6 @@ export default function FrameworksScene({
             opacity={layerStarOp}
           />
 
-          {/* Sibling framework nodes */}
           <g style={{ opacity: fwSibOp, transition: FADE }}>
             {FW_FRAMEWORKS.filter((f) => f.id !== "model-design").map((f) => (
               <FrameworkNode
@@ -611,7 +603,6 @@ export default function FrameworksScene({
             ))}
           </g>
 
-          {/* Model Design / Behavioral Architecture — dominant node */}
           <g style={{ opacity: mdState.opacity, transition: FADE }}>
             <FrameworkNode
               label="MODEL DESIGN"
@@ -626,17 +617,14 @@ export default function FrameworksScene({
         </svg>
       )}
 
-      {/* ── FW focus top bar (focus, awakened, overview) ── */}
       {showConstellation && (
         <FWFocusTopBar onBack={onBack} />
       )}
 
-      {/* ── BA overview panel (framework-overview) ── */}
       {state === "framework-overview" && (
         <BehavioralOverviewSurface onExplore={onExplore} />
       )}
 
-      {/* ── BA deeper view (framework-reading) ── */}
       {state === "framework-reading" && (
         <BehavioralDeeperView
           onCanvas={onCanvas}
@@ -646,7 +634,6 @@ export default function FrameworksScene({
         />
       )}
 
-      {/* ── Framework canvas (framework-evidence) ── */}
       {state === "framework-evidence" && (
         <FrameworkCanvas onClose={onBack} />
       )}

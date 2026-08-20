@@ -84,28 +84,41 @@ function ProjectNode({
   const outerR = awakened ? 38 : 22;
 
   return (
-    <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
-      <circle r={22} fill="transparent" onClick={onClick} style={{ cursor: "pointer" }} />
+    <g
+      onClick={onClick}
+      style={{
+        transform: `translate(${cx}px,${cy}px)`,
+        transition: ANIM,
+        cursor: onClick ? "pointer" : "default",
+      }}
+    >
       <circle r={outerR} fill={c}
         opacity={dimmed ? 0.02 : awakened ? 0.10 : 0.05}
+        pointerEvents="none"
         style={{ transition: FADE }} />
       <circle r={innerR} fill={c}
         opacity={dimmed ? 0.04 : awakened ? 0.20 : 0.11}
+        pointerEvents="none"
         style={{ transition: FADE }} />
       <circle r={awakened ? 28 : 18} fill="none" stroke={c} strokeWidth={0.45}
         opacity={dimmed ? 0.03 : awakened ? 0.28 : 0.10}
+        pointerEvents="none"
         style={{ transition: FADE }} />
       <circle r={coreR} fill={c}
         opacity={dimmed ? 0.20 : 1}
+        pointerEvents="none"
         style={{ transition: FADE }} />
       {showLabel && (
         <text y={coreR + 16} textAnchor="middle"
           fontFamily={T.mono} fontSize={7.5} letterSpacing="0.14em"
           fill={c} opacity={dimmed ? 0.14 : 0.55}
+          pointerEvents="none"
           style={{ transition: FADE }}>
           {label}
         </text>
       )}
+      {/* 44px minimum touch target sits above decorative SVG layers. */}
+      {onClick && <circle r={22} fill="transparent" pointerEvents="all" />}
     </g>
   );
 }
@@ -254,6 +267,11 @@ function ProjectOverviewSurface({ onExplore }: { onExplore: () => void }) {
         ))}
       </div>
       <div onClick={onExplore} style={{
+        minHeight: 44,
+        display: "flex",
+        alignItems: "center",
+        width: "fit-content",
+        paddingRight: 16,
         fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.18em",
         color: c, opacity: 0.88, cursor: "pointer",
       }}>
