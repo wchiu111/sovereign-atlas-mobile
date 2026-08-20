@@ -3,14 +3,196 @@
  * Agentic Insurance reading surface + evidence image inspection.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { T } from "../components/mobileShared";
 import evidenceImg from "../../../../imports/case-studies/agentic-insurance/03-approach/3-adjusters-claim-overview.png";
 
-// ── Reading surface (project-reading) ─────────────────────────────────────────
+function InspectableImage({
+  src,
+  alt,
+  accent,
+  maxHeight = 520,
+}: {
+  src: string;
+  alt: string;
+  accent: string;
+  maxHeight?: number;
+}) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
+  const panStart = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
+  const lastTap = useRef(0);
+
+  const [scale, setScale] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+
+  const reset = () => {
+    setScale(1);
+    setTranslate({ x: 0, y: 0 });
+    pinchStart.current = null;
+    panStart.current = null;
+  };
+
+  const clampScale = (next: number) => Math.min(4, Math.max(1, next));
+
+  function distance() {
+    const pts = [...pointers.current.values()];
+    if (pts.length < 2) return 0;
+    return Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+  }
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.current.size === 1 && scale > 1) {
+      panStart.current = { x: e.clientX, y: e.clientY, tx: translate.x, ty: translate.y };
+    }
+
+    if (pointers.current.size === 2) {
+      pinchStart.current = { distance: distance(), scale };
+      panStart.current = null;
+    }
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.current.size >= 2 && pinchStart.current) {
+      const d = distance();
+      if (pinchStart.current.distance > 0) {
+        setScale(clampScale(pinchStart.current.scale * (d / pinchStart.current.distance)));
+      }
+      return;
+    }
+
+    if (pointers.current.size === 1 && panStart.current && scale > 1) {
+      setTranslate({
+        x: panStart.current.tx + (e.clientX - panStart.current.x),
+        y: panStart.current.ty + (e.clientY - panStart.current.y),
+      });
+    }
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinchStart.current = null;
+    if (pointers.current.size === 0) panStart.current = null;
+  }
+
+  function onDoubleTap() {
+    const now = Date.now();
+    if (now - lastTap.current < 280) {
+      if (scale > 1) reset();
+      else setScale(2);
+    }
+    lastTap.current = now;
+  }
+
+  return (
+    <div>
+      <div
+        ref={viewportRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onPointerLeave={onPointerUp}
+        onClick={onDoubleTap}
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          touchAction: "none",
+          background: "rgba(3,3,8,0.96)",
+          borderBottom: `0.5px solid ${accent}22`,
+          cursor: scale > 1 ? "grab" : "zoom-in",
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          style={{
+            width: "100%",
+            display: "block",
+            maxHeight,
+            objectFit: "contain",
+            transform: `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`,
+            transformOrigin: "center center",
+            transition: pointers.current.size ? "none" : "transform 160ms ease",
+            userSelect: "none",
+            WebkitUserDrag: "none",
+          }}
+        />
+      </div>
+
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        minHeight: 44,
+        padding: "0 22px",
+        borderBottom: `0.5px solid ${accent}1A`,
+      }}>
+        <div style={{
+          fontFamily: T.mono,
+          fontSize: 7,
+          letterSpacing: "0.18em",
+          color: T.gold,
+          opacity: 0.24,
+        }}>
+          PINCH OR DOUBLE-TAP TO INSPECT
+        </div>
+
+        <button
+          type="button"
+          onClick={reset}
+          disabled={scale === 1 && translate.x === 0 && translate.y === 0}
+          style={{
+            minWidth: 44,
+            minHeight: 44,
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            fontFamily: T.mono,
+            fontSize: 7,
+            letterSpacing: "0.16em",
+            color: accent,
+            opacity: scale === 1 && translate.x === 0 && translate.y === 0 ? 0.20 : 0.58,
+            cursor: scale === 1 && translate.x === 0 && translate.y === 0 ? "default" : "pointer",
+          }}
+        >
+          RESET
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack: () => void }) {
   const c = T.caseStudies;
   const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      if (showPicker) setShowPicker(false);
+      else onBack();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showPicker, onBack]);
+
+  const sections = [
+    ["01", "CONTEXT"],
+    ["02", "PROBLEM"],
+    ["03", "APPROACH"],
+    ["04", "DECISIONS"],
+    ["05", "OUTCOMES"],
+    ["06", "LESSONS"],
+  ] as const;
 
   return (
     <div style={{
@@ -24,7 +206,6 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
       )`,
       boxSizing: "border-box",
     }}>
-      {/* Reading top bar */}
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0,
         padding: "22px 22px 0",
@@ -41,38 +222,61 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: c, opacity: 0.72 }}>
             AGENTIC INSURANCE
           </div>
-          <div
+          <button
+            type="button"
+            aria-label="Open case study section picker"
             onClick={() => setShowPicker((v) => !v)}
             style={{
-              fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em",
-              color: T.gold, opacity: 0.38, marginTop: 3, cursor: "pointer",
+              minWidth: 44,
+              minHeight: 44,
+              marginTop: -4,
+              marginRight: -10,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              fontFamily: T.mono,
+              fontSize: 8,
+              letterSpacing: "0.16em",
+              color: T.gold,
+              opacity: 0.42,
+              cursor: "pointer",
             }}
           >
             · · ·
-          </div>
+          </button>
         </div>
       </div>
 
-      {/* Scrollable content */}
       <div style={{
         position: "absolute", top: 100, bottom: 0, left: 0, right: 0,
         overflowY: "auto", padding: "0 28px 80px", boxSizing: "border-box",
       }}>
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: 18, paddingBottom: 14,
-          borderBottom: "0.5px solid rgba(138,174,200,0.14)",
-        }}>
-          <div
-            onClick={() => setShowPicker((v) => !v)}
-            style={{
-              fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.72, cursor: "pointer",
-            }}
-          >
+        <button
+          type="button"
+          onClick={() => setShowPicker((v) => !v)}
+          style={{
+            width: "100%",
+            minHeight: 44,
+            padding: "0 0 14px",
+            marginBottom: 18,
+            border: "none",
+            borderBottom: "0.5px solid rgba(138,174,200,0.14)",
+            background: "transparent",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            textAlign: "left",
+            cursor: "pointer",
+          }}
+        >
+          <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.72 }}>
             03 / 06 · APPROACH
-          </div>
-          <div style={{ fontFamily: T.mono, fontSize: 7, color: T.gold, opacity: 0.28 }}>↕</div>
-        </div>
+          </span>
+          <span style={{ fontFamily: T.mono, fontSize: 7, color: T.gold, opacity: 0.28 }}>↕</span>
+        </button>
 
         <div style={{ fontFamily: T.serif, fontSize: 22, color: T.gold, opacity: 0.82, lineHeight: 1.30, marginBottom: 8 }}>
           Using AI to investigate the role, not impersonate validation
@@ -92,7 +296,6 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           </div>
         ))}
 
-        {/* Evidence entry */}
         <div
           onClick={onEvidence}
           style={{
@@ -140,61 +343,96 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
         </div>
       </div>
 
-      {/* Section picker */}
       {showPicker && (
-        <div
-          onClick={() => setShowPicker(false)}
-          style={{
-            position: "absolute", bottom: 0, left: 0, right: 0,
-            background: "rgba(5,5,10,0.96)",
-            backdropFilter: "blur(32px)",
-            WebkitBackdropFilter: "blur(32px)",
-            borderTop: `0.5px solid rgba(138,174,200,0.22)`,
-            padding: "16px 0 48px",
-            boxSizing: "border-box",
-          }}
-        >
-          <div style={{
-            fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.22em",
-            color: T.gold, opacity: 0.28, padding: "0 28px", marginBottom: 12,
-          }}>
-            SECTIONS
-          </div>
-          {[["01", "CONTEXT"], ["02", "PROBLEM"], ["03", "APPROACH"], ["04", "DECISIONS"], ["05", "OUTCOMES"], ["06", "LESSONS"]].map(([num, name]) => (
-            <div
-              key={num}
-              onClick={() => setShowPicker(false)}
-              style={{
-                padding: "13px 28px",
-                display: "flex", alignItems: "center", gap: 16,
-                borderBottom: `0.5px solid rgba(138,174,200,0.07)`,
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontFamily: T.mono, fontSize: 8, color: c, opacity: 0.35, minWidth: 20 }}>
-                {num}
-              </div>
-              <div style={{
-                fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.16em",
-                color: name === "APPROACH" ? c : T.gold,
-                opacity: name === "APPROACH" ? 0.90 : 0.44,
-              }}>
-                {name}
-              </div>
-              {name === "APPROACH" && (
-                <div style={{ marginLeft: "auto", width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.7 }} />
-              )}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(5,5,10,0.44)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
+        }}>
+          <div
+            onClick={() => setShowPicker(false)}
+            style={{ position: "absolute", inset: 0 }}
+          />
+          <div
+            role="dialog"
+            aria-label="Case study sections"
+            style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              background: "rgba(5,5,10,0.97)",
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              borderTop: `0.5px solid rgba(138,174,200,0.22)`,
+              padding: "16px 0 48px",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{
+              fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.22em",
+              color: T.gold, opacity: 0.28, padding: "0 28px", marginBottom: 12,
+            }}>
+              SECTIONS
             </div>
-          ))}
+
+            {sections.map(([num, name]) => {
+              const isActive = name === "APPROACH";
+              return (
+                <button
+                  type="button"
+                  key={num}
+                  disabled={!isActive}
+                  onClick={() => isActive && setShowPicker(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  style={{
+                    width: "100%",
+                    minHeight: 48,
+                    padding: "0 28px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    border: "none",
+                    borderBottom: `0.5px solid rgba(138,174,200,0.07)`,
+                    background: "transparent",
+                    textAlign: "left",
+                    cursor: isActive ? "pointer" : "default",
+                    opacity: isActive ? 1 : 0.42,
+                  }}
+                >
+                  <span style={{ fontFamily: T.mono, fontSize: 8, color: c, opacity: 0.35, minWidth: 20 }}>
+                    {num}
+                  </span>
+                  <span style={{
+                    fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.16em",
+                    color: isActive ? c : T.gold,
+                    opacity: isActive ? 0.90 : 0.44,
+                  }}>
+                    {name}
+                  </span>
+                  {isActive && (
+                    <span style={{ marginLeft: "auto", width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.7 }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-// ── Evidence viewer (evidence-viewer) ─────────────────────────────────────────
 function EvidenceViewer({ onClose }: { onClose: () => void }) {
   const c = T.caseStudies;
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div style={{
       position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
@@ -230,20 +468,12 @@ function EvidenceViewer({ onClose }: { onClose: () => void }) {
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "0 0 60px" }}>
-        <img
+        <InspectableImage
           src={evidenceImg}
           alt="Adjuster Claims Overview — a unified claims workspace supporting triage and faster orientation"
-          style={{ width: "100%", display: "block", maxHeight: 520, objectFit: "contain" }}
+          accent={c}
         />
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          padding: "10px 0 18px",
-          borderBottom: `0.5px solid rgba(138,174,200,0.10)`,
-        }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: T.gold, opacity: 0.22 }}>
-            PINCH TO INSPECT
-          </div>
-        </div>
+
         <div style={{ padding: "18px 28px 0" }}>
           <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.38, marginBottom: 8 }}>
             CAPTION
@@ -268,11 +498,10 @@ function EvidenceViewer({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ── Scene ─────────────────────────────────────────────────────────────────────
 interface ReadingSceneProps {
   state: "project-reading" | "evidence-viewer";
-  onEvidence: () => void;   // project-reading → evidence-viewer
-  onBack: () => void;       // → project-overview (reading) | project-reading (evidence)
+  onEvidence: () => void;
+  onBack: () => void;
 }
 
 export default function ReadingScene({ state, onEvidence, onBack }: ReadingSceneProps) {

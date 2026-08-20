@@ -6,6 +6,7 @@
 import type { MobileState } from "../components/mobileShared";
 import { T, ANIM, FADE, W, H, NEXUS, BASE_R, EX_POS, FW_POS, ORBIT_R, SYSTEMS } from "../components/mobileShared";
 import type { SystemDef, Planet } from "../components/mobileShared";
+import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 
@@ -242,15 +243,47 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       </svg>
 
       {state === "atlas-landing" && (
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-start", pointerEvents: "none" }}>
-          <div>
-            <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: T.gold, opacity: 0.50 }}>THE SOVEREIGN ATLAS</div>
-            <div style={{ fontFamily: T.serif, fontSize: 13, color: T.gold, opacity: 0.32, marginTop: 3 }}>Three systems in orbit</div>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: "20px 22px 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: 11.5,
+              letterSpacing: "0.24em",
+              color: T.gold,
+              opacity: 0.86,
+              lineHeight: 1.25,
+              whiteSpace: "nowrap",
+            }}
+          >
+            THE SOVEREIGN ATLAS
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px", minWidth: 44, minHeight: 44, justifyContent: "center", border: "0.5px solid rgba(232,213,163,0.18)", borderRadius: 3, pointerEvents: "auto", cursor: "pointer" }}>
-            <svg width={11} height={11} viewBox="0 0 11 11" fill="none"><circle cx={4.5} cy={4.5} r={3.2} stroke={T.gold} strokeWidth={0.85} opacity={0.52} /><line x1={7} y1={7} x2={10} y2={10} stroke={T.gold} strokeWidth={0.85} opacity={0.52} /></svg>
-            <span style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.2em", color: T.gold, opacity: 0.50 }}>SEARCH</span>
+          <div
+            style={{
+              fontFamily: T.serif,
+              fontSize: 13.5,
+              color: T.gold,
+              opacity: 0.42,
+              marginTop: 5,
+              lineHeight: 1.25,
+            }}
+          >
+            Three systems in orbit
           </div>
+
+          <AtlasUtilitySheet />
         </div>
       )}
 
