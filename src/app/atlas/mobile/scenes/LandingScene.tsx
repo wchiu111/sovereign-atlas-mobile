@@ -41,7 +41,7 @@ function NexusNode({ op }: { op: number }) {
       <circle r={17}  fill="rgba(232,213,163,0.12)" />
       <circle r={8}   fill={T.gold} />
       <text y={-46} textAnchor="middle" fontFamily={T.mono} fontSize={7.5}
-        letterSpacing="0.22em" fill={T.gold} opacity={0.42}>
+        letterSpacing="0.22em" fill={T.accentGold} opacity={0.78}>
         SOVEREIGN DESIGN
       </text>
     </g>
@@ -103,7 +103,7 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel }: {
       <circle r={42} fill="none" stroke={sys.color} strokeWidth={0.3} opacity={awakened ? 0.18 : 0.07} style={{ transition: FADE }} />
       <circle r={coreR} fill={sys.color} opacity={awakened ? 1 : 0.88} style={{ transition: FADE }} />
       {showLabel && (
-        <text y={BASE_R * 2.2 + 14} textAnchor="middle" fontFamily={T.mono} fontSize={8} letterSpacing="0.14em" fill={sys.color} opacity={0.38}>
+        <text y={BASE_R * 2.2 + 14} textAnchor="middle" fontFamily={T.mono} fontSize={8} letterSpacing="0.14em" fill={sys.color} opacity={0.68}>
           {sys.label}
         </text>
       )}
@@ -125,9 +125,9 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
         <div style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.24em", color: c, opacity: 0.9 }}>CASE STUDIES</div>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: c, opacity: 0.55 }} />
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.18em", color: T.gold, opacity: 0.40, marginBottom: 14 }}>4 PROJECTS</div>
+      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72, marginBottom: 14 }}>4 PROJECTS</div>
       <div style={{ height: 0.5, background: "rgba(232,213,163,0.10)", marginBottom: 14 }} />
-      <div style={{ fontFamily: T.serif, fontSize: 14, color: T.gold, opacity: 0.64, lineHeight: 1.58, marginBottom: 20 }}>
+      <div style={{ fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.84, lineHeight: 1.58, marginBottom: 20 }}>
         Real-world product work, decisions, and outcomes.
       </div>
       <div onClick={onExplore} style={{
@@ -148,16 +148,16 @@ function OverviewScrolled({ onExplore, onBack }: { onExplore: () => void; onBack
   ];
   return (
     <div style={{
-      position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
+      position: "absolute", top: 24, bottom: 0, left: 0, right: 0,
       background: `linear-gradient(to bottom, rgba(5,5,10,0.22) 0px, rgba(5,5,10,0.62) 70px, rgba(5,5,10,0.92) 140px, rgba(5,5,10,0.97) 200px)`,
       overflowY: "auto", overflowX: "hidden", boxSizing: "border-box",
     }}>
       <div onClick={onBack} style={{ height: 80, display: "flex", alignItems: "flex-end", paddingBottom: 10, paddingLeft: 28, cursor: "pointer" }}>
-        <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.gold, opacity: 0.32 }}>‹ ATLAS</span>
+        <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72 }}>‹ ATLAS</span>
       </div>
       <div style={{ padding: "0 28px", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.22em", color: c, opacity: 0.50 }}>CASE STUDIES</div>
-        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: T.gold, opacity: 0.28 }}>4 PROJECTS</div>
+        <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.22em", color: c, opacity: 0.74 }}>CASE STUDIES</div>
+        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: T.body, opacity: 0.68 }}>4 PROJECTS</div>
       </div>
       <div style={{ margin: "0 28px 24px", height: 0.5, background: "rgba(232,213,163,0.09)" }} />
       <div style={{ padding: "0 28px" }}>
@@ -168,14 +168,14 @@ function OverviewScrolled({ onExplore, onBack }: { onExplore: () => void; onBack
           { label: "KEY DISCOVERY", body: "Sustainable design authority emerges from clarity about process — not confidence in output. The decisions are the artifact." },
         ].map(({ label, body }) => (
           <div key={label} style={{ marginBottom: 22 }}>
-            <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.gold, opacity: 0.36, marginBottom: 7 }}>{label}</div>
-            <div style={{ fontFamily: T.serif, fontSize: 13.5, color: T.gold, opacity: 0.66, lineHeight: 1.62 }}>{body}</div>
+            <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.accentGold, opacity: 0.72, marginBottom: 7 }}>{label}</div>
+            <div style={{ fontFamily: T.serif, fontSize: 13.5, color: T.body, opacity: 0.84, lineHeight: 1.62 }}>{body}</div>
           </div>
         ))}
       </div>
       <div style={{ margin: "6px 28px 22px", height: 0.5, background: "rgba(232,213,163,0.09)" }} />
       <div style={{ padding: "0 28px" }}>
-        <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.gold, opacity: 0.30, marginBottom: 18 }}>CONTAINED PROJECTS</div>
+        <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.body, opacity: 0.66, marginBottom: 18 }}>CONTAINED PROJECTS</div>
         {projects.map((p, i) => (
           <div key={p.name} style={{
             display: "flex", gap: 12, alignItems: "flex-start",
@@ -186,7 +186,7 @@ function OverviewScrolled({ onExplore, onBack }: { onExplore: () => void; onBack
             <div style={{ width: 5, height: 5, borderRadius: "50%", background: c, opacity: 0.60, marginTop: 5, flexShrink: 0 }} />
             <div>
               <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.78, marginBottom: 4 }}>{p.name}</div>
-              <div style={{ fontFamily: T.serif, fontSize: 12.5, color: T.gold, opacity: 0.52, lineHeight: 1.56 }}>{p.desc}</div>
+              <div style={{ fontFamily: T.serif, fontSize: 12.5, color: T.body, opacity: 0.78, lineHeight: 1.56 }}>{p.desc}</div>
             </div>
           </div>
         ))}
@@ -263,7 +263,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               fontSize: 11.5,
               letterSpacing: "0.24em",
               color: T.gold,
-              opacity: 0.86,
+              opacity: 0.94,
               lineHeight: 1.25,
               whiteSpace: "nowrap",
             }}
@@ -274,8 +274,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             style={{
               fontFamily: T.serif,
               fontSize: 13.5,
-              color: T.gold,
-              opacity: 0.42,
+              color: T.body,
+              opacity: 0.78,
               marginTop: 5,
               lineHeight: 1.25,
             }}
@@ -289,14 +289,14 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       {state === "atlas-landing" && (
         <div style={{ position: "absolute", bottom: 58, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, pointerEvents: "none" }}>
           <div style={{ width: 0.5, height: 18, background: "rgba(232,213,163,0.18)" }} />
-          <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.gold, opacity: 0.28 }}>ENTER OBSERVATORY</div>
+          <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.accentGold, opacity: 0.68 }}>ENTER OBSERVATORY</div>
         </div>
       )}
 
       {state === "system-awakened" && (
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center", pointerEvents: "none" }}>
-          <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.gold, opacity: 0.38, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
-          <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: T.caseStudies, opacity: 0.62 }}>CASE STUDIES</div>
+        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center", pointerEvents: "none" }}>
+          <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
+          <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: T.caseStudies, opacity: 0.80 }}>CASE STUDIES</div>
         </div>
       )}
 

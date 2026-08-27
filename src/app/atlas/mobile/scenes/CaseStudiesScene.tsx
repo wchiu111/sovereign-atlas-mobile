@@ -63,7 +63,7 @@ function CSParentNode({ op }: { op: number }) {
       <circle r={10} fill={c} opacity={0.42} />
       <circle r={4}  fill={c} opacity={0.85} />
       <text y={26} textAnchor="middle" fontFamily={T.mono} fontSize={6.5}
-        letterSpacing="0.2em" fill={c} opacity={0.35}>
+        letterSpacing="0.2em" fill={c} opacity={0.66}>
         CASE STUDIES
       </text>
     </g>
@@ -199,11 +199,11 @@ function FocusTopBar({ onBack }: { onBack: () => void }) {
         display: "flex", alignItems: "center", gap: 6,
         pointerEvents: "auto", cursor: "pointer", minHeight: 44,
       }}>
-        <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.gold, opacity: 0.40 }}>
+        <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72 }}>
           ‹ OVERVIEW
         </span>
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: c, opacity: 0.62 }}>
+      <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: c, opacity: 0.78 }}>
         CASE STUDIES
       </div>
     </div>
@@ -227,11 +227,11 @@ function ProjectOverviewSurface({ onExplore }: { onExplore: () => void }) {
         <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.20em", color: c, opacity: 0.92 }}>
           AGENTIC INSURANCE
         </div>
-        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: T.gold, opacity: 0.28, marginTop: 2 }}>
+        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: T.body, opacity: 0.68, marginTop: 2 }}>
           CASE STUDY
         </div>
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: T.gold, opacity: 0.30, marginBottom: 14 }}>
+      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: T.body, opacity: 0.68, marginBottom: 14 }}>
         2024 · PRODUCT DESIGNER
       </div>
       <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
@@ -248,10 +248,10 @@ function ProjectOverviewSurface({ onExplore }: { onExplore: () => void }) {
       </div>
       <div style={{ height: 0.5, background: "rgba(232,213,163,0.09)", marginBottom: 16 }} />
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.20em", color: T.gold, opacity: 0.32, marginBottom: 6 }}>
+        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.20em", color: T.accentGold, opacity: 0.72, marginBottom: 6 }}>
           WHAT
         </div>
-        <div style={{ fontFamily: T.serif, fontSize: 13, color: T.gold, opacity: 0.60, lineHeight: 1.60 }}>
+        <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.84, lineHeight: 1.60 }}>
           A self-directed exploration of how AI-assisted tools might support claim adjusters and customers during complex insurance decisions.
         </div>
       </div>
@@ -259,7 +259,7 @@ function ProjectOverviewSurface({ onExplore }: { onExplore: () => void }) {
         {["CONTEXT", "PROBLEM", "APPROACH", "DECISIONS", "OUTCOMES", "LESSONS"].map((sec, i) => (
           <div key={sec} style={{
             fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em",
-            color: c, opacity: 0.38,
+            color: c, opacity: 0.68,
           }}>
             {String(i + 1).padStart(2, "0")} {sec}
             {i < 5 && <span style={{ opacity: 0.4, marginLeft: 8 }}>·</span>}

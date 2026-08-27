@@ -11,8 +11,11 @@ export const H = 844;
 export const T = {
   bg:          "#05050A",
   gold:        "#E8D5A3",
+  body:        "#D4C490",
+  accentGold:  "#C8A96E",
+  muted:       "#6A5F4A",
   caseStudies: "#8AAEC8",
-  experiments: "#9B8AC4",
+  experiments: "#A68BD4",
   frameworks:  "#6AB88A",
   mono:        "'DM Mono', monospace",
   serif:       "'EB Garamond', Georgia, serif",
@@ -130,7 +133,7 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
 
       const ng = ctx!.createRadialGradient(NEXUS.x, NEXUS.y, 0, NEXUS.x, NEXUS.y, 310);
       ng.addColorStop(0,    "rgba(138,174,200,0.042)");
-      ng.addColorStop(0.30, "rgba(155,138,200,0.028)");
+      ng.addColorStop(0.30, "rgba(166,139,212,0.028)");
       ng.addColorStop(0.60, "rgba(106,184,138,0.014)");
       ng.addColorStop(1,    "transparent");
       ctx!.fillStyle = ng;
@@ -143,7 +146,7 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
       ctx!.fillRect(0, 0, W, H);
 
       const ug = ctx!.createRadialGradient(195, 155, 0, 195, 155, 200);
-      ug.addColorStop(0,   "rgba(155,138,200,0.022)");
+      ug.addColorStop(0,   "rgba(166,139,212,0.022)");
       ug.addColorStop(0.5, "rgba(138,174,200,0.014)");
       ug.addColorStop(1,   "transparent");
       ctx!.fillStyle = ug;

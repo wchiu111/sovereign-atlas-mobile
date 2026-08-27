@@ -60,7 +60,7 @@ function FWParentNode({ op }: { op: number }) {
       <circle r={28} fill="none" stroke={c} strokeWidth={0.4} opacity={0.12} />
       <circle r={10} fill={c} opacity={0.40} />
       <circle r={4} fill={c} opacity={0.80} />
-      <text y={26} textAnchor="middle" fontFamily={T.mono} fontSize={6.5} letterSpacing="0.2em" fill={c} opacity={0.32}>
+      <text y={26} textAnchor="middle" fontFamily={T.mono} fontSize={6.5} letterSpacing="0.2em" fill={c} opacity={0.66}>
         FRAMEWORKS
       </text>
     </g>
@@ -81,7 +81,7 @@ function FrameworkNode({ label, cx, cy, awakened, onClick }: {
       <circle r={innerR} fill={c} opacity={awakened ? 0.19 : 0.10} pointerEvents="none" style={{ transition: FADE }} />
       <circle r={awakened ? 26 : 16} fill="none" stroke={c} strokeWidth={0.5} opacity={awakened ? 0.30 : 0.09} pointerEvents="none" style={{ transition: FADE }} />
       <circle r={coreR} fill={c} pointerEvents="none" style={{ transition: FADE }} />
-      <text y={coreR + 16} textAnchor="middle" fontFamily={T.mono} fontSize={7.5} letterSpacing="0.13em" fill={c} opacity={0.52} pointerEvents="none">
+      <text y={coreR + 16} textAnchor="middle" fontFamily={T.mono} fontSize={7.5} letterSpacing="0.13em" fill={c} opacity={0.70} pointerEvents="none">
         {label}
       </text>
       {onClick && <circle r={22} fill="transparent" pointerEvents="all" />}
@@ -161,9 +161,9 @@ function FWFocusTopBar({ onBack }: { onBack: () => void }) {
   return (
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center", pointerEvents: "none" }}>
       <div onClick={onBack} style={{ display: "flex", alignItems: "center", pointerEvents: "auto", cursor: "pointer", minHeight: 44 }}>
-        <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.gold, opacity: 0.38 }}>‹ ATLAS</span>
+        <span style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72 }}>‹ ATLAS</span>
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: c, opacity: 0.62 }}>FRAMEWORKS</div>
+      <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: c, opacity: 0.78 }}>FRAMEWORKS</div>
     </div>
   );
 }
@@ -174,11 +174,11 @@ function BehavioralOverviewSurface({ onExplore }: { onExplore: () => void }) {
     <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, boxSizing: "border-box", borderTop: `0.5px solid rgba(106,184,138,0.24)`, background: "rgba(5,5,10,0.92)", backdropFilter: "blur(28px)", padding: "22px 28px 52px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 3 }}>
         <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: "0.20em", color: c, opacity: 0.92 }}>BEHAVIORAL ARCHITECTURE</div>
-        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.14em", color: T.gold, opacity: 0.28, marginTop: 2 }}>FRAMEWORK</div>
+        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.14em", color: T.body, opacity: 0.68, marginTop: 2 }}>FRAMEWORK</div>
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: T.gold, opacity: 0.30, marginBottom: 14 }}>CORE FRAMEWORK · SYSTEM CHARACTER</div>
+      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: T.body, opacity: 0.68, marginBottom: 14 }}>CORE FRAMEWORK · SYSTEM CHARACTER</div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-        {BA_LAYERS.map((layer) => <div key={layer.id} style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: c, opacity: 0.55, border: `0.5px solid rgba(106,184,138,0.26)`, borderRadius: 2, padding: "3px 8px" }}>{layer.label}</div>)}
+        {BA_LAYERS.map((layer) => <div key={layer.id} style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: c, opacity: 0.72, border: `0.5px solid rgba(106,184,138,0.26)`, borderRadius: 2, padding: "3px 8px" }}>{layer.label}</div>)}
       </div>
       <div style={{ height: 0.5, background: "rgba(232,213,163,0.09)", marginBottom: 16 }} />
       {[
@@ -186,8 +186,8 @@ function BehavioralOverviewSurface({ onExplore }: { onExplore: () => void }) {
         { label: "KEY DISCOVERY", body: "Trustworthy behavior does not come from the model alone. It emerges from the architecture governing what the system may do, how its behavior is evaluated, and how it recovers when alignment begins to drift." },
       ].map(({ label, body }) => (
         <div key={label} style={{ marginBottom: 14 }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.20em", color: T.gold, opacity: 0.30, marginBottom: 6 }}>{label}</div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.gold, opacity: 0.58, lineHeight: 1.60 }}>{body}</div>
+          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.20em", color: T.accentGold, opacity: 0.72, marginBottom: 6 }}>{label}</div>
+          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.84, lineHeight: 1.60 }}>{body}</div>
         </div>
       ))}
       <div onClick={onExplore} style={{ minHeight: 44, display: "flex", alignItems: "center", width: "fit-content", paddingRight: 16, fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.18em", color: c, opacity: 0.88, cursor: "pointer", marginTop: 6 }}>
@@ -245,13 +245,13 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
   return (
     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(5,5,10,0.15) 0px, rgba(5,5,10,0.72) 80px, rgba(5,5,10,0.96) 160px, rgba(5,5,10,0.99) 220px)" }}>
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.gold, opacity: 0.36, cursor: "pointer", display: "flex", alignItems: "center", minHeight: 44 }}>‹ OVERVIEW</div>
+        <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", display: "flex", alignItems: "center", minHeight: 44 }}>‹ OVERVIEW</div>
         <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.16em", color: c, opacity: 0.68 }}>BEHAVIORAL ARCHITECTURE</div>
       </div>
 
       <div style={{ position: "absolute", top: 100, bottom: 0, left: 0, right: 0, overflowY: "auto" }}>
         <div style={{ padding: "0 22px 16px", borderBottom: `0.5px solid rgba(106,184,138,0.12)`, marginBottom: 20 }}>
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.18em", color: T.gold, opacity: 0.26, marginBottom: 10 }}>BEHAVIORAL LOOP</div>
+          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.18em", color: T.body, opacity: 0.66, marginBottom: 10 }}>BEHAVIORAL LOOP</div>
           <svg viewBox="0 0 340 96" width="100%" style={{ overflow: "visible", display: "block" }}>
             {([
               [0, 1], [1, 2], [2, 3],
@@ -299,12 +299,12 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
           <div style={{ height: 0.5, background: "rgba(232,213,163,0.10)", marginBottom: 18 }} />
 
           {current.content.split("\n\n").map((para, i) => (
-            <div key={i} style={{ fontFamily: T.serif, fontSize: 13.5, color: T.gold, opacity: 0.62, lineHeight: 1.68, marginBottom: 16 }}>{para}</div>
+            <div key={i} style={{ fontFamily: T.serif, fontSize: 13.5, color: T.body, opacity: 0.84, lineHeight: 1.68, marginBottom: 16 }}>{para}</div>
           ))}
 
           <div style={{ borderLeft: `1.5px solid rgba(106,184,138,0.30)`, paddingLeft: 16, marginBottom: 22 }}>
-            <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: c, opacity: 0.42, marginBottom: 8 }}>LAYER INSIGHT</div>
-            <div style={{ fontFamily: T.serif, fontSize: 14, color: T.gold, opacity: 0.68, lineHeight: 1.58, fontStyle: "italic" }}>"{current.insight}"</div>
+            <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: c, opacity: 0.72, marginBottom: 8 }}>LAYER INSIGHT</div>
+            <div style={{ fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.84, lineHeight: 1.58, fontStyle: "italic" }}>"{current.insight}"</div>
           </div>
 
           {current.hasEvidence && (
@@ -313,9 +313,9 @@ function BehavioralDeeperView({ onCanvas, onBack, activeLayer, setActiveLayer }:
               <div style={{ background: "rgba(5,5,10,0.88)", padding: "10px 14px 12px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                   <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.14em", color: c, opacity: 0.70 }}>02 · BEHAVIORAL ARCHITECTURE</div>
-                  <div style={{ fontFamily: T.mono, fontSize: 7, color: c, opacity: 0.40 }}>→ INSPECT</div>
+                  <div style={{ fontFamily: T.mono, fontSize: 7, color: c, opacity: 0.70 }}>→ INSPECT</div>
                 </div>
-                <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.gold, opacity: 0.28 }}>INTERACTIVE EXAMPLE · GOVERNANCE</div>
+                <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.body, opacity: 0.66 }}>INTERACTIVE EXAMPLE · GOVERNANCE</div>
               </div>
             </div>
           )}
@@ -401,10 +401,10 @@ function FrameworkCanvas({ onClose }: { onClose: () => void }) {
   return (
     <div style={{ position: "absolute", inset: 0, background: "rgba(5,5,10,0.98)", backdropFilter: "blur(24px)", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "22px 22px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, borderBottom: `0.5px solid rgba(106,184,138,0.12)` }}>
-        <div onClick={onClose} style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.gold, opacity: 0.36, cursor: "pointer", display: "flex", alignItems: "center", minHeight: 44, paddingRight: 12 }}>‹ GOVERNANCE</div>
+        <div onClick={onClose} style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", display: "flex", alignItems: "center", minHeight: 44, paddingRight: 12 }}>‹ GOVERNANCE</div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 8, letterSpacing: "0.14em", color: c, opacity: 0.55 }}>02 · BEHAVIORAL ARCHITECTURE</div>
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.gold, opacity: 0.26, marginTop: 2 }}>INTERACTIVE EXAMPLE</div>
+          <div style={{ fontFamily: T.mono, fontSize: 8, letterSpacing: "0.14em", color: c, opacity: 0.74 }}>02 · BEHAVIORAL ARCHITECTURE</div>
+          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.body, opacity: 0.66, marginTop: 2 }}>INTERACTIVE EXAMPLE</div>
         </div>
       </div>
 
@@ -436,7 +436,7 @@ function FrameworkCanvas({ onClose }: { onClose: () => void }) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 44, padding: "0 22px", borderBottom: `0.5px solid rgba(106,184,138,0.10)` }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: T.gold, opacity: 0.22 }}>PINCH OR DOUBLE-TAP TO INSPECT</div>
+          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: T.body, opacity: 0.66 }}>PINCH OR DOUBLE-TAP TO INSPECT</div>
           <button
             type="button"
             onClick={reset}
@@ -448,15 +448,15 @@ function FrameworkCanvas({ onClose }: { onClose: () => void }) {
         </div>
 
         <div style={{ padding: "18px 28px 0" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.36, marginBottom: 8 }}>CAPTION</div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.gold, opacity: 0.52, lineHeight: 1.64 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.70, marginBottom: 8 }}>CAPTION</div>
+          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.80, lineHeight: 1.64 }}>
             The interface makes the behavioral system surrounding the AI visible before asking the person to trust its output.
             Trust shifts from the artifact to the governed, bounded, observable, and recoverable process that produced it.
           </div>
         </div>
         <div style={{ margin: "18px 28px 0", padding: "12px 0", borderTop: `0.5px solid rgba(232,213,163,0.07)`, display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.45 }} />
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: c, opacity: 0.32 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: c, opacity: 0.68 }}>
             BEHAVIORAL ARCHITECTURE · GOVERNANCE · 01 TRADITIONAL AI vs 02 BEHAVIORAL ARCHITECTURE
           </div>
         </div>

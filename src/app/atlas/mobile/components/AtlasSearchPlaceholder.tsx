@@ -66,12 +66,12 @@ export default function AtlasSearchPlaceholder({
             minWidth: 44,
             border: "none",
             background: "transparent",
-            color: T.gold,
+            color: T.body,
             padding: 0,
             fontFamily: T.mono,
             fontSize: 8.5,
             letterSpacing: "0.18em",
-            opacity: 0.52,
+            opacity: 0.78,
             textAlign: "left",
             cursor: "pointer",
           }}
@@ -92,7 +92,7 @@ export default function AtlasSearchPlaceholder({
             padding: 0,
             fontFamily: T.mono,
             fontSize: 18,
-            opacity: 0.34,
+            opacity: 0.68,
             cursor: "pointer",
           }}
         >
@@ -105,8 +105,8 @@ export default function AtlasSearchPlaceholder({
           fontFamily: T.mono,
           fontSize: 10,
           letterSpacing: "0.24em",
-          color: T.gold,
-          opacity: 0.86,
+          color: T.accentGold,
+          opacity: 1,
           marginBottom: 8,
         }}
       >
@@ -118,8 +118,8 @@ export default function AtlasSearchPlaceholder({
           fontFamily: T.serif,
           fontSize: 13,
           lineHeight: 1.5,
-          color: T.gold,
-          opacity: 0.44,
+          color: T.body,
+          opacity: 0.84,
           marginBottom: 18,
         }}
       >
@@ -132,8 +132,8 @@ export default function AtlasSearchPlaceholder({
           fontFamily: T.mono,
           fontSize: 7,
           letterSpacing: "0.16em",
-          color: T.gold,
-          opacity: 0.30,
+          color: T.body,
+          opacity: 0.72,
           marginBottom: 8,
         }}
       >
@@ -158,8 +158,8 @@ export default function AtlasSearchPlaceholder({
           style={{
             fontFamily: T.serif,
             fontSize: 20,
-            color: T.gold,
-            opacity: 0.56,
+            color: T.accentGold,
+            opacity: 0.82,
           }}
         >
           ⌕
@@ -194,8 +194,8 @@ export default function AtlasSearchPlaceholder({
           fontFamily: T.serif,
           fontSize: 12.5,
           lineHeight: 1.6,
-          color: T.gold,
-          opacity: 0.34,
+          color: T.body,
+          opacity: 0.76,
         }}
       >
         Mobile Search architecture will be adapted in the next pass.
@@ -208,8 +208,8 @@ export default function AtlasSearchPlaceholder({
             fontFamily: T.mono,
             fontSize: 7.5,
             letterSpacing: "0.14em",
-            color: T.gold,
-            opacity: 0.24,
+            color: T.body,
+            opacity: 0.66,
           }}
         >
           SEARCH IS NOT EXECUTED IN THIS PROTOTYPE

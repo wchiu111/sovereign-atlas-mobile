@@ -213,7 +213,7 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
       }}>
         <div onClick={onBack} style={{
           fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em",
-          color: T.gold, opacity: 0.36, cursor: "pointer", minHeight: 44,
+          color: T.body, opacity: 0.72, cursor: "pointer", minHeight: 44,
           display: "flex", alignItems: "center",
         }}>
           ‹ OVERVIEW
@@ -240,8 +240,8 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
               fontFamily: T.mono,
               fontSize: 8,
               letterSpacing: "0.16em",
-              color: T.gold,
-              opacity: 0.42,
+              color: T.body,
+              opacity: 0.72,
               cursor: "pointer",
             }}
           >
@@ -275,7 +275,7 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.72 }}>
             03 / 06 · APPROACH
           </span>
-          <span style={{ fontFamily: T.mono, fontSize: 7, color: T.gold, opacity: 0.28 }}>↕</span>
+          <span style={{ fontFamily: T.mono, fontSize: 7, color: T.body, opacity: 0.68 }}>↕</span>
         </button>
 
         <div style={{ fontFamily: T.serif, fontSize: 22, color: T.gold, opacity: 0.82, lineHeight: 1.30, marginBottom: 8 }}>
@@ -289,7 +289,7 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           "From that research, I mapped a customer and adjuster journey and explored where AI-assisted tools might support the process.",
         ].map((para, i) => (
           <div key={i} style={{
-            fontFamily: T.serif, fontSize: 14, color: T.gold, opacity: 0.64,
+            fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.86,
             lineHeight: 1.68, marginBottom: 18,
           }}>
             {para}
@@ -316,15 +316,15 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
               <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: c, opacity: 0.72 }}>
                 03 · ADJUSTER CLAIMS OVERVIEW
               </div>
-              <div style={{ fontFamily: T.mono, fontSize: 7, color: c, opacity: 0.42 }}>→ INSPECT</div>
+              <div style={{ fontFamily: T.mono, fontSize: 7, color: c, opacity: 0.72 }}>→ INSPECT</div>
             </div>
-            <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.gold, opacity: 0.30 }}>
+            <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.body, opacity: 0.68 }}>
               UI CONCEPT
             </div>
           </div>
         </div>
 
-        <div style={{ fontFamily: T.serif, fontSize: 14, color: T.gold, opacity: 0.60, lineHeight: 1.68, marginBottom: 18 }}>
+        <div style={{ fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.84, lineHeight: 1.68, marginBottom: 18 }}>
           The concepts focused on areas such as summarizing claim information, identifying missing or conflicting evidence,
           surfacing jurisdictional or policy considerations, explaining why a case may require escalation, helping the adjuster
           compare possible next steps, and preserving a clear record of how a decision was reached.
@@ -334,10 +334,10 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           borderLeft: `1.5px solid rgba(138,174,200,0.30)`,
           paddingLeft: 16, marginBottom: 8,
         }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: c, opacity: 0.45, marginBottom: 8 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: c, opacity: 0.72, marginBottom: 8 }}>
             SECTION INSIGHT
           </div>
-          <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.gold, opacity: 0.72, lineHeight: 1.60, fontStyle: "italic" }}>
+          <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.86, lineHeight: 1.60, fontStyle: "italic" }}>
             "AI was most useful when it helped me ask better questions about an unfamiliar role — not when it pretended to be the final source of truth."
           </div>
         </div>
@@ -370,7 +370,7 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
           >
             <div style={{
               fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.22em",
-              color: T.gold, opacity: 0.28, padding: "0 28px", marginBottom: 12,
+              color: T.body, opacity: 0.68, padding: "0 28px", marginBottom: 12,
             }}>
               SECTIONS
             </div>
@@ -399,7 +399,7 @@ function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack
                     opacity: isActive ? 1 : 0.42,
                   }}
                 >
-                  <span style={{ fontFamily: T.mono, fontSize: 8, color: c, opacity: 0.35, minWidth: 20 }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 8, color: c, opacity: 0.68, minWidth: 20 }}>
                     {num}
                   </span>
                   <span style={{
@@ -451,17 +451,17 @@ function EvidenceViewer({ onClose }: { onClose: () => void }) {
       }}>
         <div onClick={onClose} style={{
           fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em",
-          color: T.gold, opacity: 0.36, cursor: "pointer",
+          color: T.body, opacity: 0.72, cursor: "pointer",
           display: "flex", alignItems: "center", gap: 6,
           minHeight: 44, paddingRight: 12,
         }}>
           ‹ APPROACH
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 8, letterSpacing: "0.16em", color: c, opacity: 0.55 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 8, letterSpacing: "0.16em", color: c, opacity: 0.74 }}>
             03 · ADJUSTER CLAIMS OVERVIEW
           </div>
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: T.gold, opacity: 0.28, marginTop: 2 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: T.body, opacity: 0.68, marginTop: 2 }}>
             UI CONCEPT
           </div>
         </div>
@@ -475,10 +475,10 @@ function EvidenceViewer({ onClose }: { onClose: () => void }) {
         />
 
         <div style={{ padding: "18px 28px 0" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.38, marginBottom: 8 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.70, marginBottom: 8 }}>
             CAPTION
           </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.gold, opacity: 0.54, lineHeight: 1.64 }}>
+          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.82, lineHeight: 1.64 }}>
             A unified claims workspace intended to support triage, workload awareness, and faster orientation before the adjuster begins deeper analysis.
           </div>
         </div>
@@ -489,7 +489,7 @@ function EvidenceViewer({ onClose }: { onClose: () => void }) {
           display: "flex", alignItems: "center", gap: 10,
         }}>
           <div style={{ width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.45 }} />
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.16em", color: c, opacity: 0.35 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.16em", color: c, opacity: 0.68 }}>
             AGENTIC INSURANCE · 03 APPROACH
           </div>
         </div>

@@ -175,8 +175,8 @@ export default function AtlasUtilitySheet() {
             width: 44,
             height: 4,
             borderRadius: 999,
-            background: T.gold,
-            opacity: 0.34,
+            background: T.accentGold,
+            opacity: 0.62,
           }}
         />
       </button>
@@ -244,8 +244,8 @@ export default function AtlasUtilitySheet() {
                 fontFamily: T.mono,
                 fontSize: 8,
                 letterSpacing: "0.22em",
-                color: T.gold,
-                opacity: 0.32,
+                color: T.body,
+                opacity: 0.68,
                 textAlign: "center",
                 marginBottom: 14,
               }}
@@ -270,8 +270,8 @@ export default function AtlasUtilitySheet() {
                     border: "none",
                     borderBottom: "0.5px solid rgba(232,213,163,0.07)",
                     background: "transparent",
-                    color: item.active ? T.gold : "rgba(232,213,163,0.72)",
-                    opacity: item.active ? 0.92 : 0.44,
+                    color: item.active ? T.accentGold : T.body,
+                    opacity: item.active ? 1 : 0.72,
                     padding: 0,
                     textAlign: "left",
                     cursor: item.active ? "pointer" : "default",
