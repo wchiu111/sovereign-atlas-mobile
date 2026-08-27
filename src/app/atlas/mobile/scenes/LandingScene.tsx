@@ -12,10 +12,10 @@ import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 
 const CASE_STUDY_PROJECTS = [
-  { id: "agentic-insurance", label: "AGENTIC INSURANCE" },
-  { id: "globality", label: "GLOBALITY" },
-  { id: "oracle", label: "ORACLE" },
-  { id: "sovereign-atlas", label: "SOVEREIGN ATLAS" },
+  { id: "agentic-insurance", label: "AGENTIC INSURANCE", color: "#D4916A" },
+  { id: "globality", label: "GLOBALITY", color: "#F4EBD0" },
+  { id: "oracle", label: "ORACLE", color: "#A68BD4" },
+  { id: "sovereign-atlas", label: "SOVEREIGN ATLAS", color: "#E8C86D" },
 ] as const;
 
 const SYSTEM_OVERVIEW_SECTIONS = [
@@ -190,8 +190,8 @@ function CaseStudyProjectFocus({
         fontFamily={T.mono}
         fontSize={9}
         letterSpacing="0.16em"
-        fill={c}
-        opacity={0.92}
+        fill={active.color}
+        opacity={0.96}
       >
         {active.label}
       </text>
@@ -199,6 +199,7 @@ function CaseStudyProjectFocus({
       {slots.map((offset) => {
         const index = projectAt(offset);
         const project = CASE_STUDY_PROJECTS[index];
+        const projectColor = project.color;
         const isActive = offset === 0;
         const x = isActive ? 195 : offset < 0 ? 58 : 332;
         const y = 250;
@@ -218,27 +219,27 @@ function CaseStudyProjectFocus({
           >
             <circle
               r={outer}
-              fill={c}
+              fill={projectColor}
               opacity={isActive ? 0.10 : 0.035}
               style={{ transition: FADE }}
             />
             <circle
               r={inner}
-              fill={c}
+              fill={projectColor}
               opacity={isActive ? 0.20 : 0.08}
               style={{ transition: FADE }}
             />
             <circle
               r={isActive ? 42 : 18}
               fill="none"
-              stroke={c}
+              stroke={projectColor}
               strokeWidth={0.5}
               strokeDasharray={isActive ? "3 6" : undefined}
               opacity={isActive ? 0.30 : 0.12}
             />
             <circle
               r={core}
-              fill={c}
+              fill={projectColor}
               opacity={isActive ? 1 : 0.58}
             />
             {!isActive && (
@@ -249,8 +250,8 @@ function CaseStudyProjectFocus({
                 fontFamily={T.mono}
                 fontSize={7.5}
                 letterSpacing="0.08em"
-                fill={c}
-                opacity={0.62}
+                fill={projectColor}
+                opacity={0.76}
               >
                 {project.label}
               </text>
@@ -260,36 +261,14 @@ function CaseStudyProjectFocus({
         );
       })}
 
-      <line
-        x1={145}
-        y1={337}
-        x2={245}
-        y2={337}
-        stroke={c}
-        strokeWidth={0.5}
-        opacity={0.16}
-      />
-      <text
-        x={195}
-        y={354}
-        textAnchor="middle"
-        fontFamily={T.mono}
-        fontSize={7}
-        letterSpacing="0.16em"
-        fill={c}
-        opacity={0.68}
-      >
-        SWIPE TO BROWSE PROJECTS
-      </text>
-
-      <g transform="translate(195,376)">
+      <g transform="translate(195,346)">
         {CASE_STUDY_PROJECTS.map((project, i) => (
           <circle
             key={project.id}
             cx={(i - 1.5) * 14}
             cy={0}
             r={i === activeIndex ? 3.2 : 2.5}
-            fill={c}
+            fill={T.caseStudies}
             opacity={i === activeIndex ? 0.95 : 0.34}
           />
         ))}
@@ -436,6 +415,7 @@ function OverviewScrolled({
   onBack,
 }: {
   onBack: () => void;
+  onOverviewBack: () => void;
   onSelectProject?: () => void;
 }) {
   const c = T.caseStudies;
@@ -457,24 +437,6 @@ function OverviewScrolled({
         overflowY: "auto",
       }}
     >
-      <div
-        onClick={onBack}
-        style={{
-          minHeight: 40,
-          display: "flex",
-          alignItems: "center",
-          width: "fit-content",
-          fontFamily: T.mono,
-          fontSize: 8.5,
-          letterSpacing: "0.18em",
-          color: T.body,
-          opacity: 0.74,
-          cursor: "pointer",
-          marginBottom: 4,
-        }}
-      >
-        ‹ CASE STUDIES
-      </div>
 
       <div
         style={{
@@ -557,7 +519,7 @@ interface LandingSceneProps {
   onBack: () => void;
 }
 
-export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onSelectProject }: LandingSceneProps) {
+export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onOverviewBack, onSelectProject }: LandingSceneProps) {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
@@ -685,8 +647,30 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         </div>
       )}
 
+      {state === "system-overview" && (
+        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 8 }}>
+          <div
+            onClick={onOverviewBack}
+            style={{
+              fontFamily: T.mono,
+              fontSize: 9,
+              letterSpacing: "0.18em",
+              color: T.body,
+              opacity: 0.72,
+              cursor: "pointer",
+              pointerEvents: "auto",
+              minHeight: 44,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            ‹ CASE STUDIES
+          </div>
+        </div>
+      )}
+
       {state === "system-awakened" && <OverviewInitial onExplore={onOverviewExpand} />}
-      {state === "system-overview" && <OverviewScrolled onBack={onOverviewExpand} />}
+      {state === "system-overview" && <OverviewScrolled />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
     </>
   );

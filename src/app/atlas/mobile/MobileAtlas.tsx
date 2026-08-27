@@ -54,18 +54,14 @@ export default function MobileAtlas() {
   const debugMode = isDebugMode();
 
   function setState(next: MobileState) {
-    if ((MOBILE_STATES as readonly string[]).includes(next)) {
-      setStateRaw(next);
-    } else {
-      setStateRaw("atlas-landing");
-    }
+    if ((MOBILE_STATES as readonly string[]).includes(next)) setStateRaw(next);
+    else setStateRaw("atlas-landing");
   }
 
   const isLanding = (LANDING_STATES as readonly string[]).includes(state);
   const isCSFocus = (CS_FOCUS_STATES as readonly string[]).includes(state);
   const isCSReading = (CS_READING_STATES as readonly string[]).includes(state);
   const isFW = (FW_STATES as readonly string[]).includes(state);
-
   const isProjectEvidence = state === "evidence-viewer";
   const isFrameworkReadingDepth = state === "framework-reading" || state === "framework-evidence";
   const isFrameworkEvidence = state === "framework-evidence";
@@ -74,28 +70,10 @@ export default function MobileAtlas() {
     <>
       <style>{`
         .mobile-atlas-root,
-        .mobile-atlas-root * {
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .mobile-atlas-root {
-          overscroll-behavior: contain;
-          touch-action: manipulation;
-        }
-
-        /* Preserve scrolling while removing browser chrome from the Atlas surface. */
-        .mobile-atlas-root * {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .mobile-atlas-root *::-webkit-scrollbar {
-          width: 0;
-          height: 0;
-          display: none;
-        }
-
-        /* Motion is optional; hierarchy and destination remain intact. */
+        .mobile-atlas-root * { -webkit-tap-highlight-color: transparent; }
+        .mobile-atlas-root { overscroll-behavior: contain; touch-action: manipulation; }
+        .mobile-atlas-root * { scrollbar-width: none; -ms-overflow-style: none; }
+        .mobile-atlas-root *::-webkit-scrollbar { width: 0; height: 0; display: none; }
         @media (prefers-reduced-motion: reduce) {
           .mobile-atlas-root *,
           .mobile-atlas-root *::before,
@@ -150,6 +128,7 @@ export default function MobileAtlas() {
               onSelectCaseStudies={() => setState("system-awakened")}
               onSelectFrameworks={() => setState("frameworks-focus")}
               onOverviewExpand={() => setState("system-overview")}
+              onOverviewBack={() => setState("system-awakened")}
               onExplore={() => setState("case-studies-focus")}
               onBack={() => setState("atlas-landing")}
             />
@@ -165,7 +144,6 @@ export default function MobileAtlas() {
             />
           )}
 
-          {/* Keep reading mounted under Evidence so return restores exact context. */}
           {isCSReading && (
             <>
               <ReadingScene
@@ -200,7 +178,6 @@ export default function MobileAtlas() {
             />
           )}
 
-          {/* Keep framework reading mounted under artifact inspection. */}
           {isFrameworkReadingDepth && (
             <>
               <FrameworksScene
