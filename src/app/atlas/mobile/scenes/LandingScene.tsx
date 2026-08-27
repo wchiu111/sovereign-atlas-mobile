@@ -10,6 +10,10 @@ import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 
+const SYSTEM_VISUAL_SCALE = 1.18;
+const SYSTEM_LABEL_SIZE = 10;
+const PLANET_LABEL_SIZE = 6;
+
 const CS_FOCUS: Record<LandingState, { x: number; y: number; orbitR: number; opacity: number }> = {
   "atlas-landing":  { x: 95,  y: 178, orbitR: 36, opacity: 1    },
   "system-awakened":{ x: 195, y: 250, orbitR: 72, opacity: 1    },
@@ -32,15 +36,15 @@ const CTX_ARC_OP: Record<LandingState, number> = {
 function NexusNode({ op }: { op: number }) {
   return (
     <g style={{ transform: `translate(${NEXUS.x}px,${NEXUS.y}px)`, opacity: op, transition: FADE }}>
-      <circle r={130} fill="none" stroke={T.gold} strokeWidth={0.3} opacity={0.045} />
-      <circle r={96}  fill="none" stroke={T.gold} strokeWidth={0.4} opacity={0.075} />
-      <circle r={68}  fill="none" stroke={T.gold} strokeWidth={0.5} opacity={0.11}  />
+      <circle r={130} fill="none" stroke={T.identityGold} strokeWidth={0.3} opacity={0.045} />
+      <circle r={96}  fill="none" stroke={T.identityGold} strokeWidth={0.4} opacity={0.075} />
+      <circle r={68}  fill="none" stroke={T.identityGold} strokeWidth={0.5} opacity={0.11}  />
       <circle r={60}  fill="rgba(232,213,163,0.028)" />
       <circle r={33}  fill="rgba(232,213,163,0.065)" />
-      <circle r={27}  fill="none" stroke={T.gold} strokeWidth={0.8} opacity={0.17} />
+      <circle r={27}  fill="none" stroke={T.identityGold} strokeWidth={0.8} opacity={0.17} />
       <circle r={17}  fill="rgba(232,213,163,0.12)" />
-      <circle r={8}   fill={T.gold} />
-      <text y={-46} textAnchor="middle" fontFamily={T.mono} fontSize={7.5}
+      <circle r={8}   fill={T.identityGold} />
+      <text y={-46} textAnchor="middle" fontFamily={T.mono} fontSize={9.5}
         letterSpacing="0.22em" fill={T.accentGold} opacity={0.78}>
         SOVEREIGN DESIGN
       </text>
@@ -69,14 +73,14 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
         const db  = ldy > 0.28 ? "hanging" : ldy < -0.28 ? "auto" : "middle";
         return (
           <g key={i} style={{ transform: `translate(${lpx}px,${lpy}px)`, transition: ANIM }}>
-            <circle r={awakened ? 9.5 : 5.5} fill={color}
+            <circle r={(awakened ? 9.5 : 5.5) * SYSTEM_VISUAL_SCALE} fill={color}
               opacity={dimmed ? 0.03 : awakened ? 0.16 : 0.07} style={{ transition: FADE }} />
-            <circle r={awakened ? 3 : 1.7} fill={color}
+            <circle r={(awakened ? 3 : 1.7) * SYSTEM_VISUAL_SCALE} fill={color}
               opacity={dimmed ? 0.18 : awakened ? 1 : 0.52} style={{ transition: FADE }} />
             {showLabels && (
               <text x={ldx * 7.5} y={ldy * 7.5}
                 textAnchor={ta} dominantBaseline={db}
-                fontFamily={T.mono} fontSize={4.8} fill={color} opacity={0.72}>
+                fontFamily={T.mono} fontSize={PLANET_LABEL_SIZE} fill={color} opacity={0.78}>
                 {p.label}
               </text>
             )}
@@ -91,19 +95,19 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel }: {
   sys: SystemDef; cx: number; cy: number; orbitR: number;
   awakened: boolean; dimmed: boolean; showLabel: boolean;
 }) {
-  const atmoR  = awakened ? BASE_R * 1.45 : BASE_R * 0.82;
-  const outerR = awakened ? BASE_R * 3.2  : BASE_R * 1.9;
-  const coreR  = awakened ? BASE_R * 0.52 : BASE_R * 0.36;
+  const atmoR  = (awakened ? BASE_R * 1.45 : BASE_R * 0.82) * SYSTEM_VISUAL_SCALE;
+  const outerR = (awakened ? BASE_R * 3.2  : BASE_R * 1.9) * SYSTEM_VISUAL_SCALE;
+  const coreR  = (awakened ? BASE_R * 0.52 : BASE_R * 0.36) * SYSTEM_VISUAL_SCALE;
   return (
     <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
       <PlanetCluster planets={sys.planets} orbitR={orbitR} color={sys.color} awakened={awakened} dimmed={dimmed} />
       <circle r={outerR} fill={sys.color} opacity={awakened ? 0.08 : 0.032} style={{ transition: FADE }} />
       <circle r={atmoR} fill={sys.color} opacity={awakened ? 0.18 : 0.082} style={{ transition: FADE }} />
-      <circle r={28} fill="none" stroke={sys.color} strokeWidth={0.5} opacity={awakened ? 0.32 : 0.13} style={{ transition: FADE }} />
-      <circle r={42} fill="none" stroke={sys.color} strokeWidth={0.3} opacity={awakened ? 0.18 : 0.07} style={{ transition: FADE }} />
+      <circle r={28 * SYSTEM_VISUAL_SCALE} fill="none" stroke={sys.color} strokeWidth={0.5} opacity={awakened ? 0.32 : 0.13} style={{ transition: FADE }} />
+      <circle r={42 * SYSTEM_VISUAL_SCALE} fill="none" stroke={sys.color} strokeWidth={0.3} opacity={awakened ? 0.18 : 0.07} style={{ transition: FADE }} />
       <circle r={coreR} fill={sys.color} opacity={awakened ? 1 : 0.88} style={{ transition: FADE }} />
       {showLabel && (
-        <text y={BASE_R * 2.2 + 14} textAnchor="middle" fontFamily={T.mono} fontSize={8} letterSpacing="0.14em" fill={sys.color} opacity={0.68}>
+        <text y={BASE_R * 2.2 + 14} textAnchor="middle" fontFamily={T.mono} fontSize={SYSTEM_LABEL_SIZE} letterSpacing="0.14em" fill={sys.color} opacity={0.74}>
           {sys.label}
         </text>
       )}
@@ -262,7 +266,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               fontFamily: T.mono,
               fontSize: 11.5,
               letterSpacing: "0.24em",
-              color: T.gold,
+              color: T.identityGold,
               opacity: 0.94,
               lineHeight: 1.25,
               whiteSpace: "nowrap",
@@ -289,7 +293,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       {state === "atlas-landing" && (
         <div style={{ position: "absolute", bottom: 58, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, pointerEvents: "none" }}>
           <div style={{ width: 0.5, height: 18, background: "rgba(232,213,163,0.18)" }} />
-          <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.accentGold, opacity: 0.68 }}>ENTER OBSERVATORY</div>
+          <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.identityGold, opacity: 0.72 }}>ENTER OBSERVATORY</div>
         </div>
       )}
 

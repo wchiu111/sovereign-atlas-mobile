@@ -13,6 +13,7 @@ export const T = {
   gold:        "#E8D5A3",
   body:        "#D4C490",
   accentGold:  "#C8A96E",
+  identityGold:"#E8C86D",
   muted:       "#6A5F4A",
   caseStudies: "#8AAEC8",
   experiments: "#A68BD4",

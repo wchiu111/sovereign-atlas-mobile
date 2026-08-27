@@ -175,7 +175,7 @@ export default function AtlasUtilitySheet() {
             width: 44,
             height: 4,
             borderRadius: 999,
-            background: T.accentGold,
+            background: T.identityGold,
             opacity: 0.62,
           }}
         />
@@ -239,19 +239,6 @@ export default function AtlasUtilitySheet() {
           />
         ) : (
           <div style={{ padding: "28px 26px 24px" }}>
-            <div
-              style={{
-                fontFamily: T.mono,
-                fontSize: 8,
-                letterSpacing: "0.22em",
-                color: T.body,
-                opacity: 0.68,
-                textAlign: "center",
-                marginBottom: 14,
-              }}
-            >
-              UTILITY LAYER
-            </div>
 
             <div style={{ borderTop: "0.5px solid rgba(232,213,163,0.07)" }}>
               {items.map((item) => (
