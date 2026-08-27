@@ -12,7 +12,7 @@ type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 
 const SYSTEM_VISUAL_SCALE = 1.18;
 const SYSTEM_LABEL_SIZE = 10;
-const PLANET_LABEL_SIZE = 6;
+const PLANET_LABEL_SIZE = 8.5;
 
 const CS_FOCUS: Record<LandingState, { x: number; y: number; orbitR: number; opacity: number }> = {
   "atlas-landing":  { x: 95,  y: 178, orbitR: 36, opacity: 1    },
@@ -78,9 +78,9 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
             <circle r={(awakened ? 3 : 1.7) * SYSTEM_VISUAL_SCALE} fill={color}
               opacity={dimmed ? 0.18 : awakened ? 1 : 0.52} style={{ transition: FADE }} />
             {showLabels && (
-              <text x={ldx * 7.5} y={ldy * 7.5}
+              <text x={ldx * 11} y={ldy * 11}
                 textAnchor={ta} dominantBaseline={db}
-                fontFamily={T.mono} fontSize={PLANET_LABEL_SIZE} fill={color} opacity={0.78}>
+                fontFamily={T.mono} fontSize={PLANET_LABEL_SIZE} letterSpacing="0.08em" fill={color} opacity={0.88}>
                 {p.label}
               </text>
             )}
@@ -118,26 +118,143 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel }: {
 function OverviewInitial({ onExplore }: { onExplore: () => void }) {
   const c = T.caseStudies;
   return (
-    <div style={{
-      position: "absolute", bottom: 0, left: 0, right: 0,
-      borderTop: `0.5px solid rgba(138,174,200,0.22)`,
-      background: "rgba(5,5,10,0.91)",
-      backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-      padding: "20px 28px 52px", boxSizing: "border-box",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-        <div style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: "0.24em", color: c, opacity: 0.9 }}>CASE STUDIES</div>
-        <div style={{ width: 5, height: 5, borderRadius: "50%", background: c, opacity: 0.55 }} />
+    <div
+      style={{
+        position: "absolute",
+        top: 462,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        boxSizing: "border-box",
+        borderTop: `0.5px solid rgba(138,174,200,0.28)`,
+        background: "rgba(5,5,10,0.94)",
+        backdropFilter: "blur(26px)",
+        WebkitBackdropFilter: "blur(26px)",
+        padding: "22px 28px 28px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 3,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: T.serif,
+            fontSize: 20,
+            fontWeight: 600,
+            letterSpacing: "0.14em",
+            color: c,
+            opacity: 0.96,
+          }}
+        >
+          CASE STUDIES
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: c,
+            opacity: 0.72,
+          }}
+        />
       </div>
-      <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72, marginBottom: 14 }}>4 PROJECTS</div>
-      <div style={{ height: 0.5, background: "rgba(232,213,163,0.10)", marginBottom: 14 }} />
-      <div style={{ fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.84, lineHeight: 1.58, marginBottom: 20 }}>
-        Real-world product work, decisions, and outcomes.
+
+      <div
+        style={{
+          fontFamily: T.mono,
+          fontSize: 8,
+          letterSpacing: "0.18em",
+          color: T.accentGold,
+          opacity: 0.82,
+          marginBottom: 14,
+        }}
+      >
+        4 PROJECTS
       </div>
-      <div onClick={onExplore} style={{
-        minHeight: 44, display: "flex", alignItems: "center", width: "fit-content", paddingRight: 16,
-        fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.18em", color: c, opacity: 0.88, cursor: "pointer",
-      }}>EXPLORE →</div>
+
+      <div
+        style={{
+          height: 0.5,
+          background: "rgba(232,213,163,0.12)",
+          marginBottom: 15,
+        }}
+      />
+
+      <div
+        style={{
+          fontFamily: T.serif,
+          fontSize: 16,
+          fontWeight: 600,
+          color: T.identityGold,
+          opacity: 0.94,
+          lineHeight: 1.36,
+          marginBottom: 12,
+        }}
+      >
+        See how decisions became outcomes.
+      </div>
+
+      <div
+        style={{
+          fontFamily: T.serif,
+          fontSize: 13,
+          color: T.body,
+          opacity: 0.86,
+          lineHeight: 1.48,
+          marginBottom: 10,
+        }}
+      >
+        Each case study traces a project through its context, constraints,
+        design decisions, evidence, and results.
+      </div>
+
+      <div
+        style={{
+          fontFamily: T.serif,
+          fontSize: 13,
+          color: T.body,
+          opacity: 0.86,
+          lineHeight: 1.48,
+        }}
+      >
+        Enter a system to understand not only what was created, but why it took
+        the form it did.
+      </div>
+
+      <div
+        style={{
+          marginTop: "auto",
+          paddingTop: 15,
+          borderTop: "0.5px solid rgba(138,174,200,0.12)",
+        }}
+      >
+        <div
+          onClick={onExplore}
+          style={{
+            minHeight: 44,
+            display: "flex",
+            alignItems: "center",
+            width: "fit-content",
+            paddingRight: 18,
+            fontFamily: T.mono,
+            fontSize: 10,
+            letterSpacing: "0.18em",
+            color: c,
+            opacity: 0.96,
+            cursor: "pointer",
+          }}
+        >
+          EXPLORE →
+        </div>
+      </div>
     </div>
   );
 }
@@ -299,9 +416,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       )}
 
       {state === "system-awakened" && (
-        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", justifyContent: "space-between", alignItems: "center", pointerEvents: "none" }}>
+        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", alignItems: "center", pointerEvents: "none" }}>
           <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
-          <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.22em", color: T.caseStudies, opacity: 0.80 }}>CASE STUDIES</div>
         </div>
       )}
 
