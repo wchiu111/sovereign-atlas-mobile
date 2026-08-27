@@ -4,12 +4,17 @@
  * Pass 2.5:
  * - Activator is the thicker horizontal line at the utility-layer boundary.
  * - The layer reveals from above the viewport and moves downward with the finger.
- * - No lower bulge, secondary handle, or footer protrusion.\n * - Handle, backdrop, and sheet are positioned relative to the Atlas viewport.
+ * - No lower bulge, secondary handle, or footer protrusion.
+ * - Handle, backdrop, and sheet are positioned relative to the Atlas viewport.
  *
  * Phase 3:
  * - Search is the only active utility destination.
  * - Search opens a local placeholder surface.
  * - Other utility destinations remain visibly present but inactive.
+ *
+ * Pass 3.2:
+ * - Drag response is tuned for short mobile pulls.
+ * - The entry activator fades/hides once the layer begins opening.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -21,7 +26,8 @@ type UtilityView = "menu" | "search";
 
 const SHEET_HEIGHT = 372;
 const HIDDEN_CLEARANCE = 48;
-const OPEN_THRESHOLD = 0.42;
+const DRAG_DISTANCE = 180;
+const OPEN_THRESHOLD = 0.32;
 const TAP_SLOP = 8;
 
 const items = [
@@ -47,7 +53,9 @@ export default function AtlasUtilitySheet() {
   } | null>(null);
 
   const activeProgress = dragging ? progress : open ? 1 : 0;
-  const translateY = -(SHEET_HEIGHT + HIDDEN_CLEARANCE) + (SHEET_HEIGHT + HIDDEN_CLEARANCE) * activeProgress;
+  const translateY =
+    -(SHEET_HEIGHT + HIDDEN_CLEARANCE) +
+    (SHEET_HEIGHT + HIDDEN_CLEARANCE) * activeProgress;
 
   useEffect(() => {
     if (!dragging) setProgress(open ? 1 : 0);
@@ -74,7 +82,10 @@ export default function AtlasUtilitySheet() {
     setView("menu");
   }
 
-  function beginDrag(event: React.PointerEvent<HTMLElement>, origin: DragOrigin) {
+  function beginDrag(
+    event: React.PointerEvent<HTMLElement>,
+    origin: DragOrigin,
+  ) {
     if (view === "search") return;
 
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -96,7 +107,7 @@ export default function AtlasUtilitySheet() {
     const deltaY = event.clientY - current.startY;
     if (Math.abs(deltaY) > TAP_SLOP) current.moved = true;
 
-    const next = current.startProgress + deltaY / SHEET_HEIGHT;
+    const next = current.startProgress + deltaY / DRAG_DISTANCE;
     setProgress(Math.max(0, Math.min(1, next)));
   }
 
@@ -128,8 +139,6 @@ export default function AtlasUtilitySheet() {
 
   return (
     <>
-      {/* The exposed edge of the hidden Utility Layer.
-          Plain thick line only — no diamond/motif. */}
       <button
         type="button"
         aria-label={open ? "Close Atlas utility layer" : "Open Atlas utility layer"}
@@ -151,10 +160,12 @@ export default function AtlasUtilitySheet() {
           border: "none",
           padding: "3px 0 0",
           background: "transparent",
-          pointerEvents: "auto",
-          cursor: open ? "n-resize" : "s-resize",
+          opacity: activeProgress > 0.02 ? 0 : 1,
+          pointerEvents: activeProgress > 0.02 ? "none" : "auto",
+          cursor: "s-resize",
           touchAction: "none",
           zIndex: 60,
+          transition: dragging ? "opacity 120ms ease" : "opacity 180ms ease",
         }}
       >
         <span
@@ -165,8 +176,7 @@ export default function AtlasUtilitySheet() {
             height: 4,
             borderRadius: 999,
             background: T.gold,
-            opacity: 0.34 + activeProgress * 0.20,
-            transition: dragging ? "none" : "opacity 180ms ease",
+            opacity: 0.34,
           }}
         />
       </button>
@@ -208,7 +218,10 @@ export default function AtlasUtilitySheet() {
           borderRadius: "0 0 30px 30px",
           background:
             "linear-gradient(180deg, rgba(14,15,20,0.985) 0%, rgba(8,9,13,0.992) 100%)",
-          boxShadow: activeProgress > 0.02 ? `0 22px 70px rgba(0,0,0,${0.16 + activeProgress * 0.42})` : "none",
+          boxShadow:
+            activeProgress > 0.02
+              ? `0 22px 70px rgba(0,0,0,${0.16 + activeProgress * 0.42})`
+              : "none",
           backdropFilter: "blur(28px)",
           WebkitBackdropFilter: "blur(28px)",
           pointerEvents: overlayActive ? "auto" : "none",
