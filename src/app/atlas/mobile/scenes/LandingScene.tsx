@@ -44,7 +44,7 @@ function NexusNode({ op }: { op: number }) {
       <circle r={27}  fill="none" stroke={T.identityGold} strokeWidth={0.8} opacity={0.17} />
       <circle r={17}  fill="rgba(232,213,163,0.12)" />
       <circle r={8}   fill={T.identityGold} />
-      <text y={-46} textAnchor="middle" fontFamily={T.mono} fontSize={9.5}
+      <text y={-46} textAnchor="middle" fontFamily={T.serif} fontSize={10.5} fontWeight={600}
         letterSpacing="0.22em" fill={T.accentGold} opacity={0.78}>
         SOVEREIGN DESIGN
       </text>
@@ -265,9 +265,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             style={{
               fontFamily: T.mono,
               fontSize: 11.5,
-              letterSpacing: "0.24em",
+              letterSpacing: "0.20em",
               color: T.identityGold,
-              opacity: 0.94,
+              opacity: 0.82,
               lineHeight: 1.25,
               whiteSpace: "nowrap",
             }}
@@ -278,8 +278,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             style={{
               fontFamily: T.serif,
               fontSize: 13.5,
-              color: T.body,
-              opacity: 0.78,
+              letterSpacing: "0.06em",
+              color: T.accentGold,
+              opacity: 0.52,
               marginTop: 5,
               lineHeight: 1.25,
             }}
