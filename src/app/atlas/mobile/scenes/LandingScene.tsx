@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 /**
  * LandingScene — atlas-landing | system-awakened | system-overview
  * Renders the full-atlas SVG and Case Studies overview surfaces.
@@ -9,6 +10,33 @@ import type { SystemDef, Planet } from "../components/mobileShared";
 import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
+
+const CASE_STUDY_PROJECTS = [
+  { id: "agentic-insurance", label: "AGENTIC INSURANCE" },
+  { id: "globality", label: "GLOBALITY" },
+  { id: "oracle", label: "ORACLE" },
+  { id: "sovereign-atlas", label: "SOVEREIGN ATLAS" },
+] as const;
+
+const SYSTEM_OVERVIEW_SECTIONS = [
+  {
+    label: "WHAT",
+    body: "A portfolio of four product design engagements. Real constraints, real stakeholders, and decisions made under genuine uncertainty and time pressure.",
+  },
+  {
+    label: "WHY",
+    body: "Design is consequential. Choices made in ambiguous situations shape outcomes more than technical execution. Process over artifacts.",
+  },
+  {
+    label: "RESEARCH FOCUS",
+    body: "How design authority is established and maintained across situations where requirements are incomplete, stakeholders disagree, and constraints shift.",
+  },
+  {
+    label: "KEY DISCOVERY",
+    body: "Sustainable design authority emerges from clarity about process — not confidence in output. The decisions are the artifact.",
+  },
+] as const;
+
 
 const SYSTEM_VISUAL_SCALE = 1.18;
 const SYSTEM_LABEL_SIZE = 10;
@@ -115,6 +143,161 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel }: {
   );
 }
 
+
+function CaseStudyProjectFocus({
+  activeIndex,
+  onSelect,
+  onSwipe,
+}: {
+  activeIndex: number;
+  onSelect: (index: number) => void;
+  onSwipe: (direction: -1 | 1) => void;
+}) {
+  const c = T.caseStudies;
+  const dragStartX = useRef<number | null>(null);
+
+  const slots = [-1, 0, 1];
+  const active = CASE_STUDY_PROJECTS[activeIndex];
+
+  function projectAt(offset: number) {
+    const len = CASE_STUDY_PROJECTS.length;
+    return (activeIndex + offset + len) % len;
+  }
+
+  function handlePointerDown(event: React.PointerEvent<SVGGElement>) {
+    dragStartX.current = event.clientX;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handlePointerUp(event: React.PointerEvent<SVGGElement>) {
+    if (dragStartX.current == null) return;
+    const dx = event.clientX - dragStartX.current;
+    dragStartX.current = null;
+    if (Math.abs(dx) < 28) return;
+    onSwipe(dx < 0 ? 1 : -1);
+  }
+
+  return (
+    <g
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      style={{ touchAction: "pan-y" }}
+    >
+      <text
+        x={195}
+        y={102}
+        textAnchor="middle"
+        fontFamily={T.mono}
+        fontSize={9}
+        letterSpacing="0.16em"
+        fill={c}
+        opacity={0.92}
+      >
+        {active.label}
+      </text>
+
+      {slots.map((offset) => {
+        const index = projectAt(offset);
+        const project = CASE_STUDY_PROJECTS[index];
+        const isActive = offset === 0;
+        const x = isActive ? 195 : offset < 0 ? 58 : 332;
+        const y = 250;
+        const outer = isActive ? 60 : 26;
+        const inner = isActive ? 34 : 14;
+        const core = isActive ? 12 : 6;
+
+        return (
+          <g
+            key={project.id}
+            style={{
+              transform: `translate(${x}px,${y}px)`,
+              transition: ANIM,
+              cursor: "pointer",
+            }}
+            onClick={() => onSelect(index)}
+          >
+            <circle
+              r={outer}
+              fill={c}
+              opacity={isActive ? 0.10 : 0.035}
+              style={{ transition: FADE }}
+            />
+            <circle
+              r={inner}
+              fill={c}
+              opacity={isActive ? 0.20 : 0.08}
+              style={{ transition: FADE }}
+            />
+            <circle
+              r={isActive ? 42 : 18}
+              fill="none"
+              stroke={c}
+              strokeWidth={0.5}
+              strokeDasharray={isActive ? "3 6" : undefined}
+              opacity={isActive ? 0.30 : 0.12}
+            />
+            <circle
+              r={core}
+              fill={c}
+              opacity={isActive ? 1 : 0.58}
+            />
+            {!isActive && (
+              <text
+                x={offset < 0 ? -16 : 16}
+                y={3}
+                textAnchor={offset < 0 ? "end" : "start"}
+                fontFamily={T.mono}
+                fontSize={7.5}
+                letterSpacing="0.08em"
+                fill={c}
+                opacity={0.62}
+              >
+                {project.label}
+              </text>
+            )}
+            <circle r={24} fill="transparent" pointerEvents="all" />
+          </g>
+        );
+      })}
+
+      <line
+        x1={145}
+        y1={337}
+        x2={245}
+        y2={337}
+        stroke={c}
+        strokeWidth={0.5}
+        opacity={0.16}
+      />
+      <text
+        x={195}
+        y={354}
+        textAnchor="middle"
+        fontFamily={T.mono}
+        fontSize={7}
+        letterSpacing="0.16em"
+        fill={c}
+        opacity={0.68}
+      >
+        SWIPE TO BROWSE PROJECTS
+      </text>
+
+      <g transform="translate(195,376)">
+        {CASE_STUDY_PROJECTS.map((project, i) => (
+          <circle
+            key={project.id}
+            cx={(i - 1.5) * 14}
+            cy={0}
+            r={i === activeIndex ? 3.2 : 2.5}
+            fill={c}
+            opacity={i === activeIndex ? 0.95 : 0.34}
+          />
+        ))}
+      </g>
+    </g>
+  );
+}
+
 function OverviewInitial({ onExplore }: { onExplore: () => void }) {
   const c = T.caseStudies;
   return (
@@ -155,16 +338,6 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
         >
           CASE STUDIES
         </div>
-        <div
-          aria-hidden="true"
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: c,
-            opacity: 0.72,
-          }}
-        />
       </div>
 
       <div
@@ -259,65 +432,118 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
   );
 }
 
-function OverviewScrolled({ onExplore, onBack }: { onExplore: () => void; onBack: () => void }) {
+function OverviewScrolled({
+  onBack,
+}: {
+  onBack: () => void;
+  onSelectProject?: () => void;
+}) {
   const c = T.caseStudies;
-  const projects = [
-    { name: "AGENTIC INSURANCE", desc: "Exploring where AI could support insurance claim decisions — and where human authority had to remain." },
-    { name: "GLOBALITY", desc: "Redesigning an AI-assisted procurement platform around orientation, work states, and next decisions." },
-    { name: "ORACLE", desc: "Enterprise software product strategy and positioning under real organizational constraints." },
-    { name: "SOVEREIGN ATLAS", desc: "This navigational system — its design, structure, and the decisions made in building it." },
-  ];
+
   return (
-    <div style={{
-      position: "absolute", top: 24, bottom: 0, left: 0, right: 0,
-      background: `linear-gradient(to bottom, rgba(5,5,10,0.22) 0px, rgba(5,5,10,0.62) 70px, rgba(5,5,10,0.92) 140px, rgba(5,5,10,0.97) 200px)`,
-      overflowY: "auto", overflowX: "hidden", boxSizing: "border-box",
-    }}>
-      <div onClick={onBack} style={{ height: 80, display: "flex", alignItems: "flex-end", paddingBottom: 10, paddingLeft: 28, cursor: "pointer" }}>
-        <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.body, opacity: 0.72 }}>‹ ATLAS</span>
+    <div
+      style={{
+        position: "absolute",
+        top: 462,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        boxSizing: "border-box",
+        borderTop: `0.5px solid rgba(138,174,200,0.28)`,
+        background: "rgba(5,5,10,0.94)",
+        backdropFilter: "blur(26px)",
+        WebkitBackdropFilter: "blur(26px)",
+        padding: "18px 28px 26px",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        onClick={onBack}
+        style={{
+          minHeight: 40,
+          display: "flex",
+          alignItems: "center",
+          width: "fit-content",
+          fontFamily: T.mono,
+          fontSize: 8.5,
+          letterSpacing: "0.18em",
+          color: T.body,
+          opacity: 0.74,
+          cursor: "pointer",
+          marginBottom: 4,
+        }}
+      >
+        ‹ CASE STUDIES
       </div>
-      <div style={{ padding: "0 28px", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.22em", color: c, opacity: 0.74 }}>CASE STUDIES</div>
-        <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: T.body, opacity: 0.68 }}>4 PROJECTS</div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: T.serif,
+            fontSize: 18,
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            color: c,
+            opacity: 0.96,
+          }}
+        >
+          CASE STUDIES
+        </div>
+        <div
+          style={{
+            fontFamily: T.mono,
+            fontSize: 7.5,
+            letterSpacing: "0.16em",
+            color: T.accentGold,
+            opacity: 0.78,
+          }}
+        >
+          4 PROJECTS
+        </div>
       </div>
-      <div style={{ margin: "0 28px 24px", height: 0.5, background: "rgba(232,213,163,0.09)" }} />
-      <div style={{ padding: "0 28px" }}>
-        {[
-          { label: "WHAT", body: "A portfolio of four product design engagements. Real constraints, real stakeholders, and decisions made under genuine uncertainty and time pressure." },
-          { label: "WHY", body: "Design is consequential. Choices made in ambiguous situations shape outcomes more than technical execution. Process over artifacts." },
-          { label: "RESEARCH FOCUS", body: "How design authority is established and maintained across situations where requirements are incomplete, stakeholders disagree, and constraints shift." },
-          { label: "KEY DISCOVERY", body: "Sustainable design authority emerges from clarity about process — not confidence in output. The decisions are the artifact." },
-        ].map(({ label, body }) => (
-          <div key={label} style={{ marginBottom: 22 }}>
-            <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.accentGold, opacity: 0.72, marginBottom: 7 }}>{label}</div>
-            <div style={{ fontFamily: T.serif, fontSize: 13.5, color: T.body, opacity: 0.84, lineHeight: 1.62 }}>{body}</div>
+
+      <div
+        style={{
+          height: 0.5,
+          background: "rgba(138,174,200,0.14)",
+          marginBottom: 14,
+        }}
+      />
+
+      {SYSTEM_OVERVIEW_SECTIONS.map(({ label, body }) => (
+        <div key={label} style={{ marginBottom: 14 }}>
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: 7.5,
+              letterSpacing: "0.20em",
+              color: T.accentGold,
+              opacity: 0.72,
+              marginBottom: 5,
+            }}
+          >
+            {label}
           </div>
-        ))}
-      </div>
-      <div style={{ margin: "6px 28px 22px", height: 0.5, background: "rgba(232,213,163,0.09)" }} />
-      <div style={{ padding: "0 28px" }}>
-        <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.20em", color: T.body, opacity: 0.66, marginBottom: 18 }}>CONTAINED PROJECTS</div>
-        {projects.map((p, i) => (
-          <div key={p.name} style={{
-            display: "flex", gap: 12, alignItems: "flex-start",
-            marginBottom: i < projects.length - 1 ? 18 : 0,
-            paddingBottom: i < projects.length - 1 ? 18 : 0,
-            borderBottom: i < projects.length - 1 ? "0.5px solid rgba(232,213,163,0.07)" : "none",
-          }}>
-            <div style={{ width: 5, height: 5, borderRadius: "50%", background: c, opacity: 0.60, marginTop: 5, flexShrink: 0 }} />
-            <div>
-              <div style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.78, marginBottom: 4 }}>{p.name}</div>
-              <div style={{ fontFamily: T.serif, fontSize: 12.5, color: T.body, opacity: 0.78, lineHeight: 1.56 }}>{p.desc}</div>
-            </div>
+          <div
+            style={{
+              fontFamily: T.serif,
+              fontSize: 12.5,
+              color: T.body,
+              opacity: 0.84,
+              lineHeight: 1.52,
+            }}
+          >
+            {body}
           </div>
-        ))}
-      </div>
-      <div style={{ padding: "28px 28px 60px", borderTop: "0.5px solid rgba(138,174,200,0.12)", marginTop: 28 }}>
-        <div onClick={onExplore} style={{
-          minHeight: 44, display: "flex", alignItems: "center", width: "fit-content", paddingRight: 16,
-          fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.18em", color: c, opacity: 0.86, cursor: "pointer",
-        }}>EXPLORE →</div>
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -331,7 +557,8 @@ interface LandingSceneProps {
   onBack: () => void;
 }
 
-export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack }: LandingSceneProps) {
+export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onSelectProject }: LandingSceneProps) {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
   const nexusOp  = NEXUS_OP[state];
@@ -339,6 +566,14 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const cs = SYSTEMS[0];
   const ex = SYSTEMS[1];
   const fw = SYSTEMS[2];
+
+  const cycleProject = (direction: -1 | 1) => {
+    setActiveProjectIndex((current) => {
+      const next = current + direction;
+      const len = CASE_STUDY_PROJECTS.length;
+      return (next + len) % len;
+    });
+  };
 
   return (
     <>
@@ -354,7 +589,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         <NexusNode op={nexusOp} />
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={ex} cx={EX_POS.x} cy={EX_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={fw} cx={FW_POS.x} cy={FW_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
-        <g style={{ opacity: csState.opacity, transition: FADE }}><SystemNode sys={cs} cx={csState.x} cy={csState.y} orbitR={csState.orbitR} awakened={isActive} dimmed={false} showLabel={state === "atlas-landing"} /></g>
+        <g style={{ opacity: state === "system-overview" ? 0 : csState.opacity, transition: FADE }}><SystemNode sys={cs} cx={csState.x} cy={csState.y} orbitR={csState.orbitR} awakened={isActive} dimmed={false} showLabel={state === "atlas-landing"} /></g>
         {state === "atlas-landing" && (
           <>
             <circle cx={95} cy={178} r={56} fill="transparent" onClick={onSelectCaseStudies} style={{ cursor: "pointer" }} />
@@ -362,6 +597,35 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
           </>
         )}
       </svg>
+
+      {state === "system-overview" && (
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width={W}
+          height={H}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 4,
+            pointerEvents: "none",
+          }}
+          aria-hidden
+        >
+          <g style={{ pointerEvents: "auto" }}>
+            <CaseStudyProjectFocus
+              activeIndex={activeProjectIndex}
+              onSelect={(index) => {
+                if (index === activeProjectIndex) {
+                  onSelectProject?.();
+                  return;
+                }
+                setActiveProjectIndex(index);
+              }}
+              onSwipe={cycleProject}
+            />
+          </g>
+        </svg>
+      )}
 
       {state === "atlas-landing" && (
         <div
@@ -422,7 +686,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       )}
 
       {state === "system-awakened" && <OverviewInitial onExplore={onOverviewExpand} />}
-      {state === "system-overview" && <OverviewScrolled onExplore={onExplore} onBack={onBack} />}
+      {state === "system-overview" && <OverviewScrolled onBack={onOverviewExpand} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
     </>
   );
