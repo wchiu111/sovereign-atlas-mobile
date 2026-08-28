@@ -23,9 +23,9 @@ export const T = {
 } as const;
 
 export const EASE = "cubic-bezier(0.16,1,0.3,1)";
-export const DUR  = "0.95s";
+export const DUR  = "0.52s";
 export const ANIM = `transform ${DUR} ${EASE}`;
-export const FADE = `opacity 0.75s ease`;
+export const FADE = `opacity 0.32s ease`;
 
 export const NEXUS   = { x: 195, y: 355 };
 export const BASE_R  = 18;

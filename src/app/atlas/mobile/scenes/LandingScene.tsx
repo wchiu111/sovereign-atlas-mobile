@@ -199,11 +199,6 @@ function CaseStudyProjectFocus({
   const active = CASE_STUDY_FOCUS_ITEMS[activeIndex];
   const isSystemFocus = activeIndex === 0;
 
-  function itemAt(offset: number) {
-    const len = CASE_STUDY_FOCUS_ITEMS.length;
-    return (activeIndex + offset + len) % len;
-  }
-
   function handlePointerDown(event: React.PointerEvent<SVGGElement>) {
     dragStartX.current = event.clientX;
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -217,6 +212,23 @@ function CaseStudyProjectFocus({
     onSwipe(dx < 0 ? 1 : -1);
   }
 
+  const projectSlots = isSystemFocus
+    ? []
+    : [
+        {
+          item: CASE_STUDY_PROJECTS[(activeIndex - 2 + CASE_STUDY_PROJECTS.length) % CASE_STUDY_PROJECTS.length],
+          offset: -1,
+        },
+        {
+          item: CASE_STUDY_PROJECTS[activeIndex - 1],
+          offset: 0,
+        },
+        {
+          item: CASE_STUDY_PROJECTS[activeIndex % CASE_STUDY_PROJECTS.length],
+          offset: 1,
+        },
+      ];
+
   return (
     <g
       onPointerDown={handlePointerDown}
@@ -228,10 +240,10 @@ function CaseStudyProjectFocus({
         y={102}
         textAnchor="middle"
         fontFamily={T.mono}
-        fontSize={10}
+        fontSize={10.5}
         letterSpacing="0.15em"
         fill={active.color}
-        opacity={0.96}
+        opacity={0.98}
       >
         {active.label}
       </text>
@@ -244,25 +256,25 @@ function CaseStudyProjectFocus({
               transition: ANIM,
             }}
           >
-            <circle r={62} fill={T.caseStudies} opacity={0.10} />
-            <circle r={38} fill={T.caseStudies} opacity={0.18} />
+            <circle r={68} fill={T.caseStudies} opacity={0.10} />
+            <circle r={42} fill={T.caseStudies} opacity={0.18} />
             <circle
-              r={47}
+              r={51}
               fill="none"
               stroke={T.caseStudies}
-              strokeWidth={0.6}
+              strokeWidth={0.65}
               strokeDasharray="3 6"
-              opacity={0.32}
+              opacity={0.34}
             />
-            <circle r={13} fill={T.caseStudies} opacity={1} />
-            <circle r={30} fill="transparent" pointerEvents="all" />
+            <circle r={14} fill={T.caseStudies} opacity={1} />
+            <circle r={32} fill="transparent" pointerEvents="all" />
           </g>
 
           {[
-            { projectIndex: 0, x: 195, y: 162 },
-            { projectIndex: 1, x: 302, y: 250 },
-            { projectIndex: 2, x: 195, y: 338 },
-            { projectIndex: 3, x: 88, y: 250 },
+            { projectIndex: 0, x: 195, y: 160 },
+            { projectIndex: 1, x: 304, y: 250 },
+            { projectIndex: 2, x: 195, y: 340 },
+            { projectIndex: 3, x: 86, y: 250 },
           ].map(({ projectIndex, x, y }) => {
             const project = CASE_STUDY_PROJECTS[projectIndex];
             return (
@@ -275,67 +287,71 @@ function CaseStudyProjectFocus({
                 }}
                 onClick={() => onSelect(projectIndex + 1)}
               >
-                <circle r={22} fill={project.color} opacity={0.045} />
-                <circle r={12} fill={project.color} opacity={0.11} />
+                <circle r={24} fill={project.color} opacity={0.05} />
+                <circle r={13} fill={project.color} opacity={0.12} />
                 <circle
-                  r={15}
+                  r={16}
                   fill="none"
                   stroke={project.color}
-                  strokeWidth={0.45}
-                  opacity={0.20}
+                  strokeWidth={0.5}
+                  opacity={0.22}
                 />
-                <circle r={5.5} fill={project.color} opacity={0.86} />
-                <circle r={24} fill="transparent" pointerEvents="all" />
+                <circle r={5.8} fill={project.color} opacity={0.9} />
+                <circle r={26} fill="transparent" pointerEvents="all" />
               </g>
             );
           })}
         </>
       ) : (
         <>
-          {[-1, 0, 1].map((offset) => {
-            const index = itemAt(offset);
-            const item = CASE_STUDY_FOCUS_ITEMS[index];
+          {projectSlots.map(({ item, offset }) => {
             const isActive = offset === 0;
-            const x = isActive ? 195 : offset < 0 ? 58 : 332;
+            const x = isActive ? 195 : offset < 0 ? 52 : 338;
             const y = 250;
-            const outer = isActive ? 60 : 26;
-            const inner = isActive ? 34 : 14;
-            const core = isActive ? 12 : 6;
+            const outer = isActive ? 64 : 28;
+            const inner = isActive ? 36 : 15;
+            const core = isActive ? 12.5 : 6.2;
 
             return (
               <g
-                key={item.id}
+                key={`${item.id}-${offset}`}
                 style={{
                   transform: `translate(${x}px,${y}px)`,
                   transition: ANIM,
                   cursor: "pointer",
                 }}
-                onClick={() => onSelect(index)}
+                onClick={() => {
+                  if (isActive) {
+                    onSelect(activeIndex);
+                    return;
+                  }
+                  onSwipe(offset < 0 ? -1 : 1);
+                }}
               >
                 <circle
                   r={outer}
                   fill={item.color}
-                  opacity={isActive ? 0.10 : 0.035}
+                  opacity={isActive ? 0.11 : 0.04}
                   style={{ transition: FADE }}
                 />
                 <circle
                   r={inner}
                   fill={item.color}
-                  opacity={isActive ? 0.20 : 0.08}
+                  opacity={isActive ? 0.22 : 0.09}
                   style={{ transition: FADE }}
                 />
                 <circle
-                  r={isActive ? 42 : 18}
+                  r={isActive ? 44 : 19}
                   fill="none"
                   stroke={item.color}
-                  strokeWidth={0.5}
+                  strokeWidth={0.55}
                   strokeDasharray={isActive ? "3 6" : undefined}
-                  opacity={isActive ? 0.30 : 0.12}
+                  opacity={isActive ? 0.34 : 0.14}
                 />
                 <circle
                   r={core}
                   fill={item.color}
-                  opacity={isActive ? 1 : 0.58}
+                  opacity={isActive ? 1 : 0.62}
                 />
                 {!isActive && (
                   <text
@@ -346,29 +362,61 @@ function CaseStudyProjectFocus({
                     fontSize={8}
                     letterSpacing="0.08em"
                     fill={item.color}
-                    opacity={0.76}
+                    opacity={0.8}
                   >
                     {item.label}
                   </text>
                 )}
-                <circle r={26} fill="transparent" pointerEvents="all" />
+                <circle r={28} fill="transparent" pointerEvents="all" />
               </g>
             );
           })}
+
+          <g transform="translate(195,318)" opacity={0.82}>
+            <rect
+              x={-26}
+              y={0}
+              width={52}
+              height={18}
+              rx={9}
+              fill="rgba(5,5,10,0.82)"
+              stroke={active.color}
+              strokeOpacity={0.36}
+              strokeWidth={0.7}
+            />
+            <text
+              x={0}
+              y={12}
+              textAnchor="middle"
+              fontFamily={T.mono}
+              fontSize={6.5}
+              letterSpacing="0.11em"
+              fill={active.color}
+              opacity={0.94}
+            >
+              OPEN
+            </text>
+          </g>
         </>
       )}
 
-      <g transform="translate(195,346)">
-        {CASE_STUDY_FOCUS_ITEMS.map((item, i) => (
-          <circle
-            key={item.id}
-            cx={(i - 2) * 14}
-            cy={0}
-            r={i === activeIndex ? 3.2 : 2.5}
-            fill={T.caseStudies}
-            opacity={i === activeIndex ? 0.95 : 0.34}
-          />
-        ))}
+      <g transform="translate(195,352)">
+        {(isSystemFocus ? CASE_STUDY_FOCUS_ITEMS : CASE_STUDY_PROJECTS).map((item, i) => {
+          const isActiveDot = isSystemFocus
+            ? i === 0
+            : i === activeIndex - 1;
+          const count = isSystemFocus ? CASE_STUDY_FOCUS_ITEMS.length : CASE_STUDY_PROJECTS.length;
+          return (
+            <circle
+              key={item.id}
+              cx={(i - (count - 1) / 2) * 14}
+              cy={0}
+              r={isActiveDot ? 3.2 : 2.5}
+              fill={T.caseStudies}
+              opacity={isActiveDot ? 0.95 : 0.34}
+            />
+          );
+        })}
       </g>
     </g>
   );
@@ -529,7 +577,7 @@ function OverviewScrolled({
         left: 0,
         right: 0,
         boxSizing: "border-box",
-        borderTop: `0.5px solid rgba(138,174,200,0.28)`,
+        borderTop: `1px solid ${item.id === "case-studies" ? T.caseStudies : item.color}44`,
         background: "rgba(5,5,10,0.94)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
@@ -549,7 +597,7 @@ function OverviewScrolled({
         <div
           style={{
             fontFamily: T.serif,
-            fontSize: 21,
+            fontSize: 21.5,
             fontWeight: 600,
             letterSpacing: "0.10em",
             color: item.id === "case-studies" ? T.caseStudies : item.color,
@@ -582,7 +630,7 @@ function OverviewScrolled({
       />
 
       {sections.map(({ label, body }) => (
-        <div key={label} style={{ marginBottom: 18 }}>
+        <div key={label} style={{ marginBottom: label === "KEY DISCOVERY" ? 22 : 20 }}>
           <div
             style={{
               fontFamily: T.mono,
@@ -598,10 +646,10 @@ function OverviewScrolled({
           <div
             style={{
               fontFamily: T.serif,
-              fontSize: 14,
+              fontSize: 14.5,
               color: T.body,
-              opacity: 0.88,
-              lineHeight: 1.58,
+              opacity: 0.9,
+              lineHeight: 1.62,
             }}
           >
             {body}
@@ -635,9 +683,10 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
   const cycleProject = (direction: -1 | 1) => {
     setActiveFocusIndex((current) => {
-      const next = current + direction;
-      const len = CASE_STUDY_FOCUS_ITEMS.length;
-      return (next + len) % len;
+      if (current === 0) return direction > 0 ? 1 : CASE_STUDY_PROJECTS.length;
+      const projectIndex = current - 1;
+      const nextProject = (projectIndex + direction + CASE_STUDY_PROJECTS.length) % CASE_STUDY_PROJECTS.length;
+      return nextProject + 1;
     });
   };
 
