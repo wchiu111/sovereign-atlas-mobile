@@ -86,6 +86,13 @@ const SYSTEM_VISUAL_SCALE = 1.18;
 const SYSTEM_LABEL_SIZE = 10;
 const PLANET_LABEL_SIZE = 8.5;
 
+const CASE_STUDY_OVERVIEW_LAYOUT = [
+  { x: 145, y: 175, labelX: 166, labelY: 163, anchor: "start" as const },
+  { x: 306, y: 238, labelX: 327, labelY: 242, anchor: "start" as const },
+  { x: 272, y: 365, labelX: 291, labelY: 379, anchor: "start" as const },
+  { x: 106, y: 333, labelX: 84,  labelY: 347, anchor: "end" as const },
+] as const;
+
 const CS_FOCUS: Record<LandingState, { x: number; y: number; orbitR: number; opacity: number }> = {
   "atlas-landing":  { x: 95,  y: 178, orbitR: 36, opacity: 1    },
   "system-awakened":{ x: 195, y: 250, orbitR: 72, opacity: 1    },
@@ -199,6 +206,100 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel, planetCo
   );
 }
 
+
+
+function CaseStudyOverviewConstellation({
+  selectedId,
+  onSelect,
+}: {
+  selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
+  onSelect: (id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]) => void;
+}) {
+  const caseStudiesSelected = selectedId === "case-studies";
+
+  return (
+    <g>
+      <path
+        d="M92 344 C118 242 160 174 232 190 C304 205 332 274 294 368"
+        fill="none"
+        stroke={T.caseStudies}
+        strokeWidth={0.55}
+        strokeDasharray="4 7"
+        opacity={0.14}
+      />
+      <path
+        d="M118 300 C172 222 248 220 315 278"
+        fill="none"
+        stroke={T.caseStudies}
+        strokeWidth={0.35}
+        strokeDasharray="2 6"
+        opacity={0.08}
+      />
+
+      <g
+        style={{
+          transform: "translate(195px,265px)",
+          transition: ANIM,
+          cursor: "pointer",
+          opacity: caseStudiesSelected ? 1 : 0.32,
+        }}
+        onClick={() => onSelect("case-studies")}
+      >
+        <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
+        <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
+        <circle r={57} fill="none" stroke={T.caseStudies} strokeWidth={caseStudiesSelected ? 0.75 : 0.45} opacity={caseStudiesSelected ? 0.38 : 0.16} />
+        <circle r={34} fill="none" stroke={T.caseStudies} strokeWidth={0.35} opacity={caseStudiesSelected ? 0.24 : 0.10} />
+        <circle r={14} fill={T.caseStudies} opacity={caseStudiesSelected ? 1 : 0.58} />
+        <circle r={34} fill="transparent" pointerEvents="all" />
+      </g>
+
+      {CASE_STUDY_PROJECTS.map((project, index) => {
+        const layout = CASE_STUDY_OVERVIEW_LAYOUT[index];
+        const isSelected = selectedId === project.id;
+        const nodeOpacity = isSelected ? 1 : caseStudiesSelected ? 0.34 : 0.22;
+        const lines =
+          project.label === "AGENTIC INSURANCE"
+            ? ["AGENTIC", "INSURANCE"]
+            : project.label === "SOVEREIGN ATLAS"
+            ? ["SOVEREIGN", "ATLAS"]
+            : [project.label];
+
+        return (
+          <g
+            key={project.id}
+            onClick={() => onSelect(project.id)}
+            style={{ cursor: "pointer", opacity: nodeOpacity, transition: FADE }}
+          >
+            <g style={{ transform: `translate(${layout.x}px,${layout.y}px)`, transition: ANIM }}>
+              <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.10 : 0.04} />
+              <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.20 : 0.10} />
+              <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.45} opacity={isSelected ? 0.40 : 0.18} />
+              <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.74} />
+              <circle r={24} fill="transparent" pointerEvents="all" />
+            </g>
+
+            <text
+              x={layout.labelX}
+              y={layout.labelY}
+              textAnchor={layout.anchor}
+              fontFamily={T.mono}
+              fontSize={10.5}
+              letterSpacing="0.08em"
+              fill={project.color}
+              opacity={isSelected ? 1 : 0.82}
+            >
+              {lines.map((line, lineIndex) => (
+                <tspan key={line} x={layout.labelX} dy={lineIndex === 0 ? 0 : 12}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+}
 
 function CaseStudyProjectFocus({
   activeIndex,
@@ -462,6 +563,113 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
   );
 }
 
+function ProjectPreviewDrawer({
+  item,
+  phase,
+  onExplore,
+}: {
+  item: (typeof CASE_STUDY_FOCUS_ITEMS)[number];
+  phase: "open" | "closing" | "opening";
+  onExplore: () => void;
+}) {
+  const isCaseStudies = item.id === "case-studies";
+  const translateY = phase === "closing" ? "100%" : "0%";
+  const opacity = phase === "closing" ? 0.08 : 1;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 470,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        boxSizing: "border-box",
+        borderTop: `1px solid ${isCaseStudies ? T.caseStudies : item.color}44`,
+        background: "rgba(5,5,10,0.96)",
+        backdropFilter: "blur(26px)",
+        WebkitBackdropFilter: "blur(26px)",
+        padding: "22px 28px 26px",
+        display: "flex",
+        flexDirection: "column",
+        transform: `translateY(${translateY})`,
+        opacity,
+        transition:
+          phase === "closing"
+            ? "transform 240ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease"
+            : "transform 320ms cubic-bezier(0.2,0.8,0.2,1), opacity 220ms ease",
+        willChange: "transform, opacity",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+        <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, letterSpacing: "0.10em", color: isCaseStudies ? T.caseStudies : item.color, opacity: 0.98, lineHeight: 1.1 }}>
+          {item.label}
+        </div>
+        <div style={{ flexShrink: 0, fontFamily: T.mono, fontSize: 9, letterSpacing: "0.14em", color: T.accentGold, opacity: 0.80 }}>
+          {item.meta}
+        </div>
+      </div>
+
+      <div style={{ height: 0.5, background: "rgba(138,174,200,0.14)", marginBottom: 16 }} />
+
+      {isCaseStudies ? (
+        <>
+          <div style={{ fontFamily: T.serif, fontSize: 15, fontWeight: 600, color: T.identityGold, lineHeight: 1.35, marginBottom: 14 }}>
+            See how decisions became outcomes.
+          </div>
+          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.90, lineHeight: 1.5, marginBottom: 12 }}>
+            Each case study traces a project through its context, constraints, design decisions, evidence, and results.
+          </div>
+          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.86, lineHeight: 1.48 }}>
+            Enter a system to understand not only what was created, but why it took the form it did.
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.accentGold, opacity: 0.76, marginBottom: 7 }}>
+              WHAT
+            </div>
+            <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.92, lineHeight: 1.56 }}>
+              {item.overview.what}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.accentGold, opacity: 0.76, marginBottom: 7 }}>
+              WHY
+            </div>
+            <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.88, lineHeight: 1.56 }}>
+              {item.overview.why}
+            </div>
+          </div>
+        </>
+      )}
+
+      <div style={{ marginTop: "auto", paddingTop: 15, borderTop: "0.5px solid rgba(138,174,200,0.12)" }}>
+        <div
+          onClick={onExplore}
+          style={{
+            minHeight: 44,
+            display: "flex",
+            alignItems: "center",
+            width: "fit-content",
+            paddingRight: 18,
+            fontFamily: T.mono,
+            fontSize: 10,
+            letterSpacing: "0.18em",
+            color: isCaseStudies ? T.caseStudies : item.color,
+            opacity: 0.96,
+            cursor: "pointer",
+          }}
+        >
+          EXPLORE →
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OverviewScrolled({
   item,
 }: {
@@ -579,6 +787,9 @@ interface LandingSceneProps {
 
 export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onOverviewBack, onSelectProject }: LandingSceneProps) {
   const [activeFocusIndex, setActiveFocusIndex] = useState(0);
+  const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
+  const [drawerItemId, setDrawerItemId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
+  const [drawerPhase, setDrawerPhase] = useState<"open" | "closing" | "opening">("open");
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
   const nexusOp  = NEXUS_OP[state];
@@ -586,6 +797,28 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const cs = SYSTEMS[0];
   const ex = SYSTEMS[1];
   const fw = SYSTEMS[2];
+
+  const drawerItem =
+    CASE_STUDY_FOCUS_ITEMS.find((item) => item.id === drawerItemId) ??
+    CASE_STUDY_FOCUS_ITEMS[0];
+
+  const selectCaseStudyOverviewItem = (
+    id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"],
+  ) => {
+    if (id === selectedCaseStudyId || drawerPhase === "closing") return;
+
+    setSelectedCaseStudyId(id);
+    setDrawerPhase("closing");
+
+    window.setTimeout(() => {
+      setDrawerItemId(id);
+      setDrawerPhase("opening");
+
+      window.setTimeout(() => {
+        setDrawerPhase("open");
+      }, 320);
+    }, 240);
+  };
 
   const cycleProject = (direction: -1 | 1) => {
     setActiveFocusIndex((current) => {
@@ -609,7 +842,25 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         <NexusNode op={nexusOp} />
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={ex} cx={EX_POS.x} cy={EX_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={fw} cx={FW_POS.x} cy={FW_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
-        <g style={{ opacity: state === "system-overview" ? 0 : csState.opacity, transition: FADE }}><SystemNode sys={cs} cx={csState.x} cy={csState.y} orbitR={csState.orbitR} awakened={isActive} dimmed={false} showLabel={state === "atlas-landing"} planetColors={state === "system-awakened" ? CASE_STUDY_COLORS : undefined} /></g>
+        {state === "atlas-landing" && (
+          <g style={{ opacity: csState.opacity, transition: FADE }}>
+            <SystemNode
+              sys={cs}
+              cx={csState.x}
+              cy={csState.y}
+              orbitR={csState.orbitR}
+              awakened={false}
+              dimmed={false}
+              showLabel
+            />
+          </g>
+        )}
+        {state === "system-awakened" && (
+          <CaseStudyOverviewConstellation
+            selectedId={selectedCaseStudyId}
+            onSelect={selectCaseStudyOverviewItem}
+          />
+        )}
         {state === "atlas-landing" && (
           <>
             <circle cx={95} cy={178} r={56} fill="transparent" onClick={onSelectCaseStudies} style={{ cursor: "pointer" }} />
@@ -701,7 +952,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
       {state === "system-awakened" && (
         <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", alignItems: "center", pointerEvents: "none" }}>
-          <div onClick={onBack} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
+          <div onClick={() => { setSelectedCaseStudyId("case-studies"); setDrawerItemId("case-studies"); setDrawerPhase("open"); onBack(); }} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
         </div>
       )}
 
@@ -727,7 +978,20 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         </div>
       )}
 
-      {state === "system-awakened" && <OverviewInitial onExplore={() => { setActiveFocusIndex(0); onOverviewExpand(); }} />}
+      {state === "system-awakened" && (
+        <ProjectPreviewDrawer
+          item={drawerItem}
+          phase={drawerPhase}
+          onExplore={() => {
+            if (drawerItem.id === "case-studies") {
+              setActiveFocusIndex(0);
+              onOverviewExpand();
+              return;
+            }
+            onSelectProject?.();
+          }}
+        />
+      )}
       {state === "system-overview" && <OverviewScrolled item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
     </>
