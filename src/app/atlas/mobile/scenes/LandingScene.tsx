@@ -12,29 +12,71 @@ import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 
 const CASE_STUDY_PROJECTS = [
-  { id: "agentic-insurance", label: "AGENTIC INSURANCE", color: "#D4916A" },
-  { id: "globality", label: "GLOBALITY", color: "#F4EBD0" },
-  { id: "oracle", label: "ORACLE", color: "#A68BD4" },
-  { id: "sovereign-atlas", label: "SOVEREIGN ATLAS", color: "#E8C86D" },
+  {
+    id: "agentic-insurance",
+    label: "AGENTIC INSURANCE",
+    color: "#D4916A",
+    overview: {
+      what: "A self-directed exploration of how AI-assisted tools might support claim adjusters and customers during complex insurance decisions.",
+      why: "The project started from a fully agentic assumption, but deeper domain research exposed how legal constraints, professional expertise, and accountability changed where AI should stop and human judgment should begin.",
+      researchFocus: "I studied claim-adjuster workflows, evidence review, jurisdictional constraints, and the boundary between AI synthesis and consequential human decision-making.",
+      keyDiscovery: "AI could gather, compare, explain, and recommend without owning the final decision. In high-stakes workflows, capability does not automatically grant authority.",
+    },
+  },
+  {
+    id: "globality",
+    label: "GLOBALITY",
+    color: "#F4EBD0",
+    overview: {
+      what: "A navigation and workflow redesign spanning Globality’s home experience, project portfolio, and in-project workspace.",
+      why: "The platform contained powerful procurement and AI capabilities, but users repeatedly had to reconstruct where they were, what had changed, and what action mattered next.",
+      researchFocus: "How navigation, dashboards, and contextual AI could respond to the user’s current work state while preserving clarity across a complex procurement journey.",
+      keyDiscovery: "Users do not experience enterprise products as a collection of pages. They experience changing states of work—and the interface must preserve orientation between them.",
+    },
+  },
+  {
+    id: "oracle",
+    label: "ORACLE",
+    color: "#A68BD4",
+    overview: {
+      what: "A Higher Education microsite that organized Oracle’s cloud products into a clearer narrative and interactive product experience.",
+      why: "Visitors needed to understand how a broad and uneven product portfolio connected to their institution’s goals without absorbing every technical detail at once.",
+      researchFocus: "Information hierarchy, content variability, progressive disclosure, responsive behavior, and visual storytelling across an enterprise product ecosystem.",
+      keyDiscovery: "People did not need every product detail at once. A shared hierarchy and progressive disclosure could reveal complexity as it became relevant without forcing unlike products into the same content model.",
+    },
+  },
+  {
+    id: "sovereign-atlas",
+    label: "SOVEREIGN ATLAS",
+    color: "#E8C86D",
+    overview: {
+      what: "The Atlas itself—a spatial, evidence-driven portfolio connecting UX, AI literacy, systems thinking, and design engineering.",
+      why: "It began as a faster way to find Echo inside the Sovereign UX Codex, then evolved into a larger question about how people discover and connect knowledge.",
+      researchFocus: "Can exploration produce a different kind of understanding than search? What happens when navigation becomes part of the learning experience?",
+      keyDiscovery: "Atlas was not built from a roadmap. It emerged through a chain of questions in which every solution revealed a more interesting problem underneath.",
+    },
+  },
 ] as const;
 
-const SYSTEM_OVERVIEW_SECTIONS = [
+const CASE_STUDIES_OVERVIEW = {
+  what: "A portfolio of four product design engagements. Real constraints, real stakeholders, and decisions made under genuine uncertainty and time pressure.",
+  why: "Design is consequential. Choices made in ambiguous situations shape outcomes more than technical execution. Process over artifacts.",
+  researchFocus: "How design authority is established and maintained across situations where requirements are incomplete, stakeholders disagree, and constraints shift.",
+  keyDiscovery: "Sustainable design authority emerges from clarity about process — not confidence in output. The decisions are the artifact.",
+} as const;
+
+const CASE_STUDY_FOCUS_ITEMS = [
   {
-    label: "WHAT",
-    body: "A portfolio of four product design engagements. Real constraints, real stakeholders, and decisions made under genuine uncertainty and time pressure.",
+    id: "case-studies",
+    label: "CASE STUDIES",
+    color: T.caseStudies,
+    meta: "4 PROJECTS",
+    overview: CASE_STUDIES_OVERVIEW,
   },
-  {
-    label: "WHY",
-    body: "Design is consequential. Choices made in ambiguous situations shape outcomes more than technical execution. Process over artifacts.",
-  },
-  {
-    label: "RESEARCH FOCUS",
-    body: "How design authority is established and maintained across situations where requirements are incomplete, stakeholders disagree, and constraints shift.",
-  },
-  {
-    label: "KEY DISCOVERY",
-    body: "Sustainable design authority emerges from clarity about process — not confidence in output. The decisions are the artifact.",
-  },
+  ...CASE_STUDY_PROJECTS.map((project, index) => ({
+    ...project,
+    meta: `PROJECT ${index + 1} OF 4`,
+  })),
 ] as const;
 
 
@@ -153,14 +195,12 @@ function CaseStudyProjectFocus({
   onSelect: (index: number) => void;
   onSwipe: (direction: -1 | 1) => void;
 }) {
-  const c = T.caseStudies;
   const dragStartX = useRef<number | null>(null);
+  const active = CASE_STUDY_FOCUS_ITEMS[activeIndex];
+  const isSystemFocus = activeIndex === 0;
 
-  const slots = [-1, 0, 1];
-  const active = CASE_STUDY_PROJECTS[activeIndex];
-
-  function projectAt(offset: number) {
-    const len = CASE_STUDY_PROJECTS.length;
+  function itemAt(offset: number) {
+    const len = CASE_STUDY_FOCUS_ITEMS.length;
     return (activeIndex + offset + len) % len;
   }
 
@@ -188,84 +228,141 @@ function CaseStudyProjectFocus({
         y={102}
         textAnchor="middle"
         fontFamily={T.mono}
-        fontSize={9}
-        letterSpacing="0.16em"
+        fontSize={10}
+        letterSpacing="0.15em"
         fill={active.color}
         opacity={0.96}
       >
         {active.label}
       </text>
 
-      {slots.map((offset) => {
-        const index = projectAt(offset);
-        const project = CASE_STUDY_PROJECTS[index];
-        const projectColor = project.color;
-        const isActive = offset === 0;
-        const x = isActive ? 195 : offset < 0 ? 58 : 332;
-        const y = 250;
-        const outer = isActive ? 60 : 26;
-        const inner = isActive ? 34 : 14;
-        const core = isActive ? 12 : 6;
-
-        return (
+      {isSystemFocus ? (
+        <>
           <g
-            key={project.id}
             style={{
-              transform: `translate(${x}px,${y}px)`,
+              transform: "translate(195px,250px)",
               transition: ANIM,
-              cursor: "pointer",
             }}
-            onClick={() => onSelect(index)}
           >
+            <circle r={62} fill={T.caseStudies} opacity={0.10} />
+            <circle r={38} fill={T.caseStudies} opacity={0.18} />
             <circle
-              r={outer}
-              fill={projectColor}
-              opacity={isActive ? 0.10 : 0.035}
-              style={{ transition: FADE }}
-            />
-            <circle
-              r={inner}
-              fill={projectColor}
-              opacity={isActive ? 0.20 : 0.08}
-              style={{ transition: FADE }}
-            />
-            <circle
-              r={isActive ? 42 : 18}
+              r={47}
               fill="none"
-              stroke={projectColor}
-              strokeWidth={0.5}
-              strokeDasharray={isActive ? "3 6" : undefined}
-              opacity={isActive ? 0.30 : 0.12}
+              stroke={T.caseStudies}
+              strokeWidth={0.6}
+              strokeDasharray="3 6"
+              opacity={0.32}
             />
-            <circle
-              r={core}
-              fill={projectColor}
-              opacity={isActive ? 1 : 0.58}
-            />
-            {!isActive && (
-              <text
-                x={offset < 0 ? -16 : 16}
-                y={3}
-                textAnchor={offset < 0 ? "end" : "start"}
-                fontFamily={T.mono}
-                fontSize={7.5}
-                letterSpacing="0.08em"
-                fill={projectColor}
-                opacity={0.76}
-              >
-                {project.label}
-              </text>
-            )}
-            <circle r={24} fill="transparent" pointerEvents="all" />
+            <circle r={13} fill={T.caseStudies} opacity={1} />
+            <circle r={30} fill="transparent" pointerEvents="all" />
           </g>
-        );
-      })}
+
+          {[
+            { projectIndex: 0, x: 195, y: 162 },
+            { projectIndex: 1, x: 302, y: 250 },
+            { projectIndex: 2, x: 195, y: 338 },
+            { projectIndex: 3, x: 88, y: 250 },
+          ].map(({ projectIndex, x, y }) => {
+            const project = CASE_STUDY_PROJECTS[projectIndex];
+            return (
+              <g
+                key={project.id}
+                style={{
+                  transform: `translate(${x}px,${y}px)`,
+                  transition: ANIM,
+                  cursor: "pointer",
+                }}
+                onClick={() => onSelect(projectIndex + 1)}
+              >
+                <circle r={22} fill={project.color} opacity={0.045} />
+                <circle r={12} fill={project.color} opacity={0.11} />
+                <circle
+                  r={15}
+                  fill="none"
+                  stroke={project.color}
+                  strokeWidth={0.45}
+                  opacity={0.20}
+                />
+                <circle r={5.5} fill={project.color} opacity={0.86} />
+                <circle r={24} fill="transparent" pointerEvents="all" />
+              </g>
+            );
+          })}
+        </>
+      ) : (
+        <>
+          {[-1, 0, 1].map((offset) => {
+            const index = itemAt(offset);
+            const item = CASE_STUDY_FOCUS_ITEMS[index];
+            const isActive = offset === 0;
+            const x = isActive ? 195 : offset < 0 ? 58 : 332;
+            const y = 250;
+            const outer = isActive ? 60 : 26;
+            const inner = isActive ? 34 : 14;
+            const core = isActive ? 12 : 6;
+
+            return (
+              <g
+                key={item.id}
+                style={{
+                  transform: `translate(${x}px,${y}px)`,
+                  transition: ANIM,
+                  cursor: "pointer",
+                }}
+                onClick={() => onSelect(index)}
+              >
+                <circle
+                  r={outer}
+                  fill={item.color}
+                  opacity={isActive ? 0.10 : 0.035}
+                  style={{ transition: FADE }}
+                />
+                <circle
+                  r={inner}
+                  fill={item.color}
+                  opacity={isActive ? 0.20 : 0.08}
+                  style={{ transition: FADE }}
+                />
+                <circle
+                  r={isActive ? 42 : 18}
+                  fill="none"
+                  stroke={item.color}
+                  strokeWidth={0.5}
+                  strokeDasharray={isActive ? "3 6" : undefined}
+                  opacity={isActive ? 0.30 : 0.12}
+                />
+                <circle
+                  r={core}
+                  fill={item.color}
+                  opacity={isActive ? 1 : 0.58}
+                />
+                {!isActive && (
+                  <text
+                    x={offset < 0 ? -16 : 16}
+                    y={3}
+                    textAnchor={offset < 0 ? "end" : "start"}
+                    fontFamily={T.mono}
+                    fontSize={8}
+                    letterSpacing="0.08em"
+                    fill={item.color}
+                    opacity={0.76}
+                  >
+                    {item.label}
+                  </text>
+                )}
+                <circle r={26} fill="transparent" pointerEvents="all" />
+              </g>
+            );
+          })}
+        </>
+      )}
 
       <g transform="translate(195,346)">
-        {CASE_STUDY_PROJECTS.map((project, i) => (
+        {CASE_STUDY_FOCUS_ITEMS.map((item, i) => (
           <circle
-            key={project.id}
-            cx={(i - 1.5) * 14}
+            key={item.id}
+            cx={(i - 2) * 14}
             cy={0}
             r={i === activeIndex ? 3.2 : 2.5}
             fill={T.caseStudies}
@@ -412,13 +509,16 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
 }
 
 function OverviewScrolled({
-  onBack,
+  item,
 }: {
-  onBack: () => void;
-  onOverviewBack: () => void;
-  onSelectProject?: () => void;
+  item: (typeof CASE_STUDY_FOCUS_ITEMS)[number];
 }) {
-  const c = T.caseStudies;
+  const sections = [
+    { label: "WHAT", body: item.overview.what },
+    { label: "WHY", body: item.overview.why },
+    { label: "RESEARCH FOCUS", body: item.overview.researchFocus },
+    { label: "KEY DISCOVERY", body: item.overview.keyDiscovery },
+  ];
 
   return (
     <div
@@ -433,41 +533,43 @@ function OverviewScrolled({
         background: "rgba(5,5,10,0.94)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
-        padding: "18px 28px 26px",
+        padding: "20px 28px 28px",
         overflowY: "auto",
       }}
     >
-
       <div
         style={{
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          marginBottom: 10,
+          gap: 16,
+          marginBottom: 12,
         }}
       >
         <div
           style={{
             fontFamily: T.serif,
-            fontSize: 18,
+            fontSize: 21,
             fontWeight: 600,
-            letterSpacing: "0.12em",
-            color: c,
-            opacity: 0.96,
+            letterSpacing: "0.10em",
+            color: item.id === "case-studies" ? T.caseStudies : item.color,
+            opacity: 0.98,
+            lineHeight: 1.1,
           }}
         >
-          CASE STUDIES
+          {item.label}
         </div>
         <div
           style={{
+            flexShrink: 0,
             fontFamily: T.mono,
-            fontSize: 7.5,
-            letterSpacing: "0.16em",
+            fontSize: 9,
+            letterSpacing: "0.14em",
             color: T.accentGold,
-            opacity: 0.78,
+            opacity: 0.80,
           }}
         >
-          4 PROJECTS
+          {item.meta}
         </div>
       </div>
 
@@ -475,20 +577,20 @@ function OverviewScrolled({
         style={{
           height: 0.5,
           background: "rgba(138,174,200,0.14)",
-          marginBottom: 14,
+          marginBottom: 16,
         }}
       />
 
-      {SYSTEM_OVERVIEW_SECTIONS.map(({ label, body }) => (
-        <div key={label} style={{ marginBottom: 14 }}>
+      {sections.map(({ label, body }) => (
+        <div key={label} style={{ marginBottom: 18 }}>
           <div
             style={{
               fontFamily: T.mono,
-              fontSize: 7.5,
-              letterSpacing: "0.20em",
+              fontSize: 9,
+              letterSpacing: "0.18em",
               color: T.accentGold,
-              opacity: 0.72,
-              marginBottom: 5,
+              opacity: 0.76,
+              marginBottom: 7,
             }}
           >
             {label}
@@ -496,10 +598,10 @@ function OverviewScrolled({
           <div
             style={{
               fontFamily: T.serif,
-              fontSize: 12.5,
+              fontSize: 14,
               color: T.body,
-              opacity: 0.84,
-              lineHeight: 1.52,
+              opacity: 0.88,
+              lineHeight: 1.58,
             }}
           >
             {body}
@@ -517,10 +619,12 @@ interface LandingSceneProps {
   onOverviewExpand: () => void;
   onExplore: () => void;
   onBack: () => void;
+  onOverviewBack: () => void;
+  onSelectProject?: () => void;
 }
 
 export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onOverviewBack, onSelectProject }: LandingSceneProps) {
-  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [activeFocusIndex, setActiveFocusIndex] = useState(0);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
   const nexusOp  = NEXUS_OP[state];
@@ -530,9 +634,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const fw = SYSTEMS[2];
 
   const cycleProject = (direction: -1 | 1) => {
-    setActiveProjectIndex((current) => {
+    setActiveFocusIndex((current) => {
       const next = current + direction;
-      const len = CASE_STUDY_PROJECTS.length;
+      const len = CASE_STUDY_FOCUS_ITEMS.length;
       return (next + len) % len;
     });
   };
@@ -575,13 +679,13 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         >
           <g style={{ pointerEvents: "auto" }}>
             <CaseStudyProjectFocus
-              activeIndex={activeProjectIndex}
+              activeIndex={activeFocusIndex}
               onSelect={(index) => {
-                if (index === activeProjectIndex) {
-                  onSelectProject?.();
+                if (index === activeFocusIndex) {
+                  if (index > 0) onSelectProject?.();
                   return;
                 }
-                setActiveProjectIndex(index);
+                setActiveFocusIndex(index);
               }}
               onSwipe={cycleProject}
             />
@@ -669,8 +773,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         </div>
       )}
 
-      {state === "system-awakened" && <OverviewInitial onExplore={onOverviewExpand} />}
-      {state === "system-overview" && <OverviewScrolled />}
+      {state === "system-awakened" && <OverviewInitial onExplore={() => { setActiveFocusIndex(0); onOverviewExpand(); }} />}
+      {state === "system-overview" && <OverviewScrolled item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
     </>
   );
