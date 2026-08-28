@@ -100,16 +100,22 @@ const CS_FOCUS: Record<LandingState, { x: number; y: number; orbitR: number; opa
 };
 
 const CTX_OP: Record<LandingState, number> = {
-  "atlas-landing":  1,    "system-awakened": 0.10, "system-overview": 0.07,
+  "atlas-landing": 1,
+  "system-awakened": 0,
+  "system-overview": 0,
 };
 const NEXUS_OP: Record<LandingState, number> = {
-  "atlas-landing":  1,    "system-awakened": 0.16, "system-overview": 0.08,
+  "atlas-landing": 1,
+  "system-awakened": 0,
+  "system-overview": 0,
 };
 const CS_ARC_OP: Record<LandingState, number> = {
   "atlas-landing": 0.20, "system-awakened": 0,    "system-overview": 0,
 };
 const CTX_ARC_OP: Record<LandingState, number> = {
-  "atlas-landing": 0.20, "system-awakened": 0.04, "system-overview": 0.02,
+  "atlas-landing": 0.20,
+  "system-awakened": 0,
+  "system-overview": 0,
 };
 
 function NexusNode({ op }: { op: number }) {
@@ -605,9 +611,20 @@ function ProjectPreviewDrawer({
         <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, letterSpacing: "0.10em", color: isCaseStudies ? T.caseStudies : item.color, opacity: 0.98, lineHeight: 1.1 }}>
           {item.label}
         </div>
-        <div style={{ flexShrink: 0, fontFamily: T.mono, fontSize: 9, letterSpacing: "0.14em", color: T.accentGold, opacity: 0.80 }}>
-          {item.meta}
-        </div>
+        {isCaseStudies && (
+          <div
+            style={{
+              flexShrink: 0,
+              fontFamily: T.mono,
+              fontSize: 9,
+              letterSpacing: "0.14em",
+              color: T.accentGold,
+              opacity: 0.80,
+            }}
+          >
+            4 PROJECTS
+          </div>
+        )}
       </div>
 
       <div style={{ height: 0.5, background: "rgba(138,174,200,0.14)", marginBottom: 16 }} />
@@ -625,28 +642,48 @@ function ProjectPreviewDrawer({
           </div>
         </>
       ) : (
-        <>
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.accentGold, opacity: 0.76, marginBottom: 7 }}>
-              WHAT
-            </div>
-            <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.92, lineHeight: 1.56 }}>
-              {item.overview.what}
-            </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 18,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.serif,
+              fontSize: 14.5,
+              color: T.body,
+              opacity: 0.92,
+              lineHeight: 1.56,
+              margin: 0,
+            }}
+          >
+            {item.overview.what}
           </div>
 
-          <div>
-            <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.accentGold, opacity: 0.76, marginBottom: 7 }}>
-              WHY
-            </div>
-            <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.88, lineHeight: 1.56 }}>
-              {item.overview.why}
-            </div>
+          <div
+            style={{
+              fontFamily: T.serif,
+              fontSize: 14.5,
+              color: T.body,
+              opacity: 0.88,
+              lineHeight: 1.56,
+              margin: 0,
+            }}
+          >
+            {item.overview.why}
           </div>
-        </>
+        </div>
       )}
 
-      <div style={{ marginTop: "auto", paddingTop: 15, borderTop: "0.5px solid rgba(138,174,200,0.12)" }}>
+      <div
+        style={{
+          marginTop: "auto",
+          paddingTop: 18,
+          borderTop: "0.5px solid rgba(138,174,200,0.12)",
+        }}
+      >
         <div
           onClick={onExplore}
           style={{
