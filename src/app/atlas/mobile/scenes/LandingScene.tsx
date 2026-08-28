@@ -58,6 +58,8 @@ const CASE_STUDY_PROJECTS = [
   },
 ] as const;
 
+const CASE_STUDY_COLORS = CASE_STUDY_PROJECTS.map((project) => project.color);
+
 const CASE_STUDIES_OVERVIEW = {
   what: "A portfolio of four product design engagements. Real constraints, real stakeholders, and decisions made under genuine uncertainty and time pressure.",
   why: "Design is consequential. Choices made in ambiguous situations shape outcomes more than technical execution. Process over artifacts.",
@@ -122,8 +124,13 @@ function NexusNode({ op }: { op: number }) {
   );
 }
 
-function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
-  planets: Planet[]; orbitR: number; color: string; awakened: boolean; dimmed: boolean;
+function PlanetCluster({ planets, orbitR, color, awakened, dimmed, planetColors }: {
+  planets: Planet[];
+  orbitR: number;
+  color: string;
+  awakened: boolean;
+  dimmed: boolean;
+  planetColors?: readonly string[];
 }) {
   const ringScale  = orbitR / 36;
   const showLabels = awakened && orbitR >= 44;
@@ -134,6 +141,7 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
           opacity={dimmed ? 0.04 : awakened ? 0.22 : 0.09} style={{ transition: FADE }} />
       </g>
       {planets.map((p, i) => {
+        const planetColor = planetColors?.[i] ?? color;
         const rad = (p.angle * Math.PI) / 180;
         const lpx = Math.cos(rad) * orbitR;
         const lpy = Math.sin(rad) * orbitR;
@@ -143,14 +151,14 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
         const db  = ldy > 0.28 ? "hanging" : ldy < -0.28 ? "auto" : "middle";
         return (
           <g key={i} style={{ transform: `translate(${lpx}px,${lpy}px)`, transition: ANIM }}>
-            <circle r={(awakened ? 9.5 : 5.5) * SYSTEM_VISUAL_SCALE} fill={color}
+            <circle r={(awakened ? 9.5 : 5.5) * SYSTEM_VISUAL_SCALE} fill={planetColor}
               opacity={dimmed ? 0.03 : awakened ? 0.16 : 0.07} style={{ transition: FADE }} />
-            <circle r={(awakened ? 3 : 1.7) * SYSTEM_VISUAL_SCALE} fill={color}
+            <circle r={(awakened ? 3 : 1.7) * SYSTEM_VISUAL_SCALE} fill={planetColor}
               opacity={dimmed ? 0.18 : awakened ? 1 : 0.52} style={{ transition: FADE }} />
             {showLabels && (
               <text x={ldx * 11} y={ldy * 11}
                 textAnchor={ta} dominantBaseline={db}
-                fontFamily={T.mono} fontSize={PLANET_LABEL_SIZE} letterSpacing="0.08em" fill={color} opacity={0.88}>
+                fontFamily={T.mono} fontSize={PLANET_LABEL_SIZE} letterSpacing="0.08em" fill={planetColor} opacity={0.88}>
                 {p.label}
               </text>
             )}
@@ -161,16 +169,22 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed }: {
   );
 }
 
-function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel }: {
-  sys: SystemDef; cx: number; cy: number; orbitR: number;
-  awakened: boolean; dimmed: boolean; showLabel: boolean;
+function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel, planetColors }: {
+  sys: SystemDef;
+  cx: number;
+  cy: number;
+  orbitR: number;
+  awakened: boolean;
+  dimmed: boolean;
+  showLabel: boolean;
+  planetColors?: readonly string[];
 }) {
   const atmoR  = (awakened ? BASE_R * 1.45 : BASE_R * 0.82) * SYSTEM_VISUAL_SCALE;
   const outerR = (awakened ? BASE_R * 3.2  : BASE_R * 1.9) * SYSTEM_VISUAL_SCALE;
   const coreR  = (awakened ? BASE_R * 0.52 : BASE_R * 0.36) * SYSTEM_VISUAL_SCALE;
   return (
     <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
-      <PlanetCluster planets={sys.planets} orbitR={orbitR} color={sys.color} awakened={awakened} dimmed={dimmed} />
+      <PlanetCluster planets={sys.planets} orbitR={orbitR} color={sys.color} awakened={awakened} dimmed={dimmed} planetColors={planetColors} />
       <circle r={outerR} fill={sys.color} opacity={awakened ? 0.08 : 0.032} style={{ transition: FADE }} />
       <circle r={atmoR} fill={sys.color} opacity={awakened ? 0.18 : 0.082} style={{ transition: FADE }} />
       <circle r={28 * SYSTEM_VISUAL_SCALE} fill="none" stroke={sys.color} strokeWidth={0.5} opacity={awakened ? 0.32 : 0.13} style={{ transition: FADE }} />
@@ -197,7 +211,7 @@ function CaseStudyProjectFocus({
 }) {
   const dragStartX = useRef<number | null>(null);
   const active = CASE_STUDY_FOCUS_ITEMS[activeIndex];
-  const isSystemFocus = activeIndex === 0;
+  const len = CASE_STUDY_FOCUS_ITEMS.length;
 
   function handlePointerDown(event: React.PointerEvent<SVGGElement>) {
     dragStartX.current = event.clientX;
@@ -212,22 +226,8 @@ function CaseStudyProjectFocus({
     onSwipe(dx < 0 ? 1 : -1);
   }
 
-  const projectSlots = isSystemFocus
-    ? []
-    : [
-        {
-          item: CASE_STUDY_PROJECTS[(activeIndex - 2 + CASE_STUDY_PROJECTS.length) % CASE_STUDY_PROJECTS.length],
-          offset: -1,
-        },
-        {
-          item: CASE_STUDY_PROJECTS[activeIndex - 1],
-          offset: 0,
-        },
-        {
-          item: CASE_STUDY_PROJECTS[activeIndex % CASE_STUDY_PROJECTS.length],
-          offset: 1,
-        },
-      ];
+  const previous = CASE_STUDY_FOCUS_ITEMS[(activeIndex - 1 + len) % len];
+  const next = CASE_STUDY_FOCUS_ITEMS[(activeIndex + 1) % len];
 
   return (
     <g
@@ -237,7 +237,7 @@ function CaseStudyProjectFocus({
     >
       <text
         x={195}
-        y={102}
+        y={118}
         textAnchor="middle"
         fontFamily={T.mono}
         fontSize={10.5}
@@ -248,175 +248,81 @@ function CaseStudyProjectFocus({
         {active.label}
       </text>
 
-      {isSystemFocus ? (
-        <>
+      {[
+        { item: previous, x: -2, offset: -1 },
+        { item: active, x: 195, offset: 0 },
+        { item: next, x: 392, offset: 1 },
+      ].map(({ item, x, offset }) => {
+        const isActive = offset === 0;
+        return (
           <g
+            key={`${item.id}-${offset}`}
             style={{
-              transform: "translate(195px,250px)",
+              transform: `translate(${x}px,250px)`,
               transition: ANIM,
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              if (isActive) {
+                if (activeIndex > 0) onSelect(activeIndex);
+                return;
+              }
+              onSwipe(offset < 0 ? -1 : 1);
             }}
           >
-            <circle r={68} fill={T.caseStudies} opacity={0.10} />
-            <circle r={42} fill={T.caseStudies} opacity={0.18} />
             <circle
-              r={51}
+              r={isActive ? 72 : 32}
+              fill={item.color}
+              opacity={isActive ? 0.11 : 0.05}
+            />
+            <circle
+              r={isActive ? 45 : 18}
+              fill={item.color}
+              opacity={isActive ? 0.22 : 0.12}
+            />
+            <circle
+              r={isActive ? 54 : 22}
               fill="none"
-              stroke={T.caseStudies}
-              strokeWidth={0.65}
-              strokeDasharray="3 6"
-              opacity={0.34}
+              stroke={item.color}
+              strokeWidth={0.55}
+              strokeDasharray={isActive ? "3 6" : undefined}
+              opacity={isActive ? 0.34 : 0.22}
             />
-            <circle r={14} fill={T.caseStudies} opacity={1} />
-            <circle r={32} fill="transparent" pointerEvents="all" />
-          </g>
-
-          {[
-            { projectIndex: 0, x: 195, y: 160 },
-            { projectIndex: 1, x: 304, y: 250 },
-            { projectIndex: 2, x: 195, y: 340 },
-            { projectIndex: 3, x: 86, y: 250 },
-          ].map(({ projectIndex, x, y }) => {
-            const project = CASE_STUDY_PROJECTS[projectIndex];
-            return (
-              <g
-                key={project.id}
-                style={{
-                  transform: `translate(${x}px,${y}px)`,
-                  transition: ANIM,
-                  cursor: "pointer",
-                }}
-                onClick={() => onSelect(projectIndex + 1)}
-              >
-                <circle r={24} fill={project.color} opacity={0.05} />
-                <circle r={13} fill={project.color} opacity={0.12} />
-                <circle
-                  r={16}
-                  fill="none"
-                  stroke={project.color}
-                  strokeWidth={0.5}
-                  opacity={0.22}
-                />
-                <circle r={5.8} fill={project.color} opacity={0.9} />
-                <circle r={26} fill="transparent" pointerEvents="all" />
-              </g>
-            );
-          })}
-        </>
-      ) : (
-        <>
-          {projectSlots.map(({ item, offset }) => {
-            const isActive = offset === 0;
-            const x = isActive ? 195 : offset < 0 ? 52 : 338;
-            const y = 250;
-            const outer = isActive ? 64 : 28;
-            const inner = isActive ? 36 : 15;
-            const core = isActive ? 12.5 : 6.2;
-
-            return (
-              <g
-                key={`${item.id}-${offset}`}
-                style={{
-                  transform: `translate(${x}px,${y}px)`,
-                  transition: ANIM,
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  if (isActive) {
-                    onSelect(activeIndex);
-                    return;
-                  }
-                  onSwipe(offset < 0 ? -1 : 1);
-                }}
-              >
-                <circle
-                  r={outer}
-                  fill={item.color}
-                  opacity={isActive ? 0.11 : 0.04}
-                  style={{ transition: FADE }}
-                />
-                <circle
-                  r={inner}
-                  fill={item.color}
-                  opacity={isActive ? 0.22 : 0.09}
-                  style={{ transition: FADE }}
-                />
-                <circle
-                  r={isActive ? 44 : 19}
-                  fill="none"
-                  stroke={item.color}
-                  strokeWidth={0.55}
-                  strokeDasharray={isActive ? "3 6" : undefined}
-                  opacity={isActive ? 0.34 : 0.14}
-                />
-                <circle
-                  r={core}
-                  fill={item.color}
-                  opacity={isActive ? 1 : 0.62}
-                />
-                {!isActive && (
-                  <text
-                    x={offset < 0 ? -16 : 16}
-                    y={3}
-                    textAnchor={offset < 0 ? "end" : "start"}
-                    fontFamily={T.mono}
-                    fontSize={8}
-                    letterSpacing="0.08em"
-                    fill={item.color}
-                    opacity={0.8}
-                  >
-                    {item.label}
-                  </text>
-                )}
-                <circle r={28} fill="transparent" pointerEvents="all" />
-              </g>
-            );
-          })}
-
-          <g transform="translate(195,318)" opacity={0.82}>
-            <rect
-              x={-26}
-              y={0}
-              width={52}
-              height={18}
-              rx={9}
-              fill="rgba(5,5,10,0.82)"
-              stroke={active.color}
-              strokeOpacity={0.36}
-              strokeWidth={0.7}
+            <circle
+              r={isActive ? 15 : 7}
+              fill={item.color}
+              opacity={isActive ? 1 : 0.9}
             />
-            <text
-              x={0}
-              y={12}
-              textAnchor="middle"
-              fontFamily={T.mono}
-              fontSize={6.5}
-              letterSpacing="0.11em"
-              fill={active.color}
-              opacity={0.94}
-            >
-              OPEN
-            </text>
+            {!isActive && (
+              <text
+                x={offset < 0 ? 18 : -18}
+                y={3}
+                textAnchor={offset < 0 ? "start" : "end"}
+                fontFamily={T.mono}
+                fontSize={8}
+                letterSpacing="0.08em"
+                fill={item.color}
+                opacity={0.78}
+              >
+                {item.label}
+              </text>
+            )}
+            <circle r={isActive ? 34 : 30} fill="transparent" pointerEvents="all" />
           </g>
-        </>
-      )}
+        );
+      })}
 
       <g transform="translate(195,352)">
-        {(isSystemFocus ? CASE_STUDY_FOCUS_ITEMS : CASE_STUDY_PROJECTS).map((item, i) => {
-          const isActiveDot = isSystemFocus
-            ? i === 0
-            : i === activeIndex - 1;
-          const count = isSystemFocus ? CASE_STUDY_FOCUS_ITEMS.length : CASE_STUDY_PROJECTS.length;
-          return (
-            <circle
-              key={item.id}
-              cx={(i - (count - 1) / 2) * 14}
-              cy={0}
-              r={isActiveDot ? 3.2 : 2.5}
-              fill={T.caseStudies}
-              opacity={isActiveDot ? 0.95 : 0.34}
-            />
-          );
-        })}
+        {CASE_STUDY_FOCUS_ITEMS.map((item, i) => (
+          <circle
+            key={item.id}
+            cx={(i - 2) * 14}
+            cy={0}
+            r={i === activeIndex ? 3.2 : 2.5}
+            fill={T.caseStudies}
+            opacity={i === activeIndex ? 0.95 : 0.34}
+          />
+        ))}
       </g>
     </g>
   );
@@ -683,10 +589,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
   const cycleProject = (direction: -1 | 1) => {
     setActiveFocusIndex((current) => {
-      if (current === 0) return direction > 0 ? 1 : CASE_STUDY_PROJECTS.length;
-      const projectIndex = current - 1;
-      const nextProject = (projectIndex + direction + CASE_STUDY_PROJECTS.length) % CASE_STUDY_PROJECTS.length;
-      return nextProject + 1;
+      const next = current + direction;
+      const len = CASE_STUDY_FOCUS_ITEMS.length;
+      return (next + len) % len;
     });
   };
 
@@ -704,7 +609,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         <NexusNode op={nexusOp} />
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={ex} cx={EX_POS.x} cy={EX_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
         <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={fw} cx={FW_POS.x} cy={FW_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
-        <g style={{ opacity: state === "system-overview" ? 0 : csState.opacity, transition: FADE }}><SystemNode sys={cs} cx={csState.x} cy={csState.y} orbitR={csState.orbitR} awakened={isActive} dimmed={false} showLabel={state === "atlas-landing"} /></g>
+        <g style={{ opacity: state === "system-overview" ? 0 : csState.opacity, transition: FADE }}><SystemNode sys={cs} cx={csState.x} cy={csState.y} orbitR={csState.orbitR} awakened={isActive} dimmed={false} showLabel={state === "atlas-landing"} planetColors={state === "system-awakened" ? CASE_STUDY_COLORS : undefined} /></g>
         {state === "atlas-landing" && (
           <>
             <circle cx={95} cy={178} r={56} fill="transparent" onClick={onSelectCaseStudies} style={{ cursor: "pointer" }} />
