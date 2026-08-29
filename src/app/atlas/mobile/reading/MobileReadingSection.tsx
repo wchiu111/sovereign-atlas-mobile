@@ -15,7 +15,7 @@ export default function MobileReadingSection({
       data-section-id={section.id}
       style={{
         scrollMarginTop: 138,
-        padding: "34px 26px 54px",
+        padding: "36px 26px 58px",
         borderBottom: "0.5px solid rgba(232,213,163,0.08)",
       }}
     >
@@ -54,7 +54,7 @@ export default function MobileReadingSection({
       <h2
         style={{
           margin: "0 0 18px",
-          maxWidth: 320,
+          maxWidth: 324,
           fontFamily: T.serif,
           fontSize: 25,
           fontWeight: 600,
@@ -70,34 +70,80 @@ export default function MobileReadingSection({
         style={{
           height: 0.5,
           background: "rgba(232,213,163,0.10)",
-          marginBottom: 22,
+          marginBottom: 24,
         }}
       />
 
-      {section.previewParagraphs.map((paragraph, index) => (
-        <p
-          key={index}
-          style={{
-            margin: index === section.previewParagraphs.length - 1 ? 0 : "0 0 19px",
-            fontFamily: T.serif,
-            fontSize: 15,
-            lineHeight: 1.68,
-            color: T.body,
-            opacity: 0.88,
-          }}
-        >
-          {paragraph}
-        </p>
-      ))}
+      {section.paragraphs.map((paragraph, index) => {
+        const isShortEmphasis =
+          paragraph.length < 58 &&
+          !paragraph.endsWith(".") &&
+          !paragraph.endsWith("?");
+
+        return (
+          <p
+            key={index}
+            style={{
+              margin:
+                index === section.paragraphs.length - 1
+                  ? 0
+                  : isShortEmphasis
+                    ? "0 0 18px"
+                    : "0 0 20px",
+              fontFamily: T.serif,
+              fontSize: isShortEmphasis ? 17 : 15,
+              fontWeight: isShortEmphasis ? 600 : 400,
+              lineHeight: isShortEmphasis ? 1.42 : 1.7,
+              color: isShortEmphasis ? T.gold : T.body,
+              opacity: isShortEmphasis ? 0.9 : 0.88,
+            }}
+          >
+            {paragraph}
+          </p>
+        );
+      })}
 
       <div
         style={{
-          marginTop: 24,
+          marginTop: 34,
+          padding: "0 0 2px 16px",
+          borderLeft: `1.5px solid ${T.identityGold}4D`,
+        }}
+      >
+        <div
+          style={{
+            marginBottom: 9,
+            fontFamily: T.mono,
+            fontSize: 7.5,
+            letterSpacing: "0.18em",
+            color: T.identityGold,
+            opacity: 0.68,
+          }}
+        >
+          SECTION INSIGHT
+        </div>
+        <div
+          style={{
+            fontFamily: T.serif,
+            fontSize: 15,
+            fontStyle: "italic",
+            lineHeight: 1.62,
+            color: T.body,
+            opacity: 0.86,
+          }}
+        >
+          “{section.insight}”
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 28,
           fontFamily: T.mono,
           fontSize: 7,
           letterSpacing: "0.16em",
           color: T.body,
-          opacity: 0.32,
+          opacity: 0.30,
         }}
       >
         {section.readingTime} MIN READ

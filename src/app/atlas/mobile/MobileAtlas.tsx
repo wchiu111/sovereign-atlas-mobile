@@ -130,6 +130,7 @@ export default function MobileAtlas() {
               onOverviewExpand={() => setState("system-overview")}
               onOverviewBack={() => setState("system-awakened")}
               onExplore={() => setState("case-studies-focus")}
+              onSelectProject={() => setState("project-reading")}
               onBack={() => setState("atlas-landing")}
             />
           )}
@@ -149,7 +150,7 @@ export default function MobileAtlas() {
               <ReadingScene
                 state="project-reading"
                 onEvidence={() => setState("evidence-viewer")}
-                onBack={() => setState("project-overview")}
+                onBack={() => setState("system-awakened")}
               />
               {isProjectEvidence && (
                 <ReadingScene
@@ -288,7 +289,7 @@ export default function MobileAtlas() {
               textAlign: "center",
               lineHeight: 1.7,
             }}>
-              MOBILE PROTOTYPE · Phase 3 · Isolated from production Atlas
+              MOBILE PROTOTYPE · Focused Mode Pass 2
             </div>
           </>
         )}
