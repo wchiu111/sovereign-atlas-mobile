@@ -1,498 +1,324 @@
 /**
- * ReadingScene — project-reading | evidence-viewer
- * Agentic Insurance reading surface + evidence image inspection.
+ * ReadingScene — Focused Mode Pass 1
+ *
+ * Architecture only:
+ * - continuous Sovereign Atlas reading document
+ * - persistent project header
+ * - horizontally scrolling section rail
+ * - vertical-scroll ↔ active-section synchronization
+ *
+ * Full desktop copy, evidence import, generalized evidence inspection,
+ * and final motion polish are intentionally deferred to later passes.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { T } from "../components/mobileShared";
-import evidenceImg from "../../../../imports/case-studies/agentic-insurance/03-approach/3-adjusters-claim-overview.png";
+import MobileReadingHeader from "../reading/MobileReadingHeader";
+import MobileSectionRail from "../reading/MobileSectionRail";
+import MobileReadingSection from "../reading/MobileReadingSection";
+import {
+  SOVEREIGN_ATLAS_READING,
+  type SovereignAtlasSectionId,
+} from "../reading/sovereignAtlasReadingScaffold";
 
-function InspectableImage({
-  src,
-  alt,
-  accent,
-  maxHeight = 520,
-}: {
-  src: string;
-  alt: string;
-  accent: string;
-  maxHeight?: number;
-}) {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
-  const panStart = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
-  const lastTap = useRef(0);
+function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
+  const sections = SOVEREIGN_ATLAS_READING.sections;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef(
+    new Map<SovereignAtlasSectionId, HTMLElement>(),
+  );
+  const [activeId, setActiveId] = useState<SovereignAtlasSectionId>(
+    sections[0].id,
+  );
 
-  const [scale, setScale] = useState(1);
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const sectionIds = useMemo(
+    () => sections.map((section) => section.id),
+    [sections],
+  );
 
-  const reset = () => {
-    setScale(1);
-    setTranslate({ x: 0, y: 0 });
-    pinchStart.current = null;
-    panStart.current = null;
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onBack();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onBack]);
+
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    let frame = 0;
+
+    const updateActiveSection = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rootTop = scroller.getBoundingClientRect().top;
+        const activationLine = rootTop + 156;
+
+        let bestId = sectionIds[0];
+        let bestDistance = Number.POSITIVE_INFINITY;
+
+        for (const id of sectionIds) {
+          const node = sectionRefs.current.get(id);
+          if (!node) continue;
+
+          const rect = node.getBoundingClientRect();
+          const distance = Math.abs(rect.top - activationLine);
+
+          if (rect.top <= activationLine + 24 && distance < bestDistance) {
+            bestId = id;
+            bestDistance = distance;
+          }
+        }
+
+        const lastId = sectionIds[sectionIds.length - 1];
+        const lastNode = sectionRefs.current.get(lastId);
+        if (
+          lastNode &&
+          scroller.scrollTop + scroller.clientHeight >=
+            scroller.scrollHeight - 24
+        ) {
+          bestId = lastId;
+        }
+
+        setActiveId(bestId);
+      });
+    };
+
+    updateActiveSection();
+    scroller.addEventListener("scroll", updateActiveSection, {
+      passive: true,
+    });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      scroller.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [sectionIds]);
+
+  const scrollToSection = (id: SovereignAtlasSectionId) => {
+    const node = sectionRefs.current.get(id);
+    const scroller = scrollRef.current;
+    if (!node || !scroller) return;
+
+    setActiveId(id);
+
+    const scrollerTop = scroller.getBoundingClientRect().top;
+    const nodeTop = node.getBoundingClientRect().top;
+    const target = scroller.scrollTop + nodeTop - scrollerTop - 2;
+
+    scroller.scrollTo({
+      top: target,
+      behavior: "smooth",
+    });
   };
 
-  const clampScale = (next: number) => Math.min(4, Math.max(1, next));
-
-  function distance() {
-    const pts = [...pointers.current.values()];
-    if (pts.length < 2) return 0;
-    return Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-  }
-
-  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (pointers.current.size === 1 && scale > 1) {
-      panStart.current = { x: e.clientX, y: e.clientY, tx: translate.x, ty: translate.y };
-    }
-
-    if (pointers.current.size === 2) {
-      pinchStart.current = { distance: distance(), scale };
-      panStart.current = null;
-    }
-  }
-
-  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!pointers.current.has(e.pointerId)) return;
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (pointers.current.size >= 2 && pinchStart.current) {
-      const d = distance();
-      if (pinchStart.current.distance > 0) {
-        setScale(clampScale(pinchStart.current.scale * (d / pinchStart.current.distance)));
-      }
-      return;
-    }
-
-    if (pointers.current.size === 1 && panStart.current && scale > 1) {
-      setTranslate({
-        x: panStart.current.tx + (e.clientX - panStart.current.x),
-        y: panStart.current.ty + (e.clientY - panStart.current.y),
-      });
-    }
-  }
-
-  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    pointers.current.delete(e.pointerId);
-    if (pointers.current.size < 2) pinchStart.current = null;
-    if (pointers.current.size === 0) panStart.current = null;
-  }
-
-  function onDoubleTap() {
-    const now = Date.now();
-    if (now - lastTap.current < 280) {
-      if (scale > 1) reset();
-      else setScale(2);
-    }
-    lastTap.current = now;
-  }
-
   return (
-    <div>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        background: "rgba(5,5,10,0.99)",
+        color: T.body,
+      }}
+    >
       <div
-        ref={viewportRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        onPointerLeave={onPointerUp}
-        onClick={onDoubleTap}
         style={{
-          position: "relative",
-          overflow: "hidden",
-          touchAction: "none",
-          background: "rgba(3,3,8,0.96)",
-          borderBottom: `0.5px solid ${accent}22`,
-          cursor: scale > 1 ? "grab" : "zoom-in",
+          position: "absolute",
+          inset: "0 0 auto 0",
+          zIndex: 10,
         }}
       >
-        <img
-          src={src}
-          alt={alt}
-          draggable={false}
-          style={{
-            width: "100%",
-            display: "block",
-            maxHeight,
-            objectFit: "contain",
-            transform: `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`,
-            transformOrigin: "center center",
-            transition: pointers.current.size ? "none" : "transform 160ms ease",
-            userSelect: "none",
-            WebkitUserDrag: "none",
-          }}
+        <MobileReadingHeader
+          title={SOVEREIGN_ATLAS_READING.title}
+          onBack={onBack}
+        />
+        <MobileSectionRail
+          sections={sections}
+          activeId={activeId}
+          onSelect={scrollToSection}
         />
       </div>
 
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        minHeight: 44,
-        padding: "0 22px",
-        borderBottom: `0.5px solid ${accent}1A`,
-      }}>
-        <div style={{
-          fontFamily: T.mono,
-          fontSize: 7,
-          letterSpacing: "0.18em",
-          color: T.gold,
-          opacity: 0.24,
-        }}>
-          PINCH OR DOUBLE-TAP TO INSPECT
+      <div
+        ref={scrollRef}
+        role="main"
+        aria-label="Sovereign Atlas case study"
+        style={{
+          position: "absolute",
+          top: 114,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehaviorY: "contain",
+        }}
+      >
+        <div
+          style={{
+            padding: "32px 26px 28px",
+            borderBottom: "0.5px solid rgba(232,213,163,0.08)",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: 8,
+              letterSpacing: "0.18em",
+              color: T.identityGold,
+              opacity: 0.64,
+              marginBottom: 10,
+            }}
+          >
+            CASE STUDY
+          </div>
+
+          <h1
+            style={{
+              margin: "0 0 10px",
+              fontFamily: T.serif,
+              fontSize: 30,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              lineHeight: 1.08,
+              color: T.identityGold,
+            }}
+          >
+            Sovereign Atlas
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 335,
+              fontFamily: T.serif,
+              fontSize: 15,
+              lineHeight: 1.55,
+              color: T.body,
+              opacity: 0.72,
+            }}
+          >
+            {SOVEREIGN_ATLAS_READING.subtitle}
+          </p>
         </div>
 
+        {sections.map((section) => (
+          <MobileReadingSection
+            key={section.id}
+            section={section}
+            setRef={(node) => {
+              if (node) sectionRefs.current.set(section.id, node);
+              else sectionRefs.current.delete(section.id);
+            }}
+          />
+        ))}
+
+        <div
+          style={{
+            padding: "42px 26px 72px",
+            textAlign: "left",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: 8,
+              letterSpacing: "0.18em",
+              color: T.identityGold,
+              opacity: 0.52,
+              marginBottom: 12,
+            }}
+          >
+            END OF CASE STUDY
+          </div>
+
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              minHeight: 44,
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              fontFamily: T.mono,
+              fontSize: 9,
+              letterSpacing: "0.16em",
+              color: T.caseStudies,
+              opacity: 0.86,
+              cursor: "pointer",
+            }}
+          >
+            ← RETURN TO CASE STUDIES
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EvidenceViewerPlaceholder({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 28,
+        background: "rgba(5,5,10,0.99)",
+      }}
+    >
+      <div style={{ maxWidth: 300 }}>
+        <div
+          style={{
+            fontFamily: T.mono,
+            fontSize: 8,
+            letterSpacing: "0.16em",
+            color: T.identityGold,
+            opacity: 0.68,
+            marginBottom: 12,
+          }}
+        >
+          EVIDENCE VIEWER
+        </div>
+        <div
+          style={{
+            fontFamily: T.serif,
+            fontSize: 16,
+            lineHeight: 1.55,
+            color: T.body,
+            opacity: 0.78,
+            marginBottom: 18,
+          }}
+        >
+          Evidence import and inspection are intentionally reserved for Focused
+          Mode Pass 3.
+        </div>
         <button
           type="button"
-          onClick={reset}
-          disabled={scale === 1 && translate.x === 0 && translate.y === 0}
+          onClick={onClose}
           style={{
-            minWidth: 44,
             minHeight: 44,
             border: "none",
             background: "transparent",
             padding: 0,
             fontFamily: T.mono,
-            fontSize: 7,
+            fontSize: 9,
             letterSpacing: "0.16em",
-            color: accent,
-            opacity: scale === 1 && translate.x === 0 && translate.y === 0 ? 0.20 : 0.58,
-            cursor: scale === 1 && translate.x === 0 && translate.y === 0 ? "default" : "pointer",
-          }}
-        >
-          RESET
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ReadingSurface({ onEvidence, onBack }: { onEvidence: () => void; onBack: () => void }) {
-  const c = T.caseStudies;
-  const [showPicker, setShowPicker] = useState(false);
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      if (showPicker) setShowPicker(false);
-      else onBack();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showPicker, onBack]);
-
-  const sections = [
-    ["01", "CONTEXT"],
-    ["02", "PROBLEM"],
-    ["03", "APPROACH"],
-    ["04", "DECISIONS"],
-    ["05", "OUTCOMES"],
-    ["06", "LESSONS"],
-  ] as const;
-
-  return (
-    <div style={{
-      position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
-      background: `linear-gradient(
-        to bottom,
-        rgba(5,5,10,0.18) 0px,
-        rgba(5,5,10,0.72) 80px,
-        rgba(5,5,10,0.95) 160px,
-        rgba(5,5,10,0.98) 220px
-      )`,
-      boxSizing: "border-box",
-    }}>
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0,
-        padding: "22px 22px 0",
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-      }}>
-        <div onClick={onBack} style={{
-          fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em",
-          color: T.body, opacity: 0.72, cursor: "pointer", minHeight: 44,
-          display: "flex", alignItems: "center",
-        }}>
-          ‹ OVERVIEW
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: c, opacity: 0.72 }}>
-            AGENTIC INSURANCE
-          </div>
-          <button
-            type="button"
-            aria-label="Open case study section picker"
-            onClick={() => setShowPicker((v) => !v)}
-            style={{
-              minWidth: 44,
-              minHeight: 44,
-              marginTop: -4,
-              marginRight: -10,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none",
-              background: "transparent",
-              padding: 0,
-              fontFamily: T.mono,
-              fontSize: 8,
-              letterSpacing: "0.16em",
-              color: T.body,
-              opacity: 0.72,
-              cursor: "pointer",
-            }}
-          >
-            · · ·
-          </button>
-        </div>
-      </div>
-
-      <div style={{
-        position: "absolute", top: 100, bottom: 0, left: 0, right: 0,
-        overflowY: "auto", padding: "0 28px 80px", boxSizing: "border-box",
-      }}>
-        <button
-          type="button"
-          onClick={() => setShowPicker((v) => !v)}
-          style={{
-            width: "100%",
-            minHeight: 44,
-            padding: "0 0 14px",
-            marginBottom: 18,
-            border: "none",
-            borderBottom: "0.5px solid rgba(138,174,200,0.14)",
-            background: "transparent",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            textAlign: "left",
+            color: T.caseStudies,
             cursor: "pointer",
           }}
         >
-          <span style={{ fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em", color: c, opacity: 0.72 }}>
-            03 / 06 · APPROACH
-          </span>
-          <span style={{ fontFamily: T.mono, fontSize: 7, color: T.body, opacity: 0.68 }}>↕</span>
+          ‹ RETURN TO READING
         </button>
-
-        <div style={{ fontFamily: T.serif, fontSize: 22, color: T.gold, opacity: 0.82, lineHeight: 1.30, marginBottom: 8 }}>
-          Using AI to investigate the role, not impersonate validation
-        </div>
-        <div style={{ height: 0.5, background: "rgba(232,213,163,0.10)", marginBottom: 20 }} />
-
-        {[
-          "I used public research, job descriptions, workflow documentation, industry material, and AI-assisted role simulation to build a more complete picture of the claim-adjuster experience.",
-          "The AI-generated persona was not treated as a substitute for a real person. It was used as a research instrument — a way to ask more specific questions about the role, pressure-test assumptions, and identify areas I needed to investigate further.",
-          "From that research, I mapped a customer and adjuster journey and explored where AI-assisted tools might support the process.",
-        ].map((para, i) => (
-          <div key={i} style={{
-            fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.86,
-            lineHeight: 1.68, marginBottom: 18,
-          }}>
-            {para}
-          </div>
-        ))}
-
-        <div
-          onClick={onEvidence}
-          style={{
-            borderRadius: 4,
-            border: `0.5px solid rgba(138,174,200,0.22)`,
-            overflow: "hidden",
-            marginBottom: 22,
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={evidenceImg}
-            alt="Adjuster Claims Overview"
-            style={{ width: "100%", height: 110, objectFit: "cover", display: "block", opacity: 0.85 }}
-          />
-          <div style={{ background: "rgba(5,5,10,0.85)", padding: "10px 14px 12px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-              <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.16em", color: c, opacity: 0.72 }}>
-                03 · ADJUSTER CLAIMS OVERVIEW
-              </div>
-              <div style={{ fontFamily: T.mono, fontSize: 7, color: c, opacity: 0.72 }}>→ INSPECT</div>
-            </div>
-            <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.12em", color: T.body, opacity: 0.68 }}>
-              UI CONCEPT
-            </div>
-          </div>
-        </div>
-
-        <div style={{ fontFamily: T.serif, fontSize: 14, color: T.body, opacity: 0.84, lineHeight: 1.68, marginBottom: 18 }}>
-          The concepts focused on areas such as summarizing claim information, identifying missing or conflicting evidence,
-          surfacing jurisdictional or policy considerations, explaining why a case may require escalation, helping the adjuster
-          compare possible next steps, and preserving a clear record of how a decision was reached.
-        </div>
-
-        <div style={{
-          borderLeft: `1.5px solid rgba(138,174,200,0.30)`,
-          paddingLeft: 16, marginBottom: 8,
-        }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.18em", color: c, opacity: 0.72, marginBottom: 8 }}>
-            SECTION INSIGHT
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 14.5, color: T.body, opacity: 0.86, lineHeight: 1.60, fontStyle: "italic" }}>
-            "AI was most useful when it helped me ask better questions about an unfamiliar role — not when it pretended to be the final source of truth."
-          </div>
-        </div>
-      </div>
-
-      {showPicker && (
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(5,5,10,0.44)",
-          backdropFilter: "blur(4px)",
-          WebkitBackdropFilter: "blur(4px)",
-        }}>
-          <div
-            onClick={() => setShowPicker(false)}
-            style={{ position: "absolute", inset: 0 }}
-          />
-          <div
-            role="dialog"
-            aria-label="Case study sections"
-            style={{
-              position: "absolute", bottom: 0, left: 0, right: 0,
-              background: "rgba(5,5,10,0.97)",
-              backdropFilter: "blur(32px)",
-              WebkitBackdropFilter: "blur(32px)",
-              borderTop: `0.5px solid rgba(138,174,200,0.22)`,
-              padding: "16px 0 48px",
-              boxSizing: "border-box",
-            }}
-          >
-            <div style={{
-              fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.22em",
-              color: T.body, opacity: 0.68, padding: "0 28px", marginBottom: 12,
-            }}>
-              SECTIONS
-            </div>
-
-            {sections.map(([num, name]) => {
-              const isActive = name === "APPROACH";
-              return (
-                <button
-                  type="button"
-                  key={num}
-                  disabled={!isActive}
-                  onClick={() => isActive && setShowPicker(false)}
-                  aria-current={isActive ? "page" : undefined}
-                  style={{
-                    width: "100%",
-                    minHeight: 48,
-                    padding: "0 28px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                    border: "none",
-                    borderBottom: `0.5px solid rgba(138,174,200,0.07)`,
-                    background: "transparent",
-                    textAlign: "left",
-                    cursor: isActive ? "pointer" : "default",
-                    opacity: isActive ? 1 : 0.42,
-                  }}
-                >
-                  <span style={{ fontFamily: T.mono, fontSize: 8, color: c, opacity: 0.68, minWidth: 20 }}>
-                    {num}
-                  </span>
-                  <span style={{
-                    fontFamily: T.mono, fontSize: 9.5, letterSpacing: "0.16em",
-                    color: isActive ? c : T.gold,
-                    opacity: isActive ? 0.90 : 0.44,
-                  }}>
-                    {name}
-                  </span>
-                  {isActive && (
-                    <span style={{ marginLeft: "auto", width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.7 }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function EvidenceViewer({ onClose }: { onClose: () => void }) {
-  const c = T.caseStudies;
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
-  return (
-    <div style={{
-      position: "absolute", top: 0, bottom: 0, left: 0, right: 0,
-      background: "rgba(5,5,10,0.97)",
-      backdropFilter: "blur(24px)",
-      WebkitBackdropFilter: "blur(24px)",
-      boxSizing: "border-box",
-      display: "flex",
-      flexDirection: "column",
-    }}>
-      <div style={{
-        padding: "22px 22px 14px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0,
-        borderBottom: `0.5px solid rgba(138,174,200,0.12)`,
-      }}>
-        <div onClick={onClose} style={{
-          fontFamily: T.mono, fontSize: 8.5, letterSpacing: "0.18em",
-          color: T.body, opacity: 0.72, cursor: "pointer",
-          display: "flex", alignItems: "center", gap: 6,
-          minHeight: 44, paddingRight: 12,
-        }}>
-          ‹ APPROACH
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 8, letterSpacing: "0.16em", color: c, opacity: 0.74 }}>
-            03 · ADJUSTER CLAIMS OVERVIEW
-          </div>
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.14em", color: T.body, opacity: 0.68, marginTop: 2 }}>
-            UI CONCEPT
-          </div>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "0 0 60px" }}>
-        <InspectableImage
-          src={evidenceImg}
-          alt="Adjuster Claims Overview — a unified claims workspace supporting triage and faster orientation"
-          accent={c}
-        />
-
-        <div style={{ padding: "18px 28px 0" }}>
-          <div style={{ fontFamily: T.mono, fontSize: 7, letterSpacing: "0.16em", color: c, opacity: 0.70, marginBottom: 8 }}>
-            CAPTION
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.82, lineHeight: 1.64 }}>
-            A unified claims workspace intended to support triage, workload awareness, and faster orientation before the adjuster begins deeper analysis.
-          </div>
-        </div>
-        <div style={{
-          margin: "18px 28px 0",
-          padding: "12px 0",
-          borderTop: `0.5px solid rgba(232,213,163,0.07)`,
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <div style={{ width: 4, height: 4, borderRadius: "50%", background: c, opacity: 0.45 }} />
-          <div style={{ fontFamily: T.mono, fontSize: 6.5, letterSpacing: "0.16em", color: c, opacity: 0.68 }}>
-            AGENTIC INSURANCE · 03 APPROACH
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -504,14 +330,17 @@ interface ReadingSceneProps {
   onBack: () => void;
 }
 
-export default function ReadingScene({ state, onEvidence, onBack }: ReadingSceneProps) {
+export default function ReadingScene({
+  state,
+  onBack,
+}: ReadingSceneProps) {
   return (
     <>
       {state === "project-reading" && (
-        <ReadingSurface onEvidence={onEvidence} onBack={onBack} />
+        <SovereignAtlasReadingSurface onBack={onBack} />
       )}
       {state === "evidence-viewer" && (
-        <EvidenceViewer onClose={onBack} />
+        <EvidenceViewerPlaceholder onClose={onBack} />
       )}
     </>
   );
