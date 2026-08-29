@@ -19,6 +19,8 @@ type CaseStudiesEntryPhase =
 
 const CASE_STUDIES_ENTRY_DURATION = 900;
 const CASE_STUDIES_PULL_EASE = "cubic-bezier(0.22,1,0.36,1)";
+const PROJECT_BREATH_DURATION = 4.2;
+const PROJECT_BREATH_DELAYS = [0, 0.8, 1.5, 2.2] as const;
 
 const CASE_STUDY_PROJECTS = [
   {
@@ -347,18 +349,31 @@ function CaseStudyOverviewConstellation({
         }}
         onClick={() => { if (!transitionPreview) onSelect("case-studies"); }}
       >
-        <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
-        <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
-        <circle r={57} fill="none" stroke={T.caseStudies} strokeWidth={caseStudiesSelected ? 0.75 : 0.45} opacity={caseStudiesSelected ? 0.38 : 0.16} />
-        <circle r={34} fill="none" stroke={T.caseStudies} strokeWidth={0.35} opacity={caseStudiesSelected ? 0.24 : 0.10} />
-        <circle r={14} fill={T.caseStudies} opacity={caseStudiesSelected ? 1 : 0.58} />
+        <g
+          className={
+            transitionPreview
+              ? undefined
+              : caseStudiesSelected
+              ? "atlas-core-selected"
+              : "atlas-node-available"
+          }
+          style={{
+            animationDelay: caseStudiesSelected ? "0s" : "0.45s",
+          }}
+        >
+          <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
+          <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
+          <circle r={57} fill="none" stroke={T.caseStudies} strokeWidth={caseStudiesSelected ? 0.75 : 0.45} opacity={caseStudiesSelected ? 0.38 : 0.16} />
+          <circle r={34} fill="none" stroke={T.caseStudies} strokeWidth={0.35} opacity={caseStudiesSelected ? 0.24 : 0.10} />
+          <circle r={14} fill={T.caseStudies} opacity={caseStudiesSelected ? 1 : 0.58} />
+        </g>
         <circle r={34} fill="transparent" pointerEvents="all" />
       </g>
 
       {CASE_STUDY_PROJECTS.map((project, index) => {
         const layout = CASE_STUDY_OVERVIEW_LAYOUT[index];
         const isSelected = selectedId === project.id;
-        const nodeOpacity = isSelected ? 1 : caseStudiesSelected ? 0.34 : 0.22;
+        const nodeOpacity = isSelected ? 1 : caseStudiesSelected ? 0.42 : 0.30;
         const lines =
           project.label === "AGENTIC INSURANCE"
             ? ["AGENTIC", "INSURANCE"]
@@ -379,10 +394,28 @@ function CaseStudyOverviewConstellation({
                 transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
               }}
             >
-              <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.10 : 0.04} />
-              <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.20 : 0.10} />
-              <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.45} opacity={isSelected ? 0.40 : 0.18} />
-              <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.74} />
+              <g
+                className={
+                  transitionPreview
+                    ? undefined
+                    : isSelected
+                    ? "atlas-node-selected"
+                    : "atlas-node-available"
+                }
+                style={{
+                  animationDuration: isSelected
+                    ? "5.8s"
+                    : `${PROJECT_BREATH_DURATION}s`,
+                  animationDelay: transitionPreview
+                    ? "0s"
+                    : `${PROJECT_BREATH_DELAYS[index]}s`,
+                }}
+              >
+                <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.10 : 0.04} />
+                <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.20 : 0.10} />
+                <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.45} opacity={isSelected ? 0.40 : 0.18} />
+                <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.74} />
+              </g>
               <circle r={24} fill="transparent" pointerEvents="all" />
             </g>
 
@@ -394,7 +427,7 @@ function CaseStudyOverviewConstellation({
               fontSize={10.5}
               letterSpacing="0.08em"
               fill={project.color}
-              opacity={transitionPreview || !labelsVisible ? 0 : isSelected ? 1 : 0.82}
+              opacity={transitionPreview || !labelsVisible ? 0 : isSelected ? 1 : caseStudiesSelected ? 0.86 : 0.78}
               style={{
                 transition: "opacity 240ms ease",
               }}
@@ -1153,9 +1186,71 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   return (
     <>
       <style>{`
+        @keyframes atlasAvailableBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.82;
+          }
+          50% {
+            transform: scale(1.032);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasSelectedBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.94;
+          }
+          50% {
+            transform: scale(1.012);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasCoreBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.96;
+          }
+          50% {
+            transform: scale(1.008);
+            opacity: 1;
+          }
+        }
+
+        .atlas-node-available {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: atlasAvailableBreath 4.2s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
+        .atlas-node-selected {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: atlasSelectedBreath 5.8s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
+        .atlas-core-selected {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: atlasCoreBreath 6.2s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .mobile-atlas-entry-motion {
             transition-duration: 0.01ms !important;
+          }
+
+          .atlas-node-available,
+          .atlas-node-selected,
+          .atlas-core-selected {
+            animation: none !important;
+            transform: none !important;
+            opacity: 1 !important;
           }
         }
       `}</style>
