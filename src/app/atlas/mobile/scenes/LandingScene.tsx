@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 /**
  * LandingScene — atlas-landing | system-awakened | system-overview
  * Renders the full-atlas SVG and Case Studies overview surfaces.
@@ -10,6 +10,15 @@ import type { SystemDef, Planet } from "../components/mobileShared";
 import AtlasUtilitySheet from "../components/AtlasUtilitySheet";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
+type CaseStudiesEntryPhase =
+  | "idle"
+  | "acknowledge"
+  | "pulling"
+  | "resolving"
+  | "settled";
+
+const CASE_STUDIES_ENTRY_DURATION = 900;
+const CASE_STUDIES_PULL_EASE = "cubic-bezier(0.22,1,0.36,1)";
 
 const CASE_STUDY_PROJECTS = [
   {
@@ -217,9 +226,11 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel, planetCo
 function CaseStudyOverviewConstellation({
   selectedId,
   onSelect,
+  transitionPreview = false,
 }: {
   selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
   onSelect: (id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]) => void;
+  transitionPreview?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
 
@@ -231,7 +242,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.55}
         strokeDasharray="4 7"
-        opacity={0.14}
+        opacity={transitionPreview ? 0.05 : 0.14}
       />
       <path
         d="M118 300 C172 222 248 220 315 278"
@@ -239,17 +250,18 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.35}
         strokeDasharray="2 6"
-        opacity={0.08}
+        opacity={transitionPreview ? 0.025 : 0.08}
       />
 
       <g
         style={{
-          transform: "translate(195px,265px)",
-          transition: ANIM,
-          cursor: "pointer",
-          opacity: caseStudiesSelected ? 1 : 0.32,
+          transform: `translate(195px,${transitionPreview ? 250 : 265}px) scale(${transitionPreview ? 0.82 : 1})`,
+          transformOrigin: "center",
+          transition: `transform 260ms ${CASE_STUDIES_PULL_EASE}, opacity 220ms ease`,
+          cursor: transitionPreview ? "default" : "pointer",
+          opacity: transitionPreview ? 0.86 : caseStudiesSelected ? 1 : 0.32,
         }}
-        onClick={() => onSelect("case-studies")}
+        onClick={() => { if (!transitionPreview) onSelect("case-studies"); }}
       >
         <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
         <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
@@ -273,10 +285,18 @@ function CaseStudyOverviewConstellation({
         return (
           <g
             key={project.id}
-            onClick={() => onSelect(project.id)}
+            onClick={() => { if (!transitionPreview) onSelect(project.id); }}
             style={{ cursor: "pointer", opacity: nodeOpacity, transition: FADE }}
           >
-            <g style={{ transform: `translate(${layout.x}px,${layout.y}px)`, transition: ANIM }}>
+            <g
+              style={{
+                transform: transitionPreview
+                  ? `translate(${195 + (layout.x - 195) * 0.72}px,${250 + (layout.y - 250) * 0.72}px) scale(0.88)`
+                  : `translate(${layout.x}px,${layout.y}px) scale(1)`,
+                transformOrigin: "center",
+                transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
+              }}
+            >
               <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.10 : 0.04} />
               <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.20 : 0.10} />
               <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.45} opacity={isSelected ? 0.40 : 0.18} />
@@ -292,7 +312,7 @@ function CaseStudyOverviewConstellation({
               fontSize={10.5}
               letterSpacing="0.08em"
               fill={project.color}
-              opacity={isSelected ? 1 : 0.82}
+              opacity={transitionPreview ? 0.38 : isSelected ? 1 : 0.82}
             >
               {lines.map((line, lineIndex) => (
                 <tspan key={line} x={layout.labelX} dy={lineIndex === 0 ? 0 : 12}>
@@ -829,6 +849,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
   const [drawerItemId, setDrawerItemId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
   const [drawerPhase, setDrawerPhase] = useState<"open" | "closing" | "opening">("open");
+  const [entryPhase, setEntryPhase] =
+    useState<CaseStudiesEntryPhase>("idle");
+  const entryTimersRef = useRef<number[]>([]);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
   const nexusOp  = NEXUS_OP[state];
@@ -836,6 +859,42 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const cs = SYSTEMS[0];
   const ex = SYSTEMS[1];
   const fw = SYSTEMS[2];
+
+  useEffect(() => {
+    return () => {
+      entryTimersRef.current.forEach(window.clearTimeout);
+      entryTimersRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    if (state === "atlas-landing") {
+      entryTimersRef.current.forEach(window.clearTimeout);
+      entryTimersRef.current = [];
+      setEntryPhase("idle");
+      return;
+    }
+
+    if (state === "system-awakened" && entryPhase === "idle") {
+      setEntryPhase("settled");
+    }
+  }, [state, entryPhase]);
+
+  const enterCaseStudies = () => {
+    entryTimersRef.current.forEach(window.clearTimeout);
+    entryTimersRef.current = [];
+
+    setEntryPhase("acknowledge");
+
+    entryTimersRef.current.push(
+      window.setTimeout(() => setEntryPhase("pulling"), 110),
+      window.setTimeout(() => setEntryPhase("resolving"), 560),
+      window.setTimeout(() => {
+        setEntryPhase("settled");
+        onSelectCaseStudies();
+      }, CASE_STUDIES_ENTRY_DURATION),
+    );
+  };
 
   const drawerItem =
     CASE_STUDY_FOCUS_ITEMS.find((item) => item.id === drawerItemId) ??
@@ -867,43 +926,245 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     });
   };
 
+  const entryInProgress =
+    state === "atlas-landing" && entryPhase !== "idle" && entryPhase !== "settled";
+
+  const entryProgress = (() => {
+    switch (entryPhase) {
+      case "acknowledge":
+        return 0.16;
+      case "pulling":
+        return 0.66;
+      case "resolving":
+        return 0.94;
+      case "settled":
+        return 1;
+      default:
+        return 0;
+    }
+  })();
+
+  const animatedCsX = 95 + (195 - 95) * entryProgress;
+  const animatedCsY = 178 + (250 - 178) * entryProgress;
+  const animatedCsOrbitR = 36 + (72 - 36) * entryProgress;
+  const contextEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.2) : ctxOp;
+  const nexusEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.25) : nexusOp;
+  const selectedSystemScale =
+    entryPhase === "acknowledge"
+      ? 1.035
+      : entryPhase === "pulling"
+      ? 1.12
+      : entryPhase === "resolving"
+      ? 1.18
+      : 1;
+
+  const resolvingOverview = state === "atlas-landing" && entryPhase === "resolving";
+  const travelingSystemOpacity = resolvingOverview ? 0.28 : 1;
+  const overviewResolveOpacity = resolvingOverview ? 0.72 : 0;
+  const overviewResolveScale = resolvingOverview ? 1 : 0.92;
+
+  const contextRecede = (() => {
+    switch (entryPhase) {
+      case "acknowledge":
+        return { opacity: 0.72, scale: 0.992, blur: 0.2 };
+      case "pulling":
+        return { opacity: 0.26, scale: 0.975, blur: 0.7 };
+      case "resolving":
+        return { opacity: 0.04, scale: 0.955, blur: 1.25 };
+      default:
+        return { opacity: 1, scale: 1, blur: 0 };
+    }
+  })();
+
+  const nexusRecede = (() => {
+    switch (entryPhase) {
+      case "acknowledge":
+        return { opacity: 0.78, scale: 0.996 };
+      case "pulling":
+        return { opacity: 0.30, scale: 0.982 };
+      case "resolving":
+        return { opacity: 0.02, scale: 0.965 };
+      default:
+        return { opacity: 1, scale: 1 };
+    }
+  })();
+
+  const orbitRecedeOpacity = (() => {
+    switch (entryPhase) {
+      case "acknowledge":
+        return 0.13;
+      case "pulling":
+        return 0.055;
+      case "resolving":
+        return 0.008;
+      default:
+        return null;
+    }
+  })();
+
   return (
     <>
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          .mobile-atlas-entry-motion {
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ position: "absolute", inset: 0 }} aria-hidden>
         {[22, 67, 112, 157, 202, 247, 292, 337].map((deg) => {
           const r = (deg * Math.PI) / 180;
           return <line key={deg} x1={NEXUS.x} y1={NEXUS.y} x2={NEXUS.x + Math.cos(r) * 295} y2={NEXUS.y + Math.sin(r) * 295}
-            stroke={T.gold} strokeWidth={0.28} opacity={isActive ? 0.014 : 0.036} style={{ transition: FADE }} />;
+            stroke={T.gold}
+            strokeWidth={0.28}
+            opacity={entryInProgress ? Math.max(0.004, 0.036 - entryProgress * 0.05) : isActive ? 0.014 : 0.036}
+            style={{ transition: "opacity 360ms ease" }}
+          />;
         })}
-        <path d={cs.orbitPath} fill="none" stroke={cs.color} strokeWidth={0.55} strokeDasharray="4.5 7" opacity={CS_ARC_OP[state]} style={{ transition: FADE }} />
-        <path d={ex.orbitPath} fill="none" stroke={ex.color} strokeWidth={0.55} strokeDasharray="4.5 7" opacity={CTX_ARC_OP[state]} style={{ transition: FADE }} />
-        <path d={fw.orbitPath} fill="none" stroke={fw.color} strokeWidth={0.55} strokeDasharray="4.5 7" opacity={CTX_ARC_OP[state]} style={{ transition: FADE }} />
-        <NexusNode op={nexusOp} />
-        <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={ex} cx={EX_POS.x} cy={EX_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
-        <g style={{ opacity: ctxOp, transition: FADE }}><SystemNode sys={fw} cx={FW_POS.x} cy={FW_POS.y} orbitR={ORBIT_R} awakened={false} dimmed={isActive} showLabel={!isActive} /></g>
-        {state === "atlas-landing" && (
-          <g style={{ opacity: csState.opacity, transition: FADE }}>
+        {entryInProgress && (
+          <rect
+            x={0}
+            y={0}
+            width={W}
+            height={H}
+            fill="rgba(5,5,10,0.22)"
+            opacity={entryPhase === "acknowledge" ? 0.12 : entryPhase === "pulling" ? 0.30 : 0.42}
+            style={{ transition: "opacity 360ms ease" }}
+            pointerEvents="none"
+          />
+        )}
+
+        <path
+          d={cs.orbitPath}
+          fill="none"
+          stroke={cs.color}
+          strokeWidth={0.55}
+          strokeDasharray="4.5 7"
+          opacity={entryInProgress ? Math.max(0.035, 0.20 - entryProgress * 0.10) : CS_ARC_OP[state]}
+          style={{ transition: "opacity 360ms ease" }}
+        />
+        <path
+          d={ex.orbitPath}
+          fill="none"
+          stroke={ex.color}
+          strokeWidth={0.55}
+          strokeDasharray="4.5 7"
+          opacity={entryInProgress ? (orbitRecedeOpacity ?? CTX_ARC_OP[state]) : CTX_ARC_OP[state]}
+          style={{ transition: "opacity 360ms ease" }}
+        />
+        <path
+          d={fw.orbitPath}
+          fill="none"
+          stroke={fw.color}
+          strokeWidth={0.55}
+          strokeDasharray="4.5 7"
+          opacity={entryInProgress ? (orbitRecedeOpacity ?? CTX_ARC_OP[state]) : CTX_ARC_OP[state]}
+          style={{ transition: "opacity 360ms ease" }}
+        />
+        <g
+          style={{
+            opacity: entryInProgress ? nexusRecede.opacity : 1,
+            transform: `scale(${entryInProgress ? nexusRecede.scale : 1})`,
+            transformOrigin: `${NEXUS.x}px ${NEXUS.y}px`,
+            transition: `opacity 420ms ease, transform 520ms ${CASE_STUDIES_PULL_EASE}`,
+          }}
+        >
+          <NexusNode op={entryInProgress ? 1 : nexusEntryOpacity} />
+        </g>
+        <g
+          style={{
+            opacity: entryInProgress ? contextRecede.opacity : contextEntryOpacity,
+            transform: `scale(${entryInProgress ? contextRecede.scale : 1})`,
+            transformOrigin: `${EX_POS.x}px ${EX_POS.y}px`,
+            filter: `blur(${entryInProgress ? contextRecede.blur : 0}px)`,
+            transition: `opacity 420ms ease, transform 560ms ${CASE_STUDIES_PULL_EASE}, filter 420ms ease`,
+          }}
+        >
+          <SystemNode
+            sys={ex}
+            cx={EX_POS.x}
+            cy={EX_POS.y}
+            orbitR={ORBIT_R}
+            awakened={false}
+            dimmed={entryInProgress || isActive}
+            showLabel={!isActive}
+          />
+        </g>
+        <g
+          style={{
+            opacity: entryInProgress ? contextRecede.opacity : contextEntryOpacity,
+            transform: `scale(${entryInProgress ? contextRecede.scale : 1})`,
+            transformOrigin: `${FW_POS.x}px ${FW_POS.y}px`,
+            filter: `blur(${entryInProgress ? contextRecede.blur : 0}px)`,
+            transition: `opacity 460ms ease, transform 600ms ${CASE_STUDIES_PULL_EASE}, filter 460ms ease`,
+          }}
+        >
+          <SystemNode
+            sys={fw}
+            cx={FW_POS.x}
+            cy={FW_POS.y}
+            orbitR={ORBIT_R}
+            awakened={false}
+            dimmed={entryInProgress || isActive}
+            showLabel={!isActive}
+          />
+        </g>
+                {state === "atlas-landing" && (
+          <g
+            style={{
+              opacity: travelingSystemOpacity,
+              transform: `scale(${selectedSystemScale})`,
+              transformOrigin: `${animatedCsX}px ${animatedCsY}px`,
+              transition: `transform 760ms ${CASE_STUDIES_PULL_EASE}, opacity 180ms ease`,
+            }}
+          >
             <SystemNode
               sys={cs}
-              cx={csState.x}
-              cy={csState.y}
-              orbitR={csState.orbitR}
-              awakened={false}
+              cx={entryInProgress ? animatedCsX : csState.x}
+              cy={entryInProgress ? animatedCsY : csState.y}
+              orbitR={entryInProgress ? animatedCsOrbitR : csState.orbitR}
+              awakened={entryInProgress}
               dimmed={false}
-              showLabel
+              showLabel={!entryInProgress}
               planetColors={CASE_STUDY_COLORS}
             />
           </g>
         )}
+        {resolvingOverview && (
+          <g
+            style={{
+              opacity: overviewResolveOpacity,
+              transform: `scale(${overviewResolveScale})`,
+              transformOrigin: "195px 265px",
+              transition: `opacity 220ms ease, transform 260ms ${CASE_STUDIES_PULL_EASE}`,
+              pointerEvents: "none",
+            }}
+          >
+            <CaseStudyOverviewConstellation
+              selectedId="case-studies"
+              onSelect={() => {}}
+              transitionPreview
+            />
+          </g>
+        )}
         {state === "system-awakened" && (
-          <CaseStudyOverviewConstellation
-            selectedId={selectedCaseStudyId}
-            onSelect={selectCaseStudyOverviewItem}
-          />
+          <g
+            style={{
+              opacity: 1,
+              transform: "scale(1)",
+              transformOrigin: "195px 265px",
+              transition: `opacity 180ms ease, transform 220ms ${CASE_STUDIES_PULL_EASE}`,
+            }}
+          >
+            <CaseStudyOverviewConstellation
+              selectedId={selectedCaseStudyId}
+              onSelect={selectCaseStudyOverviewItem}
+            />
+          </g>
         )}
         {state === "atlas-landing" && (
           <>
-            <circle cx={95} cy={178} r={56} fill="transparent" onClick={onSelectCaseStudies} style={{ cursor: "pointer" }} />
+            <circle cx={95} cy={178} r={56} fill="transparent" onClick={enterCaseStudies} style={{ cursor: entryInProgress ? "default" : "pointer", pointerEvents: entryInProgress ? "none" : "auto" }} />
             <circle cx={FW_POS.x} cy={FW_POS.y} r={56} fill="transparent" onClick={onSelectFrameworks} style={{ cursor: "pointer" }} />
           </>
         )}
