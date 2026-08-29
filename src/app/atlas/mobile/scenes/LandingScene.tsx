@@ -891,6 +891,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               awakened={false}
               dimmed={false}
               showLabel
+              planetColors={CASE_STUDY_COLORS}
             />
           </g>
         )}
