@@ -172,7 +172,7 @@ function PlanetCluster({
   resolveT?: number;
 }) {
   const ringScale  = orbitR / 36;
-  const showLabels = awakened && orbitR >= 44 && resolveT < 0.82;
+  const showLabels = awakened && orbitR >= 44 && !resolveTargets;
   return (
     <g>
       <g style={{ transform: `scale(${ringScale})`, transition: ANIM }}>
@@ -192,7 +192,13 @@ function PlanetCluster({
         const ta  = ldx > 0.28 ? "start" : ldx < -0.28 ? "end" : "middle";
         const db  = ldy > 0.28 ? "hanging" : ldy < -0.28 ? "auto" : "middle";
         return (
-          <g key={i} style={{ transform: `translate(${lpx}px,${lpy}px)`, transition: ANIM }}>
+          <g
+            key={i}
+            style={{
+              transform: `translate(${lpx}px,${lpy}px)`,
+              transition: resolveTargets ? "none" : ANIM,
+            }}
+          >
             <circle r={(awakened ? 9.5 : 5.5) * SYSTEM_VISUAL_SCALE} fill={planetColor}
               opacity={dimmed ? 0.03 : awakened ? 0.16 : 0.07} style={{ transition: FADE }} />
             <circle r={(awakened ? 3 : 1.7) * SYSTEM_VISUAL_SCALE} fill={planetColor}
@@ -238,7 +244,12 @@ function SystemNode({
   const outerR = (awakened ? BASE_R * 3.2  : BASE_R * 1.9) * SYSTEM_VISUAL_SCALE;
   const coreR  = (awakened ? BASE_R * 0.52 : BASE_R * 0.36) * SYSTEM_VISUAL_SCALE;
   return (
-    <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
+    <g
+      style={{
+        transform: `translate(${cx}px,${cy}px)`,
+        transition: resolveTargets ? "none" : ANIM,
+      }}
+    >
       <PlanetCluster
         planets={sys.planets}
         orbitR={orbitR}
@@ -1002,7 +1013,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       : entryPhase === "pulling"
       ? 1.12
       : entryPhase === "resolving"
-      ? 1.18
+      ? lerp(1.18, 1, resolveT)
       : 1;
 
   useEffect(() => {
@@ -1188,7 +1199,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               opacity: travelingSystemOpacity,
               transform: `scale(${selectedSystemScale})`,
               transformOrigin: `${animatedCsX}px ${animatedCsY}px`,
-              transition: `transform 760ms ${CASE_STUDIES_PULL_EASE}, opacity 180ms ease`,
+              transition: resolvingOverview
+                ? "opacity 180ms ease"
+                : `transform 760ms ${CASE_STUDIES_PULL_EASE}, opacity 180ms ease`,
             }}
           >
             <SystemNode
@@ -1208,7 +1221,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         {resolvingOverview && (
           <g
             style={{
-              opacity: resolveT < 0.72 ? 0 : overviewResolveOpacity,
+              opacity: resolveT < 0.82 ? 0 : overviewResolveOpacity,
               transform: `scale(${overviewResolveScale})`,
               transformOrigin: `${OVERVIEW_CORE.x}px ${OVERVIEW_CORE.y}px`,
               transition: "opacity 120ms ease",
