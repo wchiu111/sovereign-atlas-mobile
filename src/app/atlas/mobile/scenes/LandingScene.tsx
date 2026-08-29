@@ -1115,11 +1115,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const contextRecede = (() => {
     switch (entryPhase) {
       case "acknowledge":
-        return { opacity: 0.72, scale: 0.992, blur: 0.2 };
+        return { opacity: 0.52, scale: 0.992, blur: 0 };
       case "pulling":
-        return { opacity: 0.26, scale: 0.975, blur: 0.7 };
+        return { opacity: 0.015, scale: 0.978, blur: 0 };
       case "resolving":
-        return { opacity: 0.04, scale: 0.955, blur: 1.25 };
+        return { opacity: 0, scale: 0.965, blur: 0 };
       default:
         return { opacity: 1, scale: 1, blur: 0 };
     }
@@ -1128,11 +1128,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const nexusRecede = (() => {
     switch (entryPhase) {
       case "acknowledge":
-        return { opacity: 0.78, scale: 0.996 };
+        return { opacity: 0.56, scale: 0.996 };
       case "pulling":
-        return { opacity: 0.30, scale: 0.982 };
+        return { opacity: 0.01, scale: 0.984 };
       case "resolving":
-        return { opacity: 0.02, scale: 0.965 };
+        return { opacity: 0, scale: 0.972 };
       default:
         return { opacity: 1, scale: 1 };
     }
@@ -1141,11 +1141,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const orbitRecedeOpacity = (() => {
     switch (entryPhase) {
       case "acknowledge":
-        return 0.13;
+        return 0.07;
       case "pulling":
-        return 0.055;
+        return 0;
       case "resolving":
-        return 0.008;
+        return 0;
       default:
         return null;
     }
@@ -1166,8 +1166,16 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
           return <line key={deg} x1={NEXUS.x} y1={NEXUS.y} x2={NEXUS.x + Math.cos(r) * 295} y2={NEXUS.y + Math.sin(r) * 295}
             stroke={T.gold}
             strokeWidth={0.28}
-            opacity={entryInProgress ? Math.max(0.004, 0.036 - entryProgress * 0.05) : isActive ? 0.014 : 0.036}
-            style={{ transition: "opacity 360ms ease" }}
+            opacity={
+              entryInProgress
+                ? entryPhase === "acknowledge"
+                  ? 0.018
+                  : 0
+                : isActive
+                ? 0.014
+                : 0.036
+            }
+            style={{ transition: "opacity 220ms ease" }}
           />;
         })}
         {entryInProgress && (
@@ -1177,8 +1185,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             width={W}
             height={H}
             fill="rgba(5,5,10,0.22)"
-            opacity={entryPhase === "acknowledge" ? 0.12 : entryPhase === "pulling" ? 0.30 : 0.42}
-            style={{ transition: "opacity 360ms ease" }}
+            opacity={entryPhase === "acknowledge" ? 0.16 : entryPhase === "pulling" ? 0.34 : 0.38}
+            style={{ transition: "opacity 260ms ease" }}
             pointerEvents="none"
           />
         )}
@@ -1223,7 +1231,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             opacity: entryInProgress ? nexusRecede.opacity : 1,
             transform: `scale(${entryInProgress ? nexusRecede.scale : 1})`,
             transformOrigin: `${NEXUS.x}px ${NEXUS.y}px`,
-            transition: `opacity 420ms ease, transform 520ms ${CASE_STUDIES_PULL_EASE}`,
+            transition: `opacity 260ms ease, transform 520ms ${CASE_STUDIES_PULL_EASE}`,
           }}
         >
           <NexusNode op={entryInProgress ? 1 : nexusEntryOpacity} />
@@ -1233,8 +1241,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             opacity: entryInProgress ? contextRecede.opacity : contextEntryOpacity,
             transform: `scale(${entryInProgress ? contextRecede.scale : 1})`,
             transformOrigin: `${EX_POS.x}px ${EX_POS.y}px`,
-            filter: `blur(${entryInProgress ? contextRecede.blur : 0}px)`,
-            transition: `opacity 420ms ease, transform 560ms ${CASE_STUDIES_PULL_EASE}, filter 420ms ease`,
+            transition: `opacity 260ms ease, transform 560ms ${CASE_STUDIES_PULL_EASE}`,
           }}
         >
           <SystemNode
@@ -1252,8 +1259,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             opacity: entryInProgress ? contextRecede.opacity : contextEntryOpacity,
             transform: `scale(${entryInProgress ? contextRecede.scale : 1})`,
             transformOrigin: `${FW_POS.x}px ${FW_POS.y}px`,
-            filter: `blur(${entryInProgress ? contextRecede.blur : 0}px)`,
-            transition: `opacity 460ms ease, transform 600ms ${CASE_STUDIES_PULL_EASE}, filter 460ms ease`,
+            transition: `opacity 280ms ease, transform 600ms ${CASE_STUDIES_PULL_EASE}`,
           }}
         >
           <SystemNode
