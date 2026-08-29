@@ -103,6 +103,8 @@ const CASE_STUDY_OVERVIEW_LAYOUT = [
 ] as const;
 
 const OVERVIEW_CORE = { x: 195, y: 265 } as const;
+const CASE_STUDY_MINIATURE_SCALE = 0.32;
+
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
@@ -159,6 +161,8 @@ function PlanetCluster({
   awakened,
   dimmed,
   planetColors,
+  baseLayoutTargets,
+  baseLayoutScale = 1,
   resolveTargets,
   resolveT = 0,
 }: {
@@ -168,6 +172,8 @@ function PlanetCluster({
   awakened: boolean;
   dimmed: boolean;
   planetColors?: readonly string[];
+  baseLayoutTargets?: readonly { x: number; y: number }[];
+  baseLayoutScale?: number;
   resolveTargets?: readonly { x: number; y: number }[];
   resolveT?: number;
 }) {
@@ -175,20 +181,37 @@ function PlanetCluster({
   const showLabels = awakened && orbitR >= 44 && !resolveTargets;
   return (
     <g>
-      <g style={{ transform: `scale(${ringScale})`, transition: ANIM }}>
-        <circle r={36} fill="none" stroke={color} strokeWidth={0.4} strokeDasharray="2.5 5"
-          opacity={dimmed ? 0.04 : awakened ? 0.22 : 0.09} style={{ transition: FADE }} />
-      </g>
+      {!baseLayoutTargets && (
+        <g style={{ transform: `scale(${ringScale})`, transition: ANIM }}>
+          <circle
+            r={36}
+            fill="none"
+            stroke={color}
+            strokeWidth={0.4}
+            strokeDasharray="2.5 5"
+            opacity={dimmed ? 0.04 : awakened ? 0.22 : 0.09}
+            style={{ transition: FADE }}
+          />
+        </g>
+      )}
       {planets.map((p, i) => {
         const planetColor = planetColors?.[i] ?? color;
         const rad = (p.angle * Math.PI) / 180;
-        const orbitX = Math.cos(rad) * orbitR;
-        const orbitY = Math.sin(rad) * orbitR;
+        const authoredBase = baseLayoutTargets?.[i];
+        const orbitX = authoredBase
+          ? authoredBase.x * baseLayoutScale
+          : Math.cos(rad) * orbitR;
+        const orbitY = authoredBase
+          ? authoredBase.y * baseLayoutScale
+          : Math.sin(rad) * orbitR;
         const target = resolveTargets?.[i];
         const lpx = target ? lerp(orbitX, target.x, resolveT) : orbitX;
         const lpy = target ? lerp(orbitY, target.y, resolveT) : orbitY;
-        const ldx = Math.cos(rad);
-        const ldy = Math.sin(rad);
+
+        // Label direction follows the actual node vector when using authored geometry.
+        const vectorLength = Math.max(1, Math.hypot(lpx, lpy));
+        const ldx = authoredBase ? lpx / vectorLength : Math.cos(rad);
+        const ldy = authoredBase ? lpy / vectorLength : Math.sin(rad);
         const ta  = ldx > 0.28 ? "start" : ldx < -0.28 ? "end" : "middle";
         const db  = ldy > 0.28 ? "hanging" : ldy < -0.28 ? "auto" : "middle";
         return (
@@ -226,6 +249,8 @@ function SystemNode({
   dimmed,
   showLabel,
   planetColors,
+  baseLayoutTargets,
+  baseLayoutScale = 1,
   resolveTargets,
   resolveT = 0,
 }: {
@@ -237,6 +262,8 @@ function SystemNode({
   dimmed: boolean;
   showLabel: boolean;
   planetColors?: readonly string[];
+  baseLayoutTargets?: readonly { x: number; y: number }[];
+  baseLayoutScale?: number;
   resolveTargets?: readonly { x: number; y: number }[];
   resolveT?: number;
 }) {
@@ -257,6 +284,8 @@ function SystemNode({
         awakened={awakened}
         dimmed={dimmed}
         planetColors={planetColors}
+        baseLayoutTargets={baseLayoutTargets}
+        baseLayoutScale={baseLayoutScale}
         resolveTargets={resolveTargets}
         resolveT={resolveT}
       />
@@ -1047,6 +1076,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     y: layout.y - OVERVIEW_CORE.y,
   }));
 
+  // The top-level Case Studies cluster is a compressed miniature of the
+  // overview constellation. This preserves project-to-project relationships
+  // before, during, and after the pull-in.
+  const caseStudyMiniatureTargets = overviewResolveTargets;
+
   const contextRecede = (() => {
     switch (entryPhase) {
       case "acknowledge":
@@ -1213,6 +1247,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               dimmed={false}
               showLabel={!entryInProgress}
               planetColors={CASE_STUDY_COLORS}
+              baseLayoutTargets={caseStudyMiniatureTargets}
+              baseLayoutScale={CASE_STUDY_MINIATURE_SCALE}
               resolveTargets={resolvingOverview ? overviewResolveTargets : undefined}
               resolveT={resolvingOverview ? resolveT : 0}
             />
