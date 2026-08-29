@@ -1,14 +1,9 @@
 /**
- * ReadingScene — Focused Mode Pass 1
+ * ReadingScene — Focused Mode Pass 3
  *
- * Architecture only:
- * - continuous Sovereign Atlas reading document
- * - persistent project header
- * - horizontally scrolling section rail
- * - vertical-scroll ↔ active-section synchronization
- *
- * Full desktop copy, evidence import, generalized evidence inspection,
- * and final motion polish are intentionally deferred to later passes.
+ * Continuous Sovereign Atlas reading with inline evidence.
+ * Evidence inspection overlays the mounted reading document so the reader
+ * returns to the exact previous scroll position.
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,6 +11,8 @@ import { T } from "../components/mobileShared";
 import MobileReadingHeader from "../reading/MobileReadingHeader";
 import MobileSectionRail from "../reading/MobileSectionRail";
 import MobileReadingSection from "../reading/MobileReadingSection";
+import MobileEvidenceViewer from "../reading/MobileEvidenceViewer";
+import type { MobileEvidenceItem } from "../reading/sovereignAtlasEvidence";
 import {
   SOVEREIGN_ATLAS_READING,
   type SovereignAtlasSectionId,
@@ -27,9 +24,12 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   const sectionRefs = useRef(
     new Map<SovereignAtlasSectionId, HTMLElement>(),
   );
+
   const [activeId, setActiveId] = useState<SovereignAtlasSectionId>(
     sections[0].id,
   );
+  const [selectedEvidence, setSelectedEvidence] =
+    useState<MobileEvidenceItem | null>(null);
 
   const sectionIds = useMemo(
     () => sections.map((section) => section.id),
@@ -38,12 +38,14 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onBack();
+      if (event.key !== "Escape") return;
+      if (selectedEvidence) setSelectedEvidence(null);
+      else onBack();
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onBack]);
+  }, [onBack, selectedEvidence]);
 
   useEffect(() => {
     const scroller = scrollRef.current;
@@ -75,6 +77,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
         const lastId = sectionIds[sectionIds.length - 1];
         const lastNode = sectionRefs.current.get(lastId);
+
         if (
           lastNode &&
           scroller.scrollTop + scroller.clientHeight >=
@@ -116,6 +119,9 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
       behavior: "smooth",
     });
   };
+
+  const activeSection =
+    sections.find((section) => section.id === activeId) ?? sections[0];
 
   return (
     <div
@@ -217,6 +223,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
               if (node) sectionRefs.current.set(section.id, node);
               else sectionRefs.current.delete(section.id);
             }}
+            onInspectEvidence={(item) => setSelectedEvidence(item)}
           />
         ))}
 
@@ -259,67 +266,14 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
           </button>
         </div>
       </div>
-    </div>
-  );
-}
 
-function EvidenceViewerPlaceholder({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 28,
-        background: "rgba(5,5,10,0.99)",
-      }}
-    >
-      <div style={{ maxWidth: 300 }}>
-        <div
-          style={{
-            fontFamily: T.mono,
-            fontSize: 8,
-            letterSpacing: "0.16em",
-            color: T.identityGold,
-            opacity: 0.68,
-            marginBottom: 12,
-          }}
-        >
-          EVIDENCE VIEWER
-        </div>
-        <div
-          style={{
-            fontFamily: T.serif,
-            fontSize: 16,
-            lineHeight: 1.55,
-            color: T.body,
-            opacity: 0.78,
-            marginBottom: 18,
-          }}
-        >
-          Evidence import and inspection are intentionally reserved for Focused
-          Mode Pass 3.
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            minHeight: 44,
-            border: "none",
-            background: "transparent",
-            padding: 0,
-            fontFamily: T.mono,
-            fontSize: 9,
-            letterSpacing: "0.16em",
-            color: T.caseStudies,
-            cursor: "pointer",
-          }}
-        >
-          ‹ RETURN TO READING
-        </button>
-      </div>
+      {selectedEvidence && (
+        <MobileEvidenceViewer
+          item={selectedEvidence}
+          sectionLabel={activeSection.label}
+          onClose={() => setSelectedEvidence(null)}
+        />
+      )}
     </div>
   );
 }
@@ -331,17 +285,7 @@ interface ReadingSceneProps {
 }
 
 export default function ReadingScene({
-  state,
   onBack,
 }: ReadingSceneProps) {
-  return (
-    <>
-      {state === "project-reading" && (
-        <SovereignAtlasReadingSurface onBack={onBack} />
-      )}
-      {state === "evidence-viewer" && (
-        <EvidenceViewerPlaceholder onClose={onBack} />
-      )}
-    </>
-  );
+  return <SovereignAtlasReadingSurface onBack={onBack} />;
 }

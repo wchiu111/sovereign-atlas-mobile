@@ -1,13 +1,28 @@
+import { Fragment } from "react";
 import { T } from "../components/mobileShared";
+import MobileEvidenceBlock from "./MobileEvidenceBlock";
+import {
+  evidenceForSection,
+  type MobileEvidenceItem,
+} from "./sovereignAtlasEvidence";
 import type { SovereignAtlasReadingSection } from "./sovereignAtlasReadingScaffold";
 
 export default function MobileReadingSection({
   section,
   setRef,
+  onInspectEvidence,
 }: {
   section: SovereignAtlasReadingSection;
   setRef: (node: HTMLElement | null) => void;
+  onInspectEvidence: (item: MobileEvidenceItem) => void;
 }) {
+  const evidence = evidenceForSection(section.id);
+
+  const evidenceAfter = (paragraphIndex: number) =>
+    evidence.filter(
+      (item) => item.insertAfterParagraph === paragraphIndex,
+    );
+
   return (
     <section
       id={`mobile-reading-${section.id}`}
@@ -80,26 +95,39 @@ export default function MobileReadingSection({
           !paragraph.endsWith(".") &&
           !paragraph.endsWith("?");
 
+        const inlineEvidence = evidenceAfter(index);
+
         return (
-          <p
-            key={index}
-            style={{
-              margin:
-                index === section.paragraphs.length - 1
-                  ? 0
-                  : isShortEmphasis
-                    ? "0 0 18px"
-                    : "0 0 20px",
-              fontFamily: T.serif,
-              fontSize: isShortEmphasis ? 17 : 15,
-              fontWeight: isShortEmphasis ? 600 : 400,
-              lineHeight: isShortEmphasis ? 1.42 : 1.7,
-              color: isShortEmphasis ? T.gold : T.body,
-              opacity: isShortEmphasis ? 0.9 : 0.88,
-            }}
-          >
-            {paragraph}
-          </p>
+          <Fragment key={index}>
+            <p
+              style={{
+                margin:
+                  inlineEvidence.length > 0
+                    ? "0 0 20px"
+                    : index === section.paragraphs.length - 1
+                      ? 0
+                      : isShortEmphasis
+                        ? "0 0 18px"
+                        : "0 0 20px",
+                fontFamily: T.serif,
+                fontSize: isShortEmphasis ? 17 : 15,
+                fontWeight: isShortEmphasis ? 600 : 400,
+                lineHeight: isShortEmphasis ? 1.42 : 1.7,
+                color: isShortEmphasis ? T.gold : T.body,
+                opacity: isShortEmphasis ? 0.9 : 0.88,
+              }}
+            >
+              {paragraph}
+            </p>
+
+            {inlineEvidence.map((item) => (
+              <MobileEvidenceBlock
+                key={item.id}
+                evidence={item}
+                onInspect={onInspectEvidence}
+              />
+            ))}
+          </Fragment>
         );
       })}
 

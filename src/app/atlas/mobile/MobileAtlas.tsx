@@ -62,7 +62,6 @@ export default function MobileAtlas() {
   const isCSFocus = (CS_FOCUS_STATES as readonly string[]).includes(state);
   const isCSReading = (CS_READING_STATES as readonly string[]).includes(state);
   const isFW = (FW_STATES as readonly string[]).includes(state);
-  const isProjectEvidence = state === "evidence-viewer";
   const isFrameworkReadingDepth = state === "framework-reading" || state === "framework-evidence";
   const isFrameworkEvidence = state === "framework-evidence";
 
@@ -146,20 +145,11 @@ export default function MobileAtlas() {
           )}
 
           {isCSReading && (
-            <>
-              <ReadingScene
-                state="project-reading"
-                onEvidence={() => setState("evidence-viewer")}
-                onBack={() => setState("system-awakened")}
-              />
-              {isProjectEvidence && (
-                <ReadingScene
-                  state="evidence-viewer"
-                  onEvidence={() => setState("evidence-viewer")}
-                  onBack={() => setState("project-reading")}
-                />
-              )}
-            </>
+            <ReadingScene
+              state="project-reading"
+              onEvidence={() => setState("project-reading")}
+              onBack={() => setState("system-awakened")}
+            />
           )}
 
           {isFW && !isFrameworkReadingDepth && (
