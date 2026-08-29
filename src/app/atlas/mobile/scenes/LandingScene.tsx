@@ -619,7 +619,7 @@ function ProjectPreviewDrawer({
               fontSize: 9,
               letterSpacing: "0.14em",
               color: T.accentGold,
-              opacity: 0.80,
+              opacity: 0.62,
             }}
           >
             4 PROJECTS
@@ -653,8 +653,8 @@ function ProjectPreviewDrawer({
             style={{
               fontFamily: T.serif,
               fontSize: 14.5,
-              color: T.body,
-              opacity: 0.92,
+              color: "#F0E9D8",
+              opacity: 0.90,
               lineHeight: 1.56,
               margin: 0,
             }}
@@ -666,8 +666,8 @@ function ProjectPreviewDrawer({
             style={{
               fontFamily: T.serif,
               fontSize: 14.5,
-              color: T.body,
-              opacity: 0.88,
+              color: "#F0E9D8",
+              opacity: 0.84,
               lineHeight: 1.56,
               margin: 0,
             }}
@@ -677,32 +677,34 @@ function ProjectPreviewDrawer({
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: "auto",
-          paddingTop: 18,
-          borderTop: "0.5px solid rgba(138,174,200,0.12)",
-        }}
-      >
+      {!isCaseStudies && (
         <div
-          onClick={onExplore}
           style={{
-            minHeight: 44,
-            display: "flex",
-            alignItems: "center",
-            width: "fit-content",
-            paddingRight: 18,
-            fontFamily: T.mono,
-            fontSize: 10,
-            letterSpacing: "0.18em",
-            color: isCaseStudies ? T.caseStudies : item.color,
-            opacity: 0.96,
-            cursor: "pointer",
+            marginTop: "auto",
+            paddingTop: 18,
+            borderTop: "0.5px solid rgba(240,233,216,0.10)",
           }}
         >
-          EXPLORE →
+          <div
+            onClick={onExplore}
+            style={{
+              minHeight: 44,
+              display: "flex",
+              alignItems: "center",
+              width: "fit-content",
+              paddingRight: 18,
+              fontFamily: T.mono,
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              color: item.color,
+              opacity: 0.96,
+              cursor: "pointer",
+            }}
+          >
+            EXPLORE →
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

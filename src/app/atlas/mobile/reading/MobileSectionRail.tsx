@@ -79,7 +79,7 @@ export default function MobileSectionRail({
                 fontFamily: T.mono,
                 fontSize: "clamp(9px, 2.4vw, 9.5px)",
                 letterSpacing: "0.14em",
-                color: active ? T.identityGold : T.body,
+                color: active ? "#F0E9D8" : T.accentGold,
                 opacity: active ? 0.98 : 0.52,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
@@ -87,7 +87,24 @@ export default function MobileSectionRail({
                 transition: "color 220ms ease, opacity 220ms ease",
               }}
             >
-              {section.label}
+              <span
+                aria-hidden
+                style={{
+                  marginRight: 7,
+                  color: active ? T.caseStudies : T.accentGold,
+                  opacity: active ? 0.96 : 0.58,
+                }}
+              >
+                {section.number}
+              </span>
+              <span
+                style={{
+                  color: active ? "#F0E9D8" : T.accentGold,
+                  opacity: active ? 0.96 : 0.68,
+                }}
+              >
+                {section.label}
+              </span>
               <span
                 aria-hidden
                 style={{
@@ -96,7 +113,7 @@ export default function MobileSectionRail({
                   right: 0,
                   bottom: 0,
                   height: 1,
-                  background: T.identityGold,
+                  background: T.caseStudies,
                   transform: `scaleX(${active ? 1 : 0})`,
                   transformOrigin: "left center",
                   transition: "transform 220ms ease, opacity 220ms ease",

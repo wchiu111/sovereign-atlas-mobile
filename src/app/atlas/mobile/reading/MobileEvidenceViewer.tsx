@@ -144,7 +144,7 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: `0.5px solid ${T.identityGold}22`,
+          borderBottom: `0.5px solid ${T.caseStudies}22`,
         }}
       >
         <div
@@ -173,7 +173,7 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
             fontFamily: T.mono,
             fontSize: 7,
             letterSpacing: "0.14em",
-            color: T.identityGold,
+            color: T.caseStudies,
             opacity:
               scale === 1 && translate.x === 0 && translate.y === 0 ? 0.24 : 0.76,
             cursor:
@@ -232,7 +232,7 @@ export default function MobileEvidenceViewer({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
-          borderBottom: `0.5px solid ${T.identityGold}22`,
+          borderBottom: `0.5px solid ${T.caseStudies}22`,
         }}
       >
         <button
@@ -262,7 +262,7 @@ export default function MobileEvidenceViewer({
               fontFamily: T.mono,
               fontSize: 7.5,
               letterSpacing: "0.12em",
-              color: T.identityGold,
+              color: T.caseStudies,
               opacity: 0.82,
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -296,7 +296,7 @@ export default function MobileEvidenceViewer({
               fontFamily: T.mono,
               fontSize: 7,
               letterSpacing: "0.16em",
-              color: T.identityGold,
+              color: T.caseStudies,
               opacity: 0.64,
             }}
           >
@@ -308,8 +308,8 @@ export default function MobileEvidenceViewer({
               fontFamily: T.serif,
               fontSize: 14,
               lineHeight: 1.6,
-              color: T.body,
-              opacity: 0.86,
+              color: "#F0E9D8",
+              opacity: 0.88,
             }}
           >
             {item.caption}
@@ -322,8 +322,8 @@ export default function MobileEvidenceViewer({
               fontFamily: T.serif,
               fontSize: 13.5,
               lineHeight: 1.62,
-              color: T.body,
-              opacity: 0.68,
+              color: "#F0E9D8",
+              opacity: 0.72,
             }}
           >
             {item.description}

@@ -215,54 +215,6 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
           overscrollBehaviorY: "contain",
         }}
       >
-        <div
-          style={{
-            padding: "clamp(30px, 8vw, 36px) clamp(22px, 6.6vw, 28px) clamp(28px, 7vw, 32px)",
-            borderBottom: "0.5px solid rgba(232,213,163,0.08)",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: 8,
-              letterSpacing: "0.18em",
-              color: T.identityGold,
-              opacity: 0.64,
-              marginBottom: 10,
-            }}
-          >
-            CASE STUDY
-          </div>
-
-          <h1
-            style={{
-              margin: "0 0 10px",
-              fontFamily: T.serif,
-              fontSize: "clamp(28px, 7.6vw, 32px)",
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              lineHeight: 1.08,
-              color: T.identityGold,
-            }}
-          >
-            Sovereign Atlas
-          </h1>
-
-          <p
-            style={{
-              margin: 0,
-              maxWidth: 335,
-              fontFamily: T.serif,
-              fontSize: "clamp(15px, 4vw, 16px)",
-              lineHeight: 1.55,
-              color: T.body,
-              opacity: 0.72,
-            }}
-          >
-            {SOVEREIGN_ATLAS_READING.subtitle}
-          </p>
-        </div>
-
         {sections.map((section) => (
           <MobileReadingSection
             key={section.id}

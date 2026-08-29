@@ -20,7 +20,7 @@ export default function MobileEvidenceBlock({
         padding: 0,
         overflow: "hidden",
         borderRadius: 5,
-        border: `0.5px solid ${T.identityGold}38`,
+        border: `0.5px solid ${T.caseStudies}33`,
         background: "rgba(7,7,13,0.80)",
         textAlign: "left",
         cursor: "pointer",
@@ -70,8 +70,8 @@ export default function MobileEvidenceBlock({
               fontFamily: T.mono,
               fontSize: "clamp(7.5px, 2vw, 8px)",
               letterSpacing: "0.14em",
-              color: T.identityGold,
-              opacity: 0.86,
+              color: "#F0E9D8",
+              opacity: 0.90,
               lineHeight: 1.45,
             }}
           >
@@ -84,8 +84,8 @@ export default function MobileEvidenceBlock({
               fontFamily: T.mono,
               fontSize: 7.5,
               letterSpacing: "0.12em",
-              color: T.identityGold,
-              opacity: 0.76,
+              color: T.caseStudies,
+              opacity: 0.84,
             }}
           >
             INSPECT →
@@ -97,8 +97,8 @@ export default function MobileEvidenceBlock({
             fontFamily: T.mono,
             fontSize: 7,
             letterSpacing: "0.13em",
-            color: T.body,
-            opacity: 0.52,
+            color: T.accentGold,
+            opacity: 0.54,
             marginBottom: 9,
           }}
         >
@@ -110,8 +110,8 @@ export default function MobileEvidenceBlock({
             fontFamily: T.serif,
             fontSize: "clamp(13px, 3.55vw, 14px)",
             lineHeight: 1.52,
-            color: T.body,
-            opacity: 0.78,
+            color: "#F0E9D8",
+            opacity: 0.80,
           }}
         >
           {evidence.caption}

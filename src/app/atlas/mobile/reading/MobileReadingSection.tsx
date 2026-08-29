@@ -96,28 +96,55 @@ export default function MobileReadingSection({
               fontFamily: T.mono,
               fontSize: "clamp(8.5px, 2.3vw, 9px)",
               letterSpacing: "0.18em",
-              color: T.identityGold,
+              color: "#F0E9D8",
               opacity: 0.84,
             }}
           >
             {section.label}
           </div>
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: "clamp(7.5px, 2vw, 8px)",
+              letterSpacing: "0.14em",
+              color: T.accentGold,
+              opacity: 0.54,
+            }}
+          >
+            OF 05
+          </div>
         </div>
 
         <h2
           style={{
-            margin: "0 0 18px",
+            margin: "0 0 10px",
+            maxWidth: 336,
+            fontFamily: T.serif,
+            fontSize: "clamp(30px, 8vw, 34px)",
+            fontWeight: 600,
+            lineHeight: 1.08,
+            color: "#F0E9D8",
+            opacity: 0.98,
+          }}
+        >
+          {section.label
+            .toLowerCase()
+            .replace(/\b\w/g, (letter) => letter.toUpperCase())}
+        </h2>
+
+        <div
+          style={{
             maxWidth: 330,
             fontFamily: T.serif,
-            fontSize: "clamp(24px, 6.6vw, 27px)",
-            fontWeight: 600,
-            lineHeight: 1.18,
-            color: T.gold,
-            opacity: 0.96,
+            fontSize: "clamp(18px, 4.9vw, 20px)",
+            fontWeight: 500,
+            lineHeight: 1.28,
+            color: T.accentGold,
+            opacity: 0.88,
           }}
         >
           {section.subtitle}
-        </h2>
+        </div>
       </div>
 
       <div
@@ -155,7 +182,7 @@ export default function MobileReadingSection({
                   : "clamp(15px, 4.1vw, 16px)",
                 fontWeight: isShortEmphasis ? 600 : 400,
                 lineHeight: isShortEmphasis ? 1.42 : 1.7,
-                color: isShortEmphasis ? T.gold : T.body,
+                color: isShortEmphasis ? T.accentGold : "#F0E9D8",
                 opacity: isShortEmphasis ? 0.92 : 0.89,
               }}
             >
@@ -178,7 +205,7 @@ export default function MobileReadingSection({
         style={{
           marginTop: 36,
           padding: "0 0 2px 16px",
-          borderLeft: `1.5px solid ${T.identityGold}55`,
+          borderLeft: `1.5px solid ${T.caseStudies}66`,
         }}
       >
         <div
@@ -187,8 +214,8 @@ export default function MobileReadingSection({
             fontFamily: T.mono,
             fontSize: "clamp(7.5px, 2vw, 8px)",
             letterSpacing: "0.18em",
-            color: T.identityGold,
-            opacity: 0.72,
+            color: T.caseStudies,
+            opacity: 0.82,
           }}
         >
           SECTION INSIGHT
@@ -200,8 +227,8 @@ export default function MobileReadingSection({
             fontSize: "clamp(15px, 4vw, 16px)",
             fontStyle: "italic",
             lineHeight: 1.62,
-            color: T.body,
-            opacity: 0.88,
+            color: "#F0E9D8",
+            opacity: 0.86,
           }}
         >
           “{section.insight}”
