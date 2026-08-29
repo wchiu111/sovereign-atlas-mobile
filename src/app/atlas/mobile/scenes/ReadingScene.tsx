@@ -30,6 +30,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   );
   const [selectedEvidence, setSelectedEvidence] =
     useState<MobileEvidenceItem | null>(null);
+  const [headerElevated, setHeaderElevated] = useState(false);
 
   const sectionIds = useMemo(
     () => sections.map((section) => section.id),
@@ -55,6 +56,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
     const updateActiveSection = () => {
       cancelAnimationFrame(frame);
+      setHeaderElevated(scroller.scrollTop > 12);
       frame = requestAnimationFrame(() => {
         const rootTop = scroller.getBoundingClientRect().top;
         const activationLine = rootTop + 156;
@@ -125,6 +127,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
   return (
     <div
+      className="mobile-focused-reading"
       style={{
         position: "absolute",
         inset: 0,
@@ -133,6 +136,50 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         color: T.body,
       }}
     >
+      <style>{`
+        .mobile-focused-reading {
+          --mobile-reading-inline: clamp(22px, 6.6vw, 28px);
+        }
+
+        .mobile-reading-focusable:focus-visible {
+          outline: 1.5px solid rgba(232,200,109,0.92) !important;
+          outline-offset: 3px;
+        }
+
+        .mobile-evidence-block:active {
+          transform: scale(0.992);
+          background: rgba(10,10,17,0.96) !important;
+        }
+
+        @media (max-width: 374px) {
+          .mobile-section-rail > div {
+            gap: 18px !important;
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+        }
+
+        @media (min-width: 431px) {
+          .mobile-focused-reading {
+            max-width: 430px;
+            margin: 0 auto;
+            left: 50% !important;
+            right: auto !important;
+            width: min(100%, 430px);
+            transform: translateX(-50%);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mobile-focused-reading *,
+          .mobile-focused-reading *::before,
+          .mobile-focused-reading *::after {
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
       <div
         style={{
           position: "absolute",
@@ -143,6 +190,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         <MobileReadingHeader
           title={SOVEREIGN_ATLAS_READING.title}
           onBack={onBack}
+          elevated={headerElevated}
         />
         <MobileSectionRail
           sections={sections}
@@ -169,7 +217,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
       >
         <div
           style={{
-            padding: "32px 26px 28px",
+            padding: "clamp(30px, 8vw, 36px) clamp(22px, 6.6vw, 28px) clamp(28px, 7vw, 32px)",
             borderBottom: "0.5px solid rgba(232,213,163,0.08)",
           }}
         >
@@ -190,7 +238,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
             style={{
               margin: "0 0 10px",
               fontFamily: T.serif,
-              fontSize: 30,
+              fontSize: "clamp(28px, 7.6vw, 32px)",
               fontWeight: 600,
               letterSpacing: "0.04em",
               lineHeight: 1.08,
@@ -205,7 +253,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
               margin: 0,
               maxWidth: 335,
               fontFamily: T.serif,
-              fontSize: 15,
+              fontSize: "clamp(15px, 4vw, 16px)",
               lineHeight: 1.55,
               color: T.body,
               opacity: 0.72,
@@ -229,7 +277,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
         <div
           style={{
-            padding: "42px 26px 72px",
+            padding: "clamp(42px, 11vw, 50px) clamp(22px, 6.6vw, 28px) calc(72px + env(safe-area-inset-bottom))",
             textAlign: "left",
           }}
         >
@@ -249,6 +297,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
           <button
             type="button"
             onClick={onBack}
+            className="mobile-reading-focusable"
             style={{
               minHeight: 44,
               border: "none",

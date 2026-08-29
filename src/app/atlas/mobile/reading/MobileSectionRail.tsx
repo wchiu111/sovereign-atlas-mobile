@@ -14,7 +14,6 @@ export default function MobileSectionRail({
   activeId: SovereignAtlasSectionId;
   onSelect: (id: SovereignAtlasSectionId) => void;
 }) {
-  const railRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef(
     new Map<SovereignAtlasSectionId, HTMLButtonElement>(),
   );
@@ -31,26 +30,28 @@ export default function MobileSectionRail({
   return (
     <nav
       aria-label="Sovereign Atlas case study sections"
+      className="mobile-section-rail"
       style={{
-        height: 52,
-        background: "rgba(5,5,10,0.96)",
+        minHeight: 52,
+        background: "rgba(5,5,10,0.97)",
         backdropFilter: "blur(22px)",
         WebkitBackdropFilter: "blur(22px)",
-        borderBottom: "0.5px solid rgba(232,213,163,0.08)",
+        borderBottom: "0.5px solid rgba(232,213,163,0.09)",
       }}
     >
       <div
-        ref={railRef}
         style={{
-          height: "100%",
+          minHeight: 52,
           overflowX: "auto",
           overflowY: "hidden",
           display: "flex",
           alignItems: "stretch",
-          gap: 22,
-          padding: "0 22px",
+          gap: "clamp(20px, 6vw, 26px)",
+          padding: "0 clamp(18px, 5.5vw, 24px)",
           scrollbarWidth: "none",
           WebkitOverflowScrolling: "touch",
+          overscrollBehaviorX: "contain",
+          scrollSnapType: "x proximity",
         }}
       >
         {sections.map((section) => {
@@ -66,20 +67,24 @@ export default function MobileSectionRail({
               type="button"
               onClick={() => onSelect(section.id)}
               aria-current={active ? "location" : undefined}
+              className="mobile-reading-focusable"
               style={{
                 position: "relative",
                 flex: "0 0 auto",
                 minHeight: 44,
                 border: "none",
+                borderRadius: 2,
                 background: "transparent",
                 padding: "0 0 2px",
                 fontFamily: T.mono,
-                fontSize: 8.5,
+                fontSize: "clamp(9px, 2.4vw, 9.5px)",
                 letterSpacing: "0.14em",
                 color: active ? T.identityGold : T.body,
-                opacity: active ? 0.96 : 0.48,
+                opacity: active ? 0.98 : 0.52,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
+                scrollSnapAlign: "center",
+                transition: "color 220ms ease, opacity 220ms ease",
               }}
             >
               {section.label}
@@ -95,7 +100,7 @@ export default function MobileSectionRail({
                   transform: `scaleX(${active ? 1 : 0})`,
                   transformOrigin: "left center",
                   transition: "transform 220ms ease, opacity 220ms ease",
-                  opacity: active ? 0.82 : 0,
+                  opacity: active ? 0.86 : 0,
                 }}
               />
             </button>

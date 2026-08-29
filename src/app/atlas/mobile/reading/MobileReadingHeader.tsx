@@ -3,30 +3,36 @@ import { T } from "../components/mobileShared";
 export default function MobileReadingHeader({
   title,
   onBack,
+  elevated = false,
 }: {
   title: string;
   onBack: () => void;
+  elevated?: boolean;
 }) {
   return (
     <header
+      className="mobile-reading-header"
       style={{
-        height: 62,
-        padding: "0 20px",
+        minHeight: 62,
+        padding:
+          "max(0px, env(safe-area-inset-top)) clamp(18px, 5.2vw, 22px) 0",
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
-        background: "rgba(5,5,10,0.94)",
+        background: elevated ? "rgba(5,5,10,0.985)" : "rgba(5,5,10,0.94)",
         backdropFilter: "blur(22px)",
         WebkitBackdropFilter: "blur(22px)",
-        borderBottom: "0.5px solid rgba(232,213,163,0.08)",
+        borderBottom: "0.5px solid rgba(232,213,163,0.09)",
+        transition: "background 220ms ease, border-color 220ms ease",
       }}
     >
       <button
         type="button"
         onClick={onBack}
         aria-label={`Return from ${title}`}
+        className="mobile-reading-focusable"
         style={{
           minHeight: 44,
           minWidth: 44,
@@ -39,14 +45,15 @@ export default function MobileReadingHeader({
           padding: 0,
           color: T.body,
           cursor: "pointer",
+          borderRadius: 3,
         }}
       >
         <span
           aria-hidden
           style={{
             fontFamily: T.mono,
-            fontSize: 11,
-            opacity: 0.72,
+            fontSize: 12,
+            opacity: 0.76,
             flexShrink: 0,
           }}
         >
@@ -58,10 +65,10 @@ export default function MobileReadingHeader({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             fontFamily: T.mono,
-            fontSize: 8.5,
-            letterSpacing: "0.16em",
+            fontSize: "clamp(9px, 2.45vw, 9.5px)",
+            letterSpacing: "0.15em",
             color: T.body,
-            opacity: 0.78,
+            opacity: 0.82,
           }}
         >
           {title}
@@ -80,7 +87,7 @@ export default function MobileReadingHeader({
           fontSize: 9,
           letterSpacing: "0.12em",
           color: T.body,
-          opacity: 0.42,
+          opacity: 0.30,
         }}
       >
         · · ·

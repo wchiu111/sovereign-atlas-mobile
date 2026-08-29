@@ -163,6 +163,7 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
           type="button"
           onClick={reset}
           disabled={scale === 1 && translate.x === 0 && translate.y === 0}
+          className="mobile-reading-focusable"
           style={{
             minWidth: 44,
             minHeight: 44,
@@ -209,6 +210,7 @@ export default function MobileEvidenceViewer({
     <div
       role="dialog"
       aria-modal="true"
+      tabIndex={-1}
       aria-label={`Evidence: ${item.title}`}
       style={{
         position: "absolute",
@@ -236,8 +238,10 @@ export default function MobileEvidenceViewer({
         <button
           type="button"
           onClick={onClose}
+          className="mobile-reading-focusable"
           style={{
             minHeight: 44,
+            minWidth: 44,
             border: "none",
             background: "transparent",
             padding: "0 12px 0 0",

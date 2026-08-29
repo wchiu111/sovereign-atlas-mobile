@@ -13,24 +13,27 @@ export default function MobileEvidenceBlock({
       type="button"
       onClick={() => onInspect(evidence)}
       aria-label={`Inspect evidence: ${evidence.title}`}
+      className="mobile-reading-focusable mobile-evidence-block"
       style={{
         width: "100%",
-        margin: "28px 0 30px",
+        margin: "30px 0 32px",
         padding: 0,
         overflow: "hidden",
         borderRadius: 5,
-        border: `0.5px solid ${T.identityGold}33`,
-        background: "rgba(7,7,13,0.78)",
+        border: `0.5px solid ${T.identityGold}38`,
+        background: "rgba(7,7,13,0.80)",
         textAlign: "left",
         cursor: "pointer",
+        transition:
+          "border-color 180ms ease, background 180ms ease, transform 180ms ease",
       }}
     >
       <div
         style={{
           position: "relative",
           width: "100%",
-          minHeight: 150,
-          maxHeight: 250,
+          minHeight: "clamp(150px, 44vw, 180px)",
+          maxHeight: 260,
           background: "rgba(3,3,8,0.96)",
           display: "flex",
           alignItems: "center",
@@ -43,32 +46,32 @@ export default function MobileEvidenceBlock({
           alt={evidence.alt}
           style={{
             width: "100%",
-            maxHeight: 250,
+            maxHeight: 260,
             objectFit: evidence.imageFit,
             display: "block",
-            opacity: 0.92,
+            opacity: 0.93,
           }}
         />
       </div>
 
-      <div style={{ padding: "13px 14px 15px" }}>
+      <div style={{ padding: "14px 14px 16px" }}>
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
             gap: 12,
-            marginBottom: 6,
+            marginBottom: 7,
           }}
         >
           <div
             style={{
               minWidth: 0,
               fontFamily: T.mono,
-              fontSize: 7.5,
+              fontSize: "clamp(7.5px, 2vw, 8px)",
               letterSpacing: "0.14em",
               color: T.identityGold,
-              opacity: 0.82,
+              opacity: 0.86,
               lineHeight: 1.45,
             }}
           >
@@ -79,10 +82,10 @@ export default function MobileEvidenceBlock({
             style={{
               flexShrink: 0,
               fontFamily: T.mono,
-              fontSize: 7,
+              fontSize: 7.5,
               letterSpacing: "0.12em",
               color: T.identityGold,
-              opacity: 0.72,
+              opacity: 0.76,
             }}
           >
             INSPECT →
@@ -92,10 +95,10 @@ export default function MobileEvidenceBlock({
         <div
           style={{
             fontFamily: T.mono,
-            fontSize: 6.5,
+            fontSize: 7,
             letterSpacing: "0.13em",
             color: T.body,
-            opacity: 0.48,
+            opacity: 0.52,
             marginBottom: 9,
           }}
         >
@@ -105,10 +108,10 @@ export default function MobileEvidenceBlock({
         <div
           style={{
             fontFamily: T.serif,
-            fontSize: 13,
-            lineHeight: 1.5,
+            fontSize: "clamp(13px, 3.55vw, 14px)",
+            lineHeight: 1.52,
             color: T.body,
-            opacity: 0.74,
+            opacity: 0.78,
           }}
         >
           {evidence.caption}

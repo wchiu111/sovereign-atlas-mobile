@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { T } from "../components/mobileShared";
 import MobileEvidenceBlock from "./MobileEvidenceBlock";
 import {
@@ -16,75 +16,114 @@ export default function MobileReadingSection({
   setRef: (node: HTMLElement | null) => void;
   onInspectEvidence: (item: MobileEvidenceItem) => void;
 }) {
+  const localRef = useRef<HTMLElement | null>(null);
+  const [entered, setEntered] = useState(false);
   const evidence = evidenceForSection(section.id);
 
-  const evidenceAfter = (paragraphIndex: number) =>
-    evidence.filter(
-      (item) => item.insertAfterParagraph === paragraphIndex,
+  useEffect(() => {
+    const node = localRef.current;
+    if (!node || entered) return;
+
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setEntered(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setEntered(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -8% 0px" },
     );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [entered]);
+
+  const evidenceAfter = (paragraphIndex: number) =>
+    evidence.filter((item) => item.insertAfterParagraph === paragraphIndex);
 
   return (
     <section
       id={`mobile-reading-${section.id}`}
-      ref={setRef}
+      ref={(node) => {
+        localRef.current = node;
+        setRef(node);
+      }}
       data-section-id={section.id}
       style={{
         scrollMarginTop: 138,
-        padding: "36px 26px 58px",
+        padding:
+          "clamp(34px, 9vw, 40px) clamp(22px, 6.6vw, 28px) clamp(54px, 14vw, 64px)",
         borderBottom: "0.5px solid rgba(232,213,163,0.08)",
       }}
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: 10,
-          marginBottom: 12,
+          transform: entered ? "translateY(0)" : "translateY(10px)",
+          opacity: entered ? 1 : 0,
+          transition:
+            "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 280ms ease",
         }}
       >
         <div
           style={{
-            fontFamily: T.mono,
-            fontSize: 8,
-            letterSpacing: "0.14em",
-            color: T.identityGold,
-            opacity: 0.52,
+            display: "flex",
+            alignItems: "baseline",
+            gap: 10,
+            marginBottom: 12,
           }}
         >
-          {section.number}
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: "clamp(8px, 2.2vw, 8.5px)",
+              letterSpacing: "0.14em",
+              color: T.identityGold,
+              opacity: 0.56,
+            }}
+          >
+            {section.number}
+          </div>
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: "clamp(8.5px, 2.3vw, 9px)",
+              letterSpacing: "0.18em",
+              color: T.identityGold,
+              opacity: 0.84,
+            }}
+          >
+            {section.label}
+          </div>
         </div>
-        <div
-          style={{
-            fontFamily: T.mono,
-            fontSize: 8.5,
-            letterSpacing: "0.18em",
-            color: T.identityGold,
-            opacity: 0.82,
-          }}
-        >
-          {section.label}
-        </div>
-      </div>
 
-      <h2
-        style={{
-          margin: "0 0 18px",
-          maxWidth: 324,
-          fontFamily: T.serif,
-          fontSize: 25,
-          fontWeight: 600,
-          lineHeight: 1.18,
-          color: T.gold,
-          opacity: 0.94,
-        }}
-      >
-        {section.subtitle}
-      </h2>
+        <h2
+          style={{
+            margin: "0 0 18px",
+            maxWidth: 330,
+            fontFamily: T.serif,
+            fontSize: "clamp(24px, 6.6vw, 27px)",
+            fontWeight: 600,
+            lineHeight: 1.18,
+            color: T.gold,
+            opacity: 0.96,
+          }}
+        >
+          {section.subtitle}
+        </h2>
+      </div>
 
       <div
         style={{
           height: 0.5,
-          background: "rgba(232,213,163,0.10)",
+          background: "rgba(232,213,163,0.11)",
           marginBottom: 24,
         }}
       />
@@ -108,13 +147,16 @@ export default function MobileReadingSection({
                       ? 0
                       : isShortEmphasis
                         ? "0 0 18px"
-                        : "0 0 20px",
+                        : "0 0 21px",
+                maxWidth: 340,
                 fontFamily: T.serif,
-                fontSize: isShortEmphasis ? 17 : 15,
+                fontSize: isShortEmphasis
+                  ? "clamp(17px, 4.6vw, 18px)"
+                  : "clamp(15px, 4.1vw, 16px)",
                 fontWeight: isShortEmphasis ? 600 : 400,
                 lineHeight: isShortEmphasis ? 1.42 : 1.7,
                 color: isShortEmphasis ? T.gold : T.body,
-                opacity: isShortEmphasis ? 0.9 : 0.88,
+                opacity: isShortEmphasis ? 0.92 : 0.89,
               }}
             >
               {paragraph}
@@ -131,47 +173,49 @@ export default function MobileReadingSection({
         );
       })}
 
-      <div
+      <aside
+        aria-label={`${section.label} section insight`}
         style={{
-          marginTop: 34,
+          marginTop: 36,
           padding: "0 0 2px 16px",
-          borderLeft: `1.5px solid ${T.identityGold}4D`,
+          borderLeft: `1.5px solid ${T.identityGold}55`,
         }}
       >
         <div
           style={{
             marginBottom: 9,
             fontFamily: T.mono,
-            fontSize: 7.5,
+            fontSize: "clamp(7.5px, 2vw, 8px)",
             letterSpacing: "0.18em",
             color: T.identityGold,
-            opacity: 0.68,
+            opacity: 0.72,
           }}
         >
           SECTION INSIGHT
         </div>
         <div
           style={{
+            maxWidth: 326,
             fontFamily: T.serif,
-            fontSize: 15,
+            fontSize: "clamp(15px, 4vw, 16px)",
             fontStyle: "italic",
             lineHeight: 1.62,
             color: T.body,
-            opacity: 0.86,
+            opacity: 0.88,
           }}
         >
           “{section.insight}”
         </div>
-      </div>
+      </aside>
 
       <div
         style={{
           marginTop: 28,
           fontFamily: T.mono,
-          fontSize: 7,
+          fontSize: 7.5,
           letterSpacing: "0.16em",
           color: T.body,
-          opacity: 0.30,
+          opacity: 0.34,
         }}
       >
         {section.readingTime} MIN READ
