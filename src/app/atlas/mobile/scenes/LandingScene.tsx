@@ -178,7 +178,7 @@ function PlanetCluster({
   resolveT?: number;
 }) {
   const ringScale  = orbitR / 36;
-  const showLabels = awakened && orbitR >= 44 && !resolveTargets;
+  const showLabels = awakened && orbitR >= 44 && !resolveTargets && !baseLayoutTargets;
   return (
     <g>
       {!baseLayoutTargets && (
@@ -309,10 +309,12 @@ function CaseStudyOverviewConstellation({
   selectedId,
   onSelect,
   transitionPreview = false,
+  labelsVisible = true,
 }: {
   selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
   onSelect: (id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]) => void;
   transitionPreview?: boolean;
+  labelsVisible?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
 
@@ -337,7 +339,7 @@ function CaseStudyOverviewConstellation({
 
       <g
         style={{
-          transform: `translate(${OVERVIEW_CORE.x}px,${OVERVIEW_CORE.y}px) scale(${transitionPreview ? 0.98 : 1})`,
+          transform: `translate(${OVERVIEW_CORE.x}px,${OVERVIEW_CORE.y}px) scale(1)`,
           transformOrigin: "center",
           transition: `transform 260ms ${CASE_STUDIES_PULL_EASE}, opacity 220ms ease`,
           cursor: transitionPreview ? "default" : "pointer",
@@ -372,7 +374,7 @@ function CaseStudyOverviewConstellation({
           >
             <g
               style={{
-                transform: `translate(${layout.x}px,${layout.y}px) scale(${transitionPreview ? 0.98 : 1})`,
+                transform: `translate(${layout.x}px,${layout.y}px) scale(1)`,
                 transformOrigin: "center",
                 transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
               }}
@@ -392,7 +394,10 @@ function CaseStudyOverviewConstellation({
               fontSize={10.5}
               letterSpacing="0.08em"
               fill={project.color}
-              opacity={transitionPreview ? 0.08 : isSelected ? 1 : 0.82}
+              opacity={transitionPreview || !labelsVisible ? 0 : isSelected ? 1 : 0.82}
+              style={{
+                transition: "opacity 240ms ease",
+              }}
             >
               {lines.map((line, lineIndex) => (
                 <tspan key={line} x={layout.labelX} dy={lineIndex === 0 ? 0 : 12}>
@@ -673,14 +678,18 @@ function ProjectPreviewDrawer({
   item,
   phase,
   onExplore,
+  arrivalVisible = true,
 }: {
   item: (typeof CASE_STUDY_FOCUS_ITEMS)[number];
   phase: "open" | "closing" | "opening";
   onExplore: () => void;
+  arrivalVisible?: boolean;
 }) {
   const isCaseStudies = item.id === "case-studies";
-  const translateY = phase === "closing" ? "100%" : "0%";
-  const opacity = phase === "closing" ? 0.08 : 1;
+  const translateY =
+    phase === "closing" ? "100%" : arrivalVisible ? "0%" : "18px";
+  const opacity =
+    phase === "closing" ? 0.08 : arrivalVisible ? 1 : 0;
 
   return (
     <div
@@ -703,7 +712,7 @@ function ProjectPreviewDrawer({
         transition:
           phase === "closing"
             ? "transform 240ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease"
-            : "transform 320ms cubic-bezier(0.2,0.8,0.2,1), opacity 220ms ease",
+            : "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 260ms ease",
         willChange: "transform, opacity",
       }}
     >
@@ -931,6 +940,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const [drawerPhase, setDrawerPhase] = useState<"open" | "closing" | "opening">("open");
   const [entryPhase, setEntryPhase] =
     useState<CaseStudiesEntryPhase>("idle");
+  const [overviewChromeVisible, setOverviewChromeVisible] = useState(false);
+  const [overviewLabelsVisible, setOverviewLabelsVisible] = useState(false);
   const entryTimersRef = useRef<number[]>([]);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
@@ -948,14 +959,34 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   }, []);
 
   useEffect(() => {
-    if (state === "system-awakened" && entryPhase === "idle") {
-      setEntryPhase("settled");
+    if (state === "atlas-landing") {
+      setOverviewChromeVisible(false);
+      setOverviewLabelsVisible(false);
+    }
+
+    if (state === "system-awakened") {
+      if (entryPhase === "idle") setEntryPhase("settled");
+
+      // Geometry lands first. Labels and chrome enter afterward.
+      const labelsTimer = window.setTimeout(() => {
+        setOverviewLabelsVisible(true);
+      }, 110);
+      const chromeTimer = window.setTimeout(() => {
+        setOverviewChromeVisible(true);
+      }, 170);
+
+      return () => {
+        window.clearTimeout(labelsTimer);
+        window.clearTimeout(chromeTimer);
+      };
     }
 
     if (state !== "atlas-landing" && state !== "system-awakened") {
       entryTimersRef.current.forEach(window.clearTimeout);
       entryTimersRef.current = [];
       setEntryPhase("idle");
+      setOverviewChromeVisible(false);
+      setOverviewLabelsVisible(false);
     }
   }, [state, entryPhase]);
 
@@ -1158,7 +1189,15 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
           stroke={cs.color}
           strokeWidth={0.55}
           strokeDasharray="4.5 7"
-          opacity={entryInProgress ? Math.max(0.035, 0.20 - entryProgress * 0.10) : CS_ARC_OP[state]}
+          opacity={
+            entryInProgress
+              ? entryPhase === "acknowledge"
+                ? 0.13
+                : entryPhase === "pulling"
+                ? 0.045
+                : 0
+              : CS_ARC_OP[state]
+          }
           style={{ transition: "opacity 360ms ease" }}
         />
         <path
@@ -1268,6 +1307,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               selectedId="case-studies"
               onSelect={() => {}}
               transitionPreview
+              labelsVisible={false}
             />
           </g>
         )}
@@ -1283,6 +1323,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             <CaseStudyOverviewConstellation
               selectedId={selectedCaseStudyId}
               onSelect={selectCaseStudyOverviewItem}
+              labelsVisible={overviewLabelsVisible}
             />
           </g>
         )}
@@ -1336,6 +1377,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             alignItems: "center",
             textAlign: "center",
             pointerEvents: "none",
+            opacity: entryInProgress ? Math.max(0, 1 - entryProgress * 1.35) : 1,
+            transform: `translateY(${entryInProgress ? -6 * entryProgress : 0}px)`,
+            transition: "opacity 320ms ease, transform 420ms ease",
           }}
         >
           <div
@@ -1369,15 +1413,65 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       )}
 
       {state === "atlas-landing" && (
-        <div style={{ position: "absolute", bottom: 58, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, pointerEvents: "none" }}>
+        <div
+          style={{
+            position: "absolute",
+            bottom: 58,
+            left: 0,
+            right: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            pointerEvents: "none",
+            opacity: entryInProgress ? Math.max(0, 1 - entryProgress * 1.8) : 1,
+            transform: `translateY(${entryInProgress ? 5 * entryProgress : 0}px)`,
+            transition: "opacity 240ms ease, transform 320ms ease",
+          }}
+        >
           <div style={{ width: 0.5, height: 18, background: "rgba(232,213,163,0.18)" }} />
           <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.identityGold, opacity: 0.72 }}>ENTER OBSERVATORY</div>
         </div>
       )}
 
       {state === "system-awakened" && (
-        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", alignItems: "center", pointerEvents: "none" }}>
-          <div onClick={() => { setSelectedCaseStudyId("case-studies"); setDrawerItemId("case-studies"); setDrawerPhase("open"); onBack(); }} style={{ fontFamily: T.mono, fontSize: 9, letterSpacing: "0.18em", color: T.body, opacity: 0.72, cursor: "pointer", pointerEvents: "auto", minHeight: 44, display: "flex", alignItems: "center" }}>‹ ATLAS</div>
+        <div
+          style={{
+            position: "absolute",
+            top: 24,
+            left: 0,
+            right: 0,
+            padding: "22px 22px 0",
+            display: "flex",
+            alignItems: "center",
+            pointerEvents: "none",
+            opacity: overviewChromeVisible ? 1 : 0,
+            transform: `translateY(${overviewChromeVisible ? 0 : -5}px)`,
+            transition: "opacity 220ms ease, transform 260ms ease",
+          }}
+        >
+          <div
+            onClick={() => {
+              setSelectedCaseStudyId("case-studies");
+              setDrawerItemId("case-studies");
+              setDrawerPhase("open");
+              onBack();
+            }}
+            style={{
+              fontFamily: T.mono,
+              fontSize: 9,
+              letterSpacing: "0.18em",
+              color: T.body,
+              opacity: 0.72,
+              cursor: "pointer",
+              pointerEvents: overviewChromeVisible ? "auto" : "none",
+              minHeight: 44,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            ‹ ATLAS
+          </div>
         </div>
       )}
 
@@ -1407,6 +1501,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         <ProjectPreviewDrawer
           item={drawerItem}
           phase={drawerPhase}
+          arrivalVisible={overviewChromeVisible}
           onExplore={() => {
             if (drawerItem.id === "case-studies") {
               setActiveFocusIndex(0);
