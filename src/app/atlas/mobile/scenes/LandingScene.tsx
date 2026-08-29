@@ -1066,7 +1066,6 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       : baseAnimatedCsY;
   const animatedCsOrbitR = 36 + (72 - 36) * entryProgress;
   const contextEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.2) : ctxOp;
-  const nexusEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.25) : nexusOp;
   const selectedSystemScale =
     entryPhase === "acknowledge"
       ? 1.035
@@ -1228,13 +1227,13 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         />
         <g
           style={{
-            opacity: entryInProgress ? nexusRecede.opacity : 1,
+            opacity: entryInProgress ? nexusRecede.opacity : nexusOp,
             transform: `scale(${entryInProgress ? nexusRecede.scale : 1})`,
             transformOrigin: `${NEXUS.x}px ${NEXUS.y}px`,
             transition: `opacity 260ms ease, transform 520ms ${CASE_STUDIES_PULL_EASE}`,
           }}
         >
-          <NexusNode op={entryInProgress ? 1 : nexusEntryOpacity} />
+          <NexusNode op={1} />
         </g>
         <g
           style={{
