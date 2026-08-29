@@ -102,6 +102,12 @@ const CASE_STUDY_OVERVIEW_LAYOUT = [
   { x: 106, y: 333, labelX: 84,  labelY: 347, anchor: "end" as const },
 ] as const;
 
+const OVERVIEW_CORE = { x: 195, y: 265 } as const;
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
 const CS_FOCUS: Record<LandingState, { x: number; y: number; orbitR: number; opacity: number }> = {
   "atlas-landing":  { x: 95,  y: 178, orbitR: 36, opacity: 1    },
   "system-awakened":{ x: 195, y: 250, orbitR: 72, opacity: 1    },
@@ -146,16 +152,27 @@ function NexusNode({ op }: { op: number }) {
   );
 }
 
-function PlanetCluster({ planets, orbitR, color, awakened, dimmed, planetColors }: {
+function PlanetCluster({
+  planets,
+  orbitR,
+  color,
+  awakened,
+  dimmed,
+  planetColors,
+  resolveTargets,
+  resolveT = 0,
+}: {
   planets: Planet[];
   orbitR: number;
   color: string;
   awakened: boolean;
   dimmed: boolean;
   planetColors?: readonly string[];
+  resolveTargets?: readonly { x: number; y: number }[];
+  resolveT?: number;
 }) {
   const ringScale  = orbitR / 36;
-  const showLabels = awakened && orbitR >= 44;
+  const showLabels = awakened && orbitR >= 44 && resolveT < 0.82;
   return (
     <g>
       <g style={{ transform: `scale(${ringScale})`, transition: ANIM }}>
@@ -165,8 +182,11 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed, planetColors 
       {planets.map((p, i) => {
         const planetColor = planetColors?.[i] ?? color;
         const rad = (p.angle * Math.PI) / 180;
-        const lpx = Math.cos(rad) * orbitR;
-        const lpy = Math.sin(rad) * orbitR;
+        const orbitX = Math.cos(rad) * orbitR;
+        const orbitY = Math.sin(rad) * orbitR;
+        const target = resolveTargets?.[i];
+        const lpx = target ? lerp(orbitX, target.x, resolveT) : orbitX;
+        const lpy = target ? lerp(orbitY, target.y, resolveT) : orbitY;
         const ldx = Math.cos(rad);
         const ldy = Math.sin(rad);
         const ta  = ldx > 0.28 ? "start" : ldx < -0.28 ? "end" : "middle";
@@ -191,7 +211,18 @@ function PlanetCluster({ planets, orbitR, color, awakened, dimmed, planetColors 
   );
 }
 
-function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel, planetColors }: {
+function SystemNode({
+  sys,
+  cx,
+  cy,
+  orbitR,
+  awakened,
+  dimmed,
+  showLabel,
+  planetColors,
+  resolveTargets,
+  resolveT = 0,
+}: {
   sys: SystemDef;
   cx: number;
   cy: number;
@@ -200,13 +231,24 @@ function SystemNode({ sys, cx, cy, orbitR, awakened, dimmed, showLabel, planetCo
   dimmed: boolean;
   showLabel: boolean;
   planetColors?: readonly string[];
+  resolveTargets?: readonly { x: number; y: number }[];
+  resolveT?: number;
 }) {
   const atmoR  = (awakened ? BASE_R * 1.45 : BASE_R * 0.82) * SYSTEM_VISUAL_SCALE;
   const outerR = (awakened ? BASE_R * 3.2  : BASE_R * 1.9) * SYSTEM_VISUAL_SCALE;
   const coreR  = (awakened ? BASE_R * 0.52 : BASE_R * 0.36) * SYSTEM_VISUAL_SCALE;
   return (
     <g style={{ transform: `translate(${cx}px,${cy}px)`, transition: ANIM }}>
-      <PlanetCluster planets={sys.planets} orbitR={orbitR} color={sys.color} awakened={awakened} dimmed={dimmed} planetColors={planetColors} />
+      <PlanetCluster
+        planets={sys.planets}
+        orbitR={orbitR}
+        color={sys.color}
+        awakened={awakened}
+        dimmed={dimmed}
+        planetColors={planetColors}
+        resolveTargets={resolveTargets}
+        resolveT={resolveT}
+      />
       <circle r={outerR} fill={sys.color} opacity={awakened ? 0.08 : 0.032} style={{ transition: FADE }} />
       <circle r={atmoR} fill={sys.color} opacity={awakened ? 0.18 : 0.082} style={{ transition: FADE }} />
       <circle r={28 * SYSTEM_VISUAL_SCALE} fill="none" stroke={sys.color} strokeWidth={0.5} opacity={awakened ? 0.32 : 0.13} style={{ transition: FADE }} />
@@ -242,7 +284,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.55}
         strokeDasharray="4 7"
-        opacity={transitionPreview ? 0.05 : 0.14}
+        opacity={transitionPreview ? 0.015 : 0.14}
       />
       <path
         d="M118 300 C172 222 248 220 315 278"
@@ -250,12 +292,12 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.35}
         strokeDasharray="2 6"
-        opacity={transitionPreview ? 0.025 : 0.08}
+        opacity={transitionPreview ? 0.008 : 0.08}
       />
 
       <g
         style={{
-          transform: `translate(195px,${transitionPreview ? 250 : 265}px) scale(${transitionPreview ? 0.82 : 1})`,
+          transform: `translate(${OVERVIEW_CORE.x}px,${OVERVIEW_CORE.y}px) scale(${transitionPreview ? 0.98 : 1})`,
           transformOrigin: "center",
           transition: `transform 260ms ${CASE_STUDIES_PULL_EASE}, opacity 220ms ease`,
           cursor: transitionPreview ? "default" : "pointer",
@@ -290,9 +332,7 @@ function CaseStudyOverviewConstellation({
           >
             <g
               style={{
-                transform: transitionPreview
-                  ? `translate(${195 + (layout.x - 195) * 0.72}px,${250 + (layout.y - 250) * 0.72}px) scale(0.88)`
-                  : `translate(${layout.x}px,${layout.y}px) scale(1)`,
+                transform: `translate(${layout.x}px,${layout.y}px) scale(${transitionPreview ? 0.98 : 1})`,
                 transformOrigin: "center",
                 transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
               }}
@@ -312,7 +352,7 @@ function CaseStudyOverviewConstellation({
               fontSize={10.5}
               letterSpacing="0.08em"
               fill={project.color}
-              opacity={transitionPreview ? 0.38 : isSelected ? 1 : 0.82}
+              opacity={transitionPreview ? 0.08 : isSelected ? 1 : 0.82}
             >
               {lines.map((line, lineIndex) => (
                 <tspan key={line} x={layout.labelX} dy={lineIndex === 0 ? 0 : 12}>
@@ -868,15 +908,14 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   }, []);
 
   useEffect(() => {
-    if (state === "atlas-landing") {
+    if (state === "system-awakened" && entryPhase === "idle") {
+      setEntryPhase("settled");
+    }
+
+    if (state !== "atlas-landing" && state !== "system-awakened") {
       entryTimersRef.current.forEach(window.clearTimeout);
       entryTimersRef.current = [];
       setEntryPhase("idle");
-      return;
-    }
-
-    if (state === "system-awakened" && entryPhase === "idle") {
-      setEntryPhase("settled");
     }
   }, [state, entryPhase]);
 
@@ -944,8 +983,16 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     }
   })();
 
+  const resolvingOverview = state === "atlas-landing" && entryPhase === "resolving";
+  const [resolveT, setResolveT] = useState(0);
+
   const animatedCsX = 95 + (195 - 95) * entryProgress;
-  const animatedCsY = 178 + (250 - 178) * entryProgress;
+  const pullTargetY = 250;
+  const baseAnimatedCsY = 178 + (pullTargetY - 178) * entryProgress;
+  const animatedCsY =
+    entryPhase === "resolving"
+      ? lerp(baseAnimatedCsY, OVERVIEW_CORE.y, resolveT)
+      : baseAnimatedCsY;
   const animatedCsOrbitR = 36 + (72 - 36) * entryProgress;
   const contextEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.2) : ctxOp;
   const nexusEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.25) : nexusOp;
@@ -958,10 +1005,36 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       ? 1.18
       : 1;
 
-  const resolvingOverview = state === "atlas-landing" && entryPhase === "resolving";
-  const travelingSystemOpacity = resolvingOverview ? 0.28 : 1;
-  const overviewResolveOpacity = resolvingOverview ? 0.72 : 0;
-  const overviewResolveScale = resolvingOverview ? 1 : 0.92;
+  useEffect(() => {
+    if (!resolvingOverview) {
+      setResolveT(0);
+      return;
+    }
+
+    let frame = 0;
+    const start = performance.now();
+    const duration = 320;
+
+    const tick = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration);
+      // Smoothstep keeps the geometry calm at both ends.
+      const eased = raw * raw * (3 - 2 * raw);
+      setResolveT(eased);
+      if (raw < 1) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [resolvingOverview]);
+
+  const travelingSystemOpacity = resolvingOverview ? lerp(1, 0.12, resolveT) : 1;
+  const overviewResolveOpacity = resolvingOverview ? lerp(0.06, 1, resolveT) : 0;
+  const overviewResolveScale = resolvingOverview ? lerp(0.94, 1, resolveT) : 0.92;
+
+  const overviewResolveTargets = CASE_STUDY_OVERVIEW_LAYOUT.map((layout) => ({
+    x: layout.x - OVERVIEW_CORE.x,
+    y: layout.y - OVERVIEW_CORE.y,
+  }));
 
   const contextRecede = (() => {
     switch (entryPhase) {
@@ -1127,16 +1200,18 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               dimmed={false}
               showLabel={!entryInProgress}
               planetColors={CASE_STUDY_COLORS}
+              resolveTargets={resolvingOverview ? overviewResolveTargets : undefined}
+              resolveT={resolvingOverview ? resolveT : 0}
             />
           </g>
         )}
         {resolvingOverview && (
           <g
             style={{
-              opacity: overviewResolveOpacity,
+              opacity: resolveT < 0.72 ? 0 : overviewResolveOpacity,
               transform: `scale(${overviewResolveScale})`,
-              transformOrigin: "195px 265px",
-              transition: `opacity 220ms ease, transform 260ms ${CASE_STUDIES_PULL_EASE}`,
+              transformOrigin: `${OVERVIEW_CORE.x}px ${OVERVIEW_CORE.y}px`,
+              transition: "opacity 120ms ease",
               pointerEvents: "none",
             }}
           >
