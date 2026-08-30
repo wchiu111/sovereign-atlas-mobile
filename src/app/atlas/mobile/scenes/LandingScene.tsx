@@ -312,11 +312,15 @@ function CaseStudyOverviewConstellation({
   onSelect,
   transitionPreview = false,
   labelsVisible = true,
+  selectionPulseId = null,
+  ambientPaused = false,
 }: {
   selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
   onSelect: (id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]) => void;
   transitionPreview?: boolean;
   labelsVisible?: boolean;
+  selectionPulseId?: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null;
+  ambientPaused?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
 
@@ -354,8 +358,8 @@ function CaseStudyOverviewConstellation({
             transitionPreview
               ? undefined
               : caseStudiesSelected
-              ? "atlas-core-selected"
-              : "atlas-node-available"
+              ? "atlas-parent-core-selected"
+              : "atlas-halo-available"
           }
           style={{
             animationDelay: caseStudiesSelected ? "0s" : "0.45s",
@@ -373,7 +377,6 @@ function CaseStudyOverviewConstellation({
       {CASE_STUDY_PROJECTS.map((project, index) => {
         const layout = CASE_STUDY_OVERVIEW_LAYOUT[index];
         const isSelected = selectedId === project.id;
-        const nodeOpacity = isSelected ? 1 : caseStudiesSelected ? 0.42 : 0.30;
         const lines =
           project.label === "AGENTIC INSURANCE"
             ? ["AGENTIC", "INSURANCE"]
@@ -385,36 +388,67 @@ function CaseStudyOverviewConstellation({
           <g
             key={project.id}
             onClick={() => { if (!transitionPreview) onSelect(project.id); }}
-            style={{ cursor: "pointer", opacity: nodeOpacity, transition: FADE }}
+            style={{ cursor: "pointer" }}
           >
             <g
+              className={
+                transitionPreview || isSelected
+                  ? undefined
+                  : caseStudiesSelected
+                  ? "atlas-node-brightness-parent"
+                  : "atlas-node-brightness-sibling"
+              }
               style={{
                 transform: `translate(${layout.x}px,${layout.y}px) scale(1)`,
                 transformOrigin: "center",
                 transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
+                animationDelay: transitionPreview
+                  ? "0s"
+                  : `${PROJECT_BREATH_DELAYS[index]}s`,
+                animationPlayState: ambientPaused ? "paused" : "running",
               }}
             >
               <g
                 className={
                   transitionPreview
                     ? undefined
+                    : selectionPulseId === project.id
+                    ? "atlas-selection-pulse"
                     : isSelected
-                    ? "atlas-node-selected"
-                    : "atlas-node-available"
+                    ? "atlas-halo-selected"
+                    : "atlas-halo-available"
                 }
                 style={{
-                  animationDuration: isSelected
-                    ? "5.8s"
-                    : `${PROJECT_BREATH_DURATION}s`,
                   animationDelay: transitionPreview
                     ? "0s"
                     : `${PROJECT_BREATH_DELAYS[index]}s`,
+                  animationPlayState:
+                    ambientPaused && selectionPulseId !== project.id
+                      ? "paused"
+                      : "running",
                 }}
               >
-                <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.10 : 0.04} />
-                <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.20 : 0.10} />
-                <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.45} opacity={isSelected ? 0.40 : 0.18} />
-                <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.74} />
+                <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.13 : 0.07} />
+                <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.24 : 0.14} />
+                <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.5} opacity={isSelected ? 0.44 : 0.24} />
+              </g>
+
+              <g
+                className={
+                  transitionPreview
+                    ? undefined
+                    : isSelected
+                    ? "atlas-core-selected"
+                    : "atlas-core-available"
+                }
+                style={{
+                  animationDelay: transitionPreview
+                    ? "0s"
+                    : `${PROJECT_BREATH_DELAYS[index]}s`,
+                  animationPlayState: ambientPaused ? "paused" : "running",
+                }}
+              >
+                <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.84} />
               </g>
               <circle r={24} fill="transparent" pointerEvents="all" />
             </g>
@@ -975,6 +1009,10 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     useState<CaseStudiesEntryPhase>("idle");
   const [overviewChromeVisible, setOverviewChromeVisible] = useState(false);
   const [overviewLabelsVisible, setOverviewLabelsVisible] = useState(false);
+  const [selectionPulseId, setSelectionPulseId] = useState<
+    (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null
+  >(null);
+  const selectionPulseTimerRef = useRef<number | null>(null);
   const entryTimersRef = useRef<number[]>([]);
   const csState  = CS_FOCUS[state];
   const ctxOp    = CTX_OP[state];
@@ -988,6 +1026,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     return () => {
       entryTimersRef.current.forEach(window.clearTimeout);
       entryTimersRef.current = [];
+      if (selectionPulseTimerRef.current !== null) {
+        window.clearTimeout(selectionPulseTimerRef.current);
+      }
     };
   }, []);
 
@@ -1048,8 +1089,19 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   ) => {
     if (id === selectedCaseStudyId || drawerPhase === "closing") return;
 
+    if (selectionPulseTimerRef.current !== null) {
+      window.clearTimeout(selectionPulseTimerRef.current);
+    }
+
+    // Visual acknowledgement happens immediately, before the drawer moves.
+    setSelectionPulseId(id);
     setSelectedCaseStudyId(id);
     setDrawerPhase("closing");
+
+    selectionPulseTimerRef.current = window.setTimeout(() => {
+      setSelectionPulseId(null);
+      selectionPulseTimerRef.current = null;
+    }, 420);
 
     window.setTimeout(() => {
       setDrawerItemId(id);
@@ -1186,24 +1238,77 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   return (
     <>
       <style>{`
-        @keyframes atlasAvailableBreath {
+        @keyframes atlasNodeBrightnessFromParent {
           0%, 100% {
-            transform: scale(1);
-            opacity: 0.82;
+            opacity: 0.50;
           }
           50% {
-            transform: scale(1.032);
             opacity: 1;
           }
         }
 
-        @keyframes atlasSelectedBreath {
+        @keyframes atlasNodeBrightnessFromSibling {
           0%, 100% {
-            transform: scale(1);
-            opacity: 0.94;
+            opacity: 0.34;
           }
           50% {
-            transform: scale(1.012);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasAvailableHaloBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.92;
+          }
+          50% {
+            transform: scale(1.08);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasAvailableCoreBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.96;
+          }
+          50% {
+            transform: scale(1.018);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasSelectedHaloBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.90;
+          }
+          50% {
+            transform: scale(1.035);
+            opacity: 1;
+          }
+        }
+
+        @keyframes atlasSelectedCoreBreath {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.010);
+          }
+        }
+
+        @keyframes atlasSelectionPulse {
+          0% {
+            transform: scale(1);
+            opacity: 0.92;
+          }
+          38% {
+            transform: scale(1.16);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1.04);
             opacity: 1;
           }
         }
@@ -1214,30 +1319,58 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             opacity: 0.96;
           }
           50% {
-            transform: scale(1.008);
+            transform: scale(1.012);
             opacity: 1;
           }
         }
 
-        .atlas-node-available {
+        .atlas-halo-available,
+        .atlas-halo-selected,
+        .atlas-core-available,
+        .atlas-core-selected,
+        .atlas-selection-pulse,
+        .atlas-parent-core-selected {
           transform-box: fill-box;
           transform-origin: center;
-          animation: atlasAvailableBreath 4.2s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
-        .atlas-node-selected {
-          transform-box: fill-box;
-          transform-origin: center;
-          animation: atlasSelectedBreath 5.8s ease-in-out infinite;
-          will-change: transform, opacity;
+        .atlas-halo-available {
+          animation: atlasAvailableHaloBreath 4.2s ease-in-out infinite;
+        }
+
+        .atlas-core-available {
+          animation: atlasAvailableCoreBreath 4.2s ease-in-out infinite;
+        }
+
+        .atlas-halo-selected {
+          animation: atlasSelectedHaloBreath 5.8s ease-in-out infinite;
         }
 
         .atlas-core-selected {
-          transform-box: fill-box;
-          transform-origin: center;
+          animation: atlasSelectedCoreBreath 5.8s ease-in-out infinite;
+        }
+
+        .atlas-selection-pulse {
+          animation: atlasSelectionPulse 420ms cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        .atlas-parent-core-selected {
           animation: atlasCoreBreath 6.2s ease-in-out infinite;
-          will-change: transform, opacity;
+        }
+
+        .atlas-ambient-paused {
+          animation-play-state: paused !important;
+        }
+
+        .atlas-node-brightness-parent {
+          animation: atlasNodeBrightnessFromParent 4.2s ease-in-out infinite;
+          will-change: opacity;
+        }
+
+        .atlas-node-brightness-sibling {
+          animation: atlasNodeBrightnessFromSibling 4.2s ease-in-out infinite;
+          will-change: opacity;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1245,9 +1378,14 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             transition-duration: 0.01ms !important;
           }
 
-          .atlas-node-available,
-          .atlas-node-selected,
-          .atlas-core-selected {
+          .atlas-halo-available,
+          .atlas-halo-selected,
+          .atlas-core-available,
+          .atlas-core-selected,
+          .atlas-selection-pulse,
+          .atlas-parent-core-selected,
+          .atlas-node-brightness-parent,
+          .atlas-node-brightness-sibling {
             animation: none !important;
             transform: none !important;
             opacity: 1 !important;
@@ -1408,6 +1546,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               onSelect={() => {}}
               transitionPreview
               labelsVisible={false}
+              selectionPulseId={null}
+              ambientPaused
             />
           </g>
         )}
@@ -1424,6 +1564,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               selectedId={selectedCaseStudyId}
               onSelect={selectCaseStudyOverviewItem}
               labelsVisible={overviewLabelsVisible}
+              selectionPulseId={selectionPulseId}
+              ambientPaused={drawerPhase !== "open" || selectionPulseId !== null}
             />
           </g>
         )}
