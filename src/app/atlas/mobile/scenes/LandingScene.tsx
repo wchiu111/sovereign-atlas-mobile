@@ -25,6 +25,8 @@ const DRAWER_CLOSE_DURATION = 240;
 const DRAWER_OPEN_DURATION = 320;
 const OVERVIEW_LABEL_REVEAL_DELAY = 110;
 const OVERVIEW_CHROME_REVEAL_DELAY = 170;
+const REDUCED_MOTION_TRANSITION_DURATION = 160;
+const REDUCED_MOTION_DRAWER_DURATION = 140;
 const PROJECT_BREATH_DURATION = 4.2;
 const PROJECT_BREATH_DELAYS = [0, 0.8, 1.5, 2.2] as const;
 
@@ -775,10 +777,15 @@ function ProjectPreviewDrawer({
   reducedMotion?: boolean;
 }) {
   const isCaseStudies = item.id === "case-studies";
-  const translateY =
-    phase === "closing" ? "100%" : arrivalVisible ? "0%" : "18px";
+  const translateY = reducedMotion
+    ? "0%"
+    : phase === "closing"
+    ? "100%"
+    : arrivalVisible
+    ? "0%"
+    : "18px";
   const opacity =
-    phase === "closing" ? 0.08 : arrivalVisible ? 1 : 0;
+    phase === "closing" ? (reducedMotion ? 0 : 0.08) : arrivalVisible ? 1 : 0;
 
   return (
     <div
@@ -799,7 +806,7 @@ function ProjectPreviewDrawer({
         transform: `translateY(${translateY})`,
         opacity,
         transition: reducedMotion
-          ? "none"
+          ? `opacity ${REDUCED_MOTION_DRAWER_DURATION}ms ease`
           : phase === "closing"
           ? `transform ${DRAWER_CLOSE_DURATION}ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease`
           : "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 260ms ease",
@@ -1038,6 +1045,10 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const [exitProgress, setExitProgress] = useState(0);
   const [isExitingCaseStudies, setIsExitingCaseStudies] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [reducedEntryProgress, setReducedEntryProgress] = useState(0);
+  const [reducedExitProgress, setReducedExitProgress] = useState(0);
+  const reducedEntryFrameRef = useRef<number | null>(null);
+  const reducedExitFrameRef = useRef<number | null>(null);
   const exitFrameRef = useRef<number | null>(null);
   const selectionPulseTimerRef = useRef<number | null>(null);
   const drawerTimersRef = useRef<number[]>([]);
@@ -1069,6 +1080,12 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       }
       if (exitFrameRef.current !== null) {
         cancelAnimationFrame(exitFrameRef.current);
+      }
+      if (reducedEntryFrameRef.current !== null) {
+        cancelAnimationFrame(reducedEntryFrameRef.current);
+      }
+      if (reducedExitFrameRef.current !== null) {
+        cancelAnimationFrame(reducedExitFrameRef.current);
       }
     };
   }, []);
@@ -1110,8 +1127,29 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     entryTimersRef.current = [];
 
     if (prefersReducedMotion) {
-      setEntryPhase("settled");
-      onSelectCaseStudies();
+      setEntryPhase("acknowledge");
+      setReducedEntryProgress(0);
+      const start = performance.now();
+
+      const tickReducedEntry = (now: number) => {
+        const raw = Math.min(
+          1,
+          (now - start) / REDUCED_MOTION_TRANSITION_DURATION,
+        );
+        setReducedEntryProgress(raw);
+
+        if (raw < 1) {
+          reducedEntryFrameRef.current = requestAnimationFrame(tickReducedEntry);
+          return;
+        }
+
+        reducedEntryFrameRef.current = null;
+        setEntryPhase("settled");
+        setReducedEntryProgress(0);
+        onSelectCaseStudies();
+      };
+
+      reducedEntryFrameRef.current = requestAnimationFrame(tickReducedEntry);
       return;
     }
 
@@ -1148,8 +1186,20 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     setSelectedCaseStudyId(id);
 
     if (prefersReducedMotion) {
-      setDrawerItemId(id);
-      setDrawerPhase("open");
+      setDrawerPhase("closing");
+
+      drawerTimersRef.current.push(
+        window.setTimeout(() => {
+          setDrawerItemId(id);
+          setDrawerPhase("opening");
+
+          drawerTimersRef.current.push(
+            window.setTimeout(() => {
+              setDrawerPhase("open");
+            }, REDUCED_MOTION_DRAWER_DURATION),
+          );
+        }, REDUCED_MOTION_DRAWER_DURATION),
+      );
       return;
     }
 
@@ -1178,12 +1228,36 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     if (isExitingCaseStudies) return;
 
     if (prefersReducedMotion) {
-      setSelectedCaseStudyId("case-studies");
-      setDrawerItemId("case-studies");
-      setDrawerPhase("open");
+      setIsExitingCaseStudies(true);
       setOverviewLabelsVisible(false);
       setOverviewChromeVisible(false);
-      onBack();
+      setDrawerPhase("closing");
+      setReducedExitProgress(0);
+
+      const start = performance.now();
+
+      const tickReducedExit = (now: number) => {
+        const raw = Math.min(
+          1,
+          (now - start) / REDUCED_MOTION_TRANSITION_DURATION,
+        );
+        setReducedExitProgress(raw);
+
+        if (raw < 1) {
+          reducedExitFrameRef.current = requestAnimationFrame(tickReducedExit);
+          return;
+        }
+
+        reducedExitFrameRef.current = null;
+        setSelectedCaseStudyId("case-studies");
+        setDrawerItemId("case-studies");
+        setDrawerPhase("open");
+        setIsExitingCaseStudies(false);
+        setReducedExitProgress(0);
+        onBack();
+      };
+
+      reducedExitFrameRef.current = requestAnimationFrame(tickReducedExit);
       return;
     }
 
@@ -1235,6 +1309,13 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
   const entryInProgress =
     state === "atlas-landing" && entryPhase !== "idle" && entryPhase !== "settled";
+  const reducedEntryInProgress =
+    prefersReducedMotion &&
+    state === "atlas-landing" &&
+    entryPhase === "acknowledge" &&
+    reducedEntryProgress > 0;
+  const reducedExitInProgress =
+    prefersReducedMotion && isExitingCaseStudies && reducedExitProgress > 0;
 
   const entryProgress = (() => {
     switch (entryPhase) {
@@ -1254,17 +1335,28 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const resolvingOverview = state === "atlas-landing" && entryPhase === "resolving";
   const [resolveT, setResolveT] = useState(0);
 
-  const animatedCsX = 95 + (195 - 95) * entryProgress;
+  const animatedCsX = reducedEntryInProgress
+    ? lerp(95, 103, reducedEntryProgress)
+    : 95 + (195 - 95) * entryProgress;
   const pullTargetY = 250;
-  const baseAnimatedCsY = 178 + (pullTargetY - 178) * entryProgress;
+  const baseAnimatedCsY = reducedEntryInProgress
+    ? lerp(178, 186, reducedEntryProgress)
+    : 178 + (pullTargetY - 178) * entryProgress;
   const animatedCsY =
     entryPhase === "resolving"
       ? lerp(baseAnimatedCsY, OVERVIEW_CORE.y, resolveT)
       : baseAnimatedCsY;
-  const animatedCsOrbitR = 36 + (72 - 36) * entryProgress;
-  const contextEntryOpacity = entryInProgress ? Math.max(0, 1 - entryProgress * 1.2) : ctxOp;
-  const selectedSystemScale =
-    entryPhase === "acknowledge"
+  const animatedCsOrbitR = reducedEntryInProgress
+    ? 36
+    : 36 + (72 - 36) * entryProgress;
+  const contextEntryOpacity = entryInProgress
+    ? reducedEntryInProgress
+      ? lerp(1, 0, reducedEntryProgress)
+      : Math.max(0, 1 - entryProgress * 1.2)
+    : ctxOp;
+  const selectedSystemScale = reducedEntryInProgress
+    ? 1
+    : entryPhase === "acknowledge"
       ? 1.035
       : entryPhase === "pulling"
       ? 1.12
@@ -1303,13 +1395,23 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     y: layout.y - OVERVIEW_CORE.y,
   }));
 
-  const exitScale = lerp(1, CASE_STUDY_MINIATURE_SCALE, exitProgress);
-  const exitTranslateX = lerp(0, 95 - OVERVIEW_CORE.x, exitProgress);
-  const exitTranslateY = lerp(0, 178 - OVERVIEW_CORE.y, exitProgress);
+  const exitScale = reducedExitInProgress
+    ? 1
+    : lerp(1, CASE_STUDY_MINIATURE_SCALE, exitProgress);
+  const exitTranslateX = reducedExitInProgress
+    ? lerp(0, -8, reducedExitProgress)
+    : lerp(0, 95 - OVERVIEW_CORE.x, exitProgress);
+  const exitTranslateY = reducedExitInProgress
+    ? lerp(0, -6, reducedExitProgress)
+    : lerp(0, 178 - OVERVIEW_CORE.y, exitProgress);
 
   // Background stays quiet until the overview has clearly begun contracting.
-  const exitBackgroundT = Math.max(0, Math.min(1, (exitProgress - 0.42) / 0.58));
-  const exitChromeT = Math.max(0, Math.min(1, (exitProgress - 0.62) / 0.38));
+  const exitBackgroundT = reducedExitInProgress
+    ? reducedExitProgress
+    : Math.max(0, Math.min(1, (exitProgress - 0.42) / 0.58));
+  const exitChromeT = reducedExitInProgress
+    ? reducedExitProgress
+    : Math.max(0, Math.min(1, (exitProgress - 0.62) / 0.38));
 
   // The top-level Case Studies cluster is a compressed miniature of the
   // overview constellation. This preserves project-to-project relationships
@@ -1523,7 +1625,6 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
           .atlas-node-brightness-sibling {
             animation: none !important;
             transform: none !important;
-            opacity: 1 !important;
           }
         }
       `}</style>
@@ -1735,7 +1836,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         {state === "system-awakened" && (
           <g
             style={{
-              opacity: 1,
+              opacity: reducedExitInProgress
+                ? 1 - reducedExitProgress
+                : 1,
               transform: isExitingCaseStudies
                 ? `translate(${exitTranslateX}px, ${exitTranslateY}px) scale(${exitScale})`
                 : "translate(0px, 0px) scale(1)",
@@ -1813,6 +1916,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             pointerEvents: "none",
             opacity: isExitingCaseStudies
               ? exitChromeT
+              : reducedEntryInProgress
+              ? 1 - reducedEntryProgress
               : entryInProgress
               ? Math.max(0, 1 - entryProgress * 1.35)
               : 1,
@@ -1872,6 +1977,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             pointerEvents: "none",
             opacity: isExitingCaseStudies
               ? exitChromeT
+              : reducedEntryInProgress
+              ? 1 - reducedEntryProgress
               : entryInProgress
               ? Math.max(0, 1 - entryProgress * 1.8)
               : 1,
