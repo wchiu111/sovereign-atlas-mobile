@@ -5,8 +5,18 @@
 
 import { useEffect, type RefObject } from "react";
 
-export const W = 390;
-export const H = 844;
+/**
+ * Canonical authored coordinate space for the mobile Atlas.
+ *
+ * These values still behave exactly as they did before this pass.
+ * Pass 1 only names their role explicitly; runtime responsiveness comes later.
+ */
+export const REFERENCE_W = 390;
+export const REFERENCE_H = 844;
+
+// Backward-compatible aliases preserve every existing consumer unchanged.
+export const W = REFERENCE_W;
+export const H = REFERENCE_H;
 
 export const T = {
   bg:          "#05050A",
