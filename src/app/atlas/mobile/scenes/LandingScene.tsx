@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 /**
  * LandingScene — atlas-landing | system-awakened | system-overview
  * Renders the full-atlas SVG and Case Studies overview surfaces.
@@ -862,8 +863,9 @@ function ProjectPreviewDrawer({
     <div
       style={{
         position: "absolute",
-        top: 470,
+        top: "auto",
         bottom: 0,
+        height: "min(374px, 48dvh)",
         left: 0,
         right: 0,
         boxSizing: "border-box",
@@ -871,7 +873,7 @@ function ProjectPreviewDrawer({
         background: "rgba(5,5,10,0.96)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
-        padding: "22px 28px 26px",
+        padding: "22px 28px calc(26px + env(safe-area-inset-bottom, 0px))",
         display: "flex",
         flexDirection: "column",
         transform: `translateY(${translateY})`,
@@ -1002,8 +1004,9 @@ function OverviewScrolled({
     <div
       style={{
         position: "absolute",
-        top: 462,
+        top: "auto",
         bottom: 0,
+        height: "min(382px, 48dvh)",
         left: 0,
         right: 0,
         boxSizing: "border-box",
@@ -1011,7 +1014,7 @@ function OverviewScrolled({
         background: "rgba(5,5,10,0.94)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
-        padding: "20px 28px 28px",
+        padding: "20px 28px calc(28px + env(safe-area-inset-bottom, 0px))",
         overflowY: "auto",
       }}
     >
@@ -1101,6 +1104,7 @@ interface LandingSceneProps {
   onSelectProject?: (projectId: (typeof CASE_STUDY_PROJECTS)[number]["id"]) => void;
   returnProjectId?: (typeof CASE_STUDY_PROJECTS)[number]["id"] | null;
   onReturnProjectComplete?: () => void;
+  viewportUiTarget?: HTMLElement | null;
 }
 
 export default function LandingScene({
@@ -1114,6 +1118,7 @@ export default function LandingScene({
   onSelectProject,
   returnProjectId = null,
   onReturnProjectComplete,
+  viewportUiTarget = null,
 }: LandingSceneProps) {
   const [activeFocusIndex, setActiveFocusIndex] = useState(0);
   const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>(
@@ -1676,6 +1681,9 @@ export default function LandingScene({
     }
   })();
 
+  const renderViewportUi = (node: ReactNode) =>
+    viewportUiTarget ? createPortal(node, viewportUiTarget) : null;
+
   return (
     <>
       <style>{`
@@ -2138,14 +2146,16 @@ export default function LandingScene({
         </svg>
       )}
 
-      {(state === "atlas-landing" || isExitingCaseStudies) && (
+      {renderViewportUi(
+        <>
+          {(state === "atlas-landing" || isExitingCaseStudies) && (
         <div
           style={{
             position: "absolute",
-            top: 24,
+            top: 0,
             left: 0,
             right: 0,
-            padding: "20px 22px 0",
+            padding: "calc(44px + env(safe-area-inset-top, 0px)) 22px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -2204,7 +2214,7 @@ export default function LandingScene({
         <div
           style={{
             position: "absolute",
-            bottom: 58,
+            bottom: "calc(58px + env(safe-area-inset-bottom, 0px))",
             left: 0,
             right: 0,
             display: "flex",
@@ -2240,10 +2250,10 @@ export default function LandingScene({
         <div
           style={{
             position: "absolute",
-            top: 24,
+            top: 0,
             left: 0,
             right: 0,
-            padding: "22px 22px 0",
+            padding: "calc(46px + env(safe-area-inset-top, 0px)) 22px 0",
             display: "flex",
             alignItems: "center",
             pointerEvents: "none",
@@ -2287,7 +2297,7 @@ export default function LandingScene({
       )}
 
       {state === "system-overview" && (
-        <div style={{ position: "absolute", top: 24, left: 0, right: 0, padding: "22px 22px 0", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 8 }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "calc(46px + env(safe-area-inset-top, 0px)) 22px 0", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 8 }}>
           <div
             onClick={onOverviewBack}
             style={{
@@ -2339,6 +2349,8 @@ export default function LandingScene({
       )}
       {state === "system-overview" && <OverviewScrolled item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
+        </>
+      )}
     </>
   );
 }

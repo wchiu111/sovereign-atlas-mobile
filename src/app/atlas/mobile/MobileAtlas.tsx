@@ -57,6 +57,7 @@ export default function MobileAtlas() {
   useStarfield(canvasRef);
 
   const [sceneScale, setSceneScale] = useState(1);
+  const [viewportUiTarget, setViewportUiTarget] = useState<HTMLDivElement | null>(null);
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
   const [activeLayer, setActiveLayer] = useState<string>("governance");
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
@@ -202,6 +203,7 @@ export default function MobileAtlas() {
               onReturnProjectComplete={() => {
                 setReturnCaseStudyProjectId(null);
               }}
+              viewportUiTarget={viewportUiTarget}
               onBack={() => {
                 setActiveCaseStudyProjectId(null);
                 setReturnCaseStudyProjectId(null);
@@ -275,6 +277,18 @@ export default function MobileAtlas() {
             </>
           )}
           </div>
+
+          <div
+            ref={(node) => setViewportUiTarget(node)}
+            className="mobile-atlas-viewport-ui"
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 20,
+              pointerEvents: "none",
+              overflow: "hidden",
+            }}
+          />
         </div>
 
         {debugMode && (
