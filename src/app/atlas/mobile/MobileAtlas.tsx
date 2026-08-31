@@ -2,7 +2,7 @@
  * MobileAtlas — Sovereign Atlas mobile prototype orchestrator.
  */
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import {
   T, W, H, MOBILE_STATES,
   useStarfield,
@@ -53,8 +53,10 @@ function isDebugMode() {
 
 export default function MobileAtlas() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const runtimeViewportRef = useRef<HTMLDivElement>(null);
   useStarfield(canvasRef);
 
+  const [sceneScale, setSceneScale] = useState(1);
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
   const [activeLayer, setActiveLayer] = useState<string>("governance");
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
@@ -62,6 +64,29 @@ export default function MobileAtlas() {
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
     useState<CaseStudyProjectId | null>(null);
   const debugMode = isDebugMode();
+
+  useLayoutEffect(() => {
+    const viewport = runtimeViewportRef.current;
+    if (!viewport) return;
+
+    function updateSceneScale() {
+      const width = viewport.clientWidth;
+      const height = viewport.clientHeight;
+      if (width <= 0 || height <= 0) return;
+
+      // Uniform contain scaling:
+      // preserve the authored 390×844 scene as one composition.
+      const nextScale = Math.min(width / W, height / H);
+      setSceneScale(nextScale);
+    }
+
+    updateSceneScale();
+    window.addEventListener("resize", updateSceneScale);
+
+    return () => {
+      window.removeEventListener("resize", updateSceneScale);
+    };
+  }, []);
 
   function setState(next: MobileState) {
     if ((MOBILE_STATES as readonly string[]).includes(next)) setStateRaw(next);
@@ -117,6 +142,7 @@ export default function MobileAtlas() {
         )}
 
         <div
+          ref={runtimeViewportRef}
           className="mobile-atlas-runtime-viewport"
           style={{
             position: "relative",
@@ -142,6 +168,8 @@ export default function MobileAtlas() {
               : "none",
             background: T.bg,
             flexShrink: 0,
+            transform: `scale(${sceneScale})`,
+            transformOrigin: "center center",
           }}>
             <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
 
