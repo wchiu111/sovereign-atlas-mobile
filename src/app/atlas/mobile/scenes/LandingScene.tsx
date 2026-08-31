@@ -29,6 +29,8 @@ const REDUCED_MOTION_TRANSITION_DURATION = 160;
 const REDUCED_MOTION_DRAWER_DURATION = 140;
 const PROJECT_READING_HANDOFF_DURATION = 520;
 const PROJECT_READING_REDUCED_HANDOFF_DURATION = 160;
+const PROJECT_RETURN_DURATION = 480;
+const PROJECT_RETURN_REDUCED_DURATION = 160;
 const PROJECT_BREATH_DURATION = 4.2;
 const PROJECT_BREATH_DELAYS = [0, 0.8, 1.5, 2.2] as const;
 
@@ -326,6 +328,8 @@ function CaseStudyOverviewConstellation({
   ambientPaused = false,
   focusedEntryId = null,
   focusedEntryProgress = 0,
+  focusedReturnId = null,
+  focusedReturnProgress = 0,
   reducedMotion = false,
 }: {
   selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
@@ -336,6 +340,8 @@ function CaseStudyOverviewConstellation({
   ambientPaused?: boolean;
   focusedEntryId?: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null;
   focusedEntryProgress?: number;
+  focusedReturnId?: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null;
+  focusedReturnProgress?: number;
   reducedMotion?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
@@ -348,7 +354,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.55}
         strokeDasharray="4 7"
-        opacity={transitionPreview ? 0.015 : focusedEntryId ? 0.14 * (1 - focusedEntryProgress) : 0.14}
+        opacity={transitionPreview ? 0.015 : focusedEntryId ? 0.14 * (1 - focusedEntryProgress) : focusedReturnId ? 0.14 * focusedReturnProgress : 0.14}
       />
       <path
         d="M118 300 C172 222 248 220 315 278"
@@ -356,7 +362,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.35}
         strokeDasharray="2 6"
-        opacity={transitionPreview ? 0.008 : focusedEntryId ? 0.08 * (1 - focusedEntryProgress) : 0.08}
+        opacity={transitionPreview ? 0.008 : focusedEntryId ? 0.08 * (1 - focusedEntryProgress) : focusedReturnId ? 0.08 * focusedReturnProgress : 0.08}
       />
 
       <g
@@ -369,6 +375,8 @@ function CaseStudyOverviewConstellation({
             ? 0.86
             : focusedEntryId
             ? 1 - focusedEntryProgress
+            : focusedReturnId
+            ? focusedReturnProgress
             : 1,
         }}
         onClick={() => { if (!transitionPreview) onSelect("case-studies"); }}
@@ -407,12 +415,24 @@ function CaseStudyOverviewConstellation({
         const layout = CASE_STUDY_OVERVIEW_LAYOUT[index];
         const isSelected = selectedId === project.id;
         const isFocusedEntry = focusedEntryId === project.id;
-        const siblingEntryOpacity =
-          focusedEntryId && !isFocusedEntry ? 1 - focusedEntryProgress : 1;
+        const isFocusedReturn = focusedReturnId === project.id;
+        const siblingEntryOpacity = focusedEntryId
+          ? isFocusedEntry
+            ? 1
+            : 1 - focusedEntryProgress
+          : focusedReturnId
+          ? isFocusedReturn
+            ? 1
+            : focusedReturnProgress
+          : 1;
         const focusedScale = isFocusedEntry
           ? reducedMotion
             ? 1
             : 1 + 0.18 * focusedEntryProgress
+          : isFocusedReturn
+          ? reducedMotion
+            ? 1
+            : 1 + 0.18 * (1 - focusedReturnProgress)
           : 1;
         const focusedHaloOpacity = isFocusedEntry
           ? Math.min(1, 0.72 + focusedEntryProgress * 0.28)
@@ -421,6 +441,11 @@ function CaseStudyOverviewConstellation({
           ? focusedEntryProgress < 0.68
             ? 1
             : Math.max(0, 1 - (focusedEntryProgress - 0.68) / 0.32)
+          : 1;
+        const returnLabelOpacity = focusedReturnId
+          ? isFocusedReturn
+            ? 1
+            : Math.max(0, Math.min(1, (focusedReturnProgress - 0.52) / 0.48))
           : 1;
         const lines =
           project.label === "AGENTIC INSURANCE"
@@ -434,12 +459,12 @@ function CaseStudyOverviewConstellation({
             key={project.id}
             onClick={() => { if (!transitionPreview) onSelect(project.id); }}
             style={{
-              cursor: focusedEntryId ? "default" : "pointer",
+              cursor: focusedEntryId || focusedReturnId ? "default" : "pointer",
               WebkitTapHighlightColor: "transparent",
               userSelect: "none",
               opacity: siblingEntryOpacity,
-              transition: focusedEntryId ? "none" : FADE,
-              pointerEvents: focusedEntryId ? "none" : "auto",
+              transition: focusedEntryId || focusedReturnId ? "none" : FADE,
+              pointerEvents: focusedEntryId || focusedReturnId ? "none" : "auto",
             }}
           >
             <g
@@ -453,7 +478,7 @@ function CaseStudyOverviewConstellation({
               style={{
                 transform: `translate(${layout.x}px,${layout.y}px) scale(${focusedScale})`,
                 transformOrigin: `${layout.x}px ${layout.y}px`,
-                transition: focusedEntryId
+                transition: focusedEntryId || focusedReturnId
                   ? "none"
                   : `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
                 animationDelay: transitionPreview
@@ -522,6 +547,8 @@ function CaseStudyOverviewConstellation({
                   ? 0
                   : focusedEntryId
                   ? (isFocusedEntry ? focusedLabelOpacity : 0)
+                  : focusedReturnId
+                  ? (isFocusedReturn ? 1 : returnLabelOpacity)
                   : isSelected
                   ? 1
                   : caseStudiesSelected
@@ -1071,13 +1098,30 @@ interface LandingSceneProps {
   onExplore: () => void;
   onBack: () => void;
   onOverviewBack: () => void;
-  onSelectProject?: () => void;
+  onSelectProject?: (projectId: (typeof CASE_STUDY_PROJECTS)[number]["id"]) => void;
+  returnProjectId?: (typeof CASE_STUDY_PROJECTS)[number]["id"] | null;
+  onReturnProjectComplete?: () => void;
 }
 
-export default function LandingScene({ state, onSelectCaseStudies, onSelectFrameworks, onOverviewExpand, onExplore, onBack, onOverviewBack, onSelectProject }: LandingSceneProps) {
+export default function LandingScene({
+  state,
+  onSelectCaseStudies,
+  onSelectFrameworks,
+  onOverviewExpand,
+  onExplore,
+  onBack,
+  onOverviewBack,
+  onSelectProject,
+  returnProjectId = null,
+  onReturnProjectComplete,
+}: LandingSceneProps) {
   const [activeFocusIndex, setActiveFocusIndex] = useState(0);
-  const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
-  const [drawerItemId, setDrawerItemId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>("case-studies");
+  const [selectedCaseStudyId, setSelectedCaseStudyId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>(
+    returnProjectId ?? "case-studies",
+  );
+  const [drawerItemId, setDrawerItemId] = useState<(typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]>(
+    returnProjectId ?? "case-studies",
+  );
   const [drawerPhase, setDrawerPhase] = useState<"open" | "closing" | "opening">("open");
   const [entryPhase, setEntryPhase] =
     useState<CaseStudiesEntryPhase>("idle");
@@ -1095,6 +1139,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
     (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null
   >(null);
   const [focusedEntryProgress, setFocusedEntryProgress] = useState(0);
+  const [isReturningFromReading, setIsReturningFromReading] = useState(false);
+  const [focusedReturnProgress, setFocusedReturnProgress] = useState(0);
+  const focusedReturnFrameRef = useRef<number | null>(null);
   const focusedEntryFrameRef = useRef<number | null>(null);
   const reducedEntryFrameRef = useRef<number | null>(null);
   const reducedExitFrameRef = useRef<number | null>(null);
@@ -1139,6 +1186,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       if (focusedEntryFrameRef.current !== null) {
         cancelAnimationFrame(focusedEntryFrameRef.current);
       }
+      if (focusedReturnFrameRef.current !== null) {
+        cancelAnimationFrame(focusedReturnFrameRef.current);
+      }
     };
   }, []);
 
@@ -1150,6 +1200,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
     if (state === "system-awakened") {
       if (entryPhase === "idle") setEntryPhase("settled");
+      if (returnProjectId) return;
 
       // Geometry lands first. Labels and chrome enter afterward.
       const labelsTimer = window.setTimeout(() => {
@@ -1173,6 +1224,60 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       setOverviewLabelsVisible(false);
     }
   }, [state, entryPhase, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (state !== "system-awakened" || !returnProjectId) return;
+
+    setSelectedCaseStudyId(returnProjectId);
+    setDrawerItemId(returnProjectId);
+    setDrawerPhase("open");
+    setOverviewLabelsVisible(false);
+    setOverviewChromeVisible(false);
+    setIsReturningFromReading(true);
+    setFocusedReturnProgress(0);
+
+    const duration = prefersReducedMotion
+      ? PROJECT_RETURN_REDUCED_DURATION
+      : PROJECT_RETURN_DURATION;
+    const start = performance.now();
+
+    const tickFocusedReturn = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration);
+      const eased = prefersReducedMotion
+        ? raw
+        : raw * raw * (3 - 2 * raw);
+
+      setFocusedReturnProgress(eased);
+
+      if (raw < 1) {
+        focusedReturnFrameRef.current =
+          requestAnimationFrame(tickFocusedReturn);
+        return;
+      }
+
+      focusedReturnFrameRef.current = null;
+      setFocusedReturnProgress(1);
+      setOverviewLabelsVisible(true);
+      setOverviewChromeVisible(true);
+      setIsReturningFromReading(false);
+      onReturnProjectComplete?.();
+    };
+
+    focusedReturnFrameRef.current =
+      requestAnimationFrame(tickFocusedReturn);
+
+    return () => {
+      if (focusedReturnFrameRef.current !== null) {
+        cancelAnimationFrame(focusedReturnFrameRef.current);
+        focusedReturnFrameRef.current = null;
+      }
+    };
+  }, [
+    state,
+    returnProjectId,
+    prefersReducedMotion,
+    onReturnProjectComplete,
+  ]);
 
   const enterCaseStudies = () => {
     entryTimersRef.current.forEach(window.clearTimeout);
@@ -1316,7 +1421,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
 
       focusedEntryFrameRef.current = null;
       setFocusedEntryProgress(1);
-      onSelectProject?.();
+      onSelectProject?.(
+        projectId as (typeof CASE_STUDY_PROJECTS)[number]["id"],
+      );
     };
 
     focusedEntryFrameRef.current =
@@ -1511,6 +1618,10 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const exitChromeT = reducedExitInProgress
     ? reducedExitProgress
     : Math.max(0, Math.min(1, (exitProgress - 0.62) / 0.38));
+  const returnDrawerVisible =
+    !isReturningFromReading || focusedReturnProgress >= 0.58;
+  const returnChromeVisible =
+    !isReturningFromReading || focusedReturnProgress >= 0.72;
 
   // The top-level Case Studies cluster is a compressed miniature of the
   // overview constellation. This preserves project-to-project relationships
@@ -1931,6 +2042,8 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               ambientPaused
               focusedEntryId={null}
               focusedEntryProgress={0}
+              focusedReturnId={null}
+              focusedReturnProgress={0}
               reducedMotion={prefersReducedMotion}
             />
           </g>
@@ -1956,16 +2069,25 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
                 isExitingCaseStudies ? "case-studies" : selectedCaseStudyId
               }
               onSelect={selectCaseStudyOverviewItem}
-              labelsVisible={isExitingCaseStudies ? false : overviewLabelsVisible}
+              labelsVisible={
+                isExitingCaseStudies
+                  ? false
+                  : isReturningFromReading
+                  ? true
+                  : overviewLabelsVisible
+              }
               selectionPulseId={isExitingCaseStudies ? null : selectionPulseId}
               ambientPaused={
                 isExitingCaseStudies ||
+                isReturningFromReading ||
                 focusedEntryProjectId !== null ||
                 drawerPhase !== "open" ||
                 selectionPulseId !== null
               }
               focusedEntryId={focusedEntryProjectId}
               focusedEntryProgress={focusedEntryProgress}
+              focusedReturnId={isReturningFromReading ? returnProjectId : null}
+              focusedReturnProgress={focusedReturnProgress}
               reducedMotion={prefersReducedMotion}
             />
           </g>
@@ -2116,8 +2238,16 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
             display: "flex",
             alignItems: "center",
             pointerEvents: "none",
-            opacity: overviewChromeVisible ? 1 : 0,
-            transform: `translateY(${overviewChromeVisible ? 0 : -5}px)`,
+            opacity:
+              overviewChromeVisible || (isReturningFromReading && returnChromeVisible)
+                ? 1
+                : 0,
+            transform: `translateY(${
+              overviewChromeVisible ||
+              (isReturningFromReading && returnChromeVisible)
+                ? 0
+                : -5
+            }px)`,
             transition: "opacity 220ms ease, transform 260ms ease",
           }}
         >
@@ -2133,6 +2263,7 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               pointerEvents:
                 overviewChromeVisible &&
                 !isExitingCaseStudies &&
+                !isReturningFromReading &&
                 focusedEntryProjectId === null
                   ? "auto"
                   : "none",
@@ -2171,13 +2302,20 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       {state === "system-awakened" && (
         <div
           style={{
-            pointerEvents: focusedEntryProjectId ? "none" : "auto",
+            pointerEvents:
+              focusedEntryProjectId || isReturningFromReading
+                ? "none"
+                : "auto",
           }}
         >
         <ProjectPreviewDrawer
           item={drawerItem}
           phase={drawerPhase}
-          arrivalVisible={overviewChromeVisible}
+          arrivalVisible={
+            isReturningFromReading
+              ? returnDrawerVisible
+              : overviewChromeVisible
+          }
           reducedMotion={prefersReducedMotion}
           onExplore={() => {
             if (drawerItem.id === "case-studies") {

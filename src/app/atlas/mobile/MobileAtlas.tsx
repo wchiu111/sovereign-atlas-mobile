@@ -40,6 +40,12 @@ const CS_FOCUS_STATES: readonly MobileState[] = ["case-studies-focus", "project-
 const CS_READING_STATES: readonly MobileState[] = ["project-reading", "evidence-viewer"];
 const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"];
 
+type CaseStudyProjectId =
+  | "agentic-insurance"
+  | "globality"
+  | "oracle"
+  | "sovereign-atlas";
+
 function isDebugMode() {
   if (typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).get("debug") === "1";
@@ -51,6 +57,10 @@ export default function MobileAtlas() {
 
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
   const [activeLayer, setActiveLayer] = useState<string>("governance");
+  const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
+    useState<CaseStudyProjectId | null>(null);
+  const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
+    useState<CaseStudyProjectId | null>(null);
   const debugMode = isDebugMode();
 
   function setState(next: MobileState) {
@@ -129,8 +139,20 @@ export default function MobileAtlas() {
               onOverviewExpand={() => setState("system-overview")}
               onOverviewBack={() => setState("system-awakened")}
               onExplore={() => setState("case-studies-focus")}
-              onSelectProject={() => setState("project-reading")}
-              onBack={() => setState("atlas-landing")}
+              onSelectProject={(projectId) => {
+                setActiveCaseStudyProjectId(projectId);
+                setReturnCaseStudyProjectId(null);
+                setState("project-reading");
+              }}
+              returnProjectId={returnCaseStudyProjectId}
+              onReturnProjectComplete={() => {
+                setReturnCaseStudyProjectId(null);
+              }}
+              onBack={() => {
+                setActiveCaseStudyProjectId(null);
+                setReturnCaseStudyProjectId(null);
+                setState("atlas-landing");
+              }}
             />
           )}
 
@@ -148,7 +170,10 @@ export default function MobileAtlas() {
             <ReadingScene
               state="project-reading"
               onEvidence={() => setState("project-reading")}
-              onBack={() => setState("system-awakened")}
+              onBack={() => {
+                setReturnCaseStudyProjectId(activeCaseStudyProjectId);
+                setState("system-awakened");
+              }}
             />
           )}
 

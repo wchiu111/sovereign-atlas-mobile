@@ -31,6 +31,9 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   const [selectedEvidence, setSelectedEvidence] =
     useState<MobileEvidenceItem | null>(null);
   const [headerElevated, setHeaderElevated] = useState(false);
+  const [isExitingReading, setIsExitingReading] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const exitTimerRef = useRef<number | null>(null);
 
   const sectionIds = useMemo(
     () => sections.map((section) => section.id),
@@ -38,15 +41,42 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   );
 
   useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPrefersReducedMotion(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
+
+  function requestBack() {
+    if (isExitingReading) return;
+    setIsExitingReading(true);
+
+    const duration = prefersReducedMotion ? 140 : 280;
+    exitTimerRef.current = window.setTimeout(() => {
+      exitTimerRef.current = null;
+      onBack();
+    }, duration);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (exitTimerRef.current !== null) {
+        window.clearTimeout(exitTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       if (selectedEvidence) setSelectedEvidence(null);
-      else onBack();
+      else requestBack();
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onBack, selectedEvidence]);
+  }, [isExitingReading, onBack, prefersReducedMotion, selectedEvidence]);
 
   useEffect(() => {
     const scroller = scrollRef.current;
@@ -134,6 +164,17 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         overflow: "hidden",
         background: "rgba(5,5,10,0.99)",
         color: T.body,
+        opacity: isExitingReading ? 0 : 1,
+        transform: isExitingReading
+          ? prefersReducedMotion
+            ? "none"
+            : "scale(0.995)"
+          : "scale(1)",
+        transformOrigin: "center top",
+        transition: prefersReducedMotion
+          ? "opacity 140ms ease"
+          : "opacity 260ms ease, transform 280ms cubic-bezier(0.22,1,0.36,1)",
+        pointerEvents: isExitingReading ? "none" : "auto",
       }}
     >
       <style>{`
@@ -189,7 +230,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
       >
         <MobileReadingHeader
           title={SOVEREIGN_ATLAS_READING.title}
-          onBack={onBack}
+          onBack={requestBack}
           elevated={headerElevated}
         />
         <MobileSectionRail
@@ -248,7 +289,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
           <button
             type="button"
-            onClick={onBack}
+            onClick={requestBack}
             className="mobile-reading-focusable"
             style={{
               minHeight: 44,
