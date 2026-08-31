@@ -1329,7 +1329,16 @@ export default function LandingScene({
   const selectCaseStudyOverviewItem = (
     id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"],
   ) => {
-    if (id === selectedCaseStudyId || drawerPhase === "closing") return;
+    if (drawerPhase === "closing") return;
+
+    // First tap selects a project and reveals its contextual preview.
+    // Tapping the already-selected project again enters Focused Mode.
+    if (id === selectedCaseStudyId) {
+      if (id !== "case-studies") {
+        enterFocusedReading(id);
+      }
+      return;
+    }
 
     if (selectionPulseTimerRef.current !== null) {
       window.clearTimeout(selectionPulseTimerRef.current);
