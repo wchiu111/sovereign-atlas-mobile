@@ -27,6 +27,8 @@ const OVERVIEW_LABEL_REVEAL_DELAY = 110;
 const OVERVIEW_CHROME_REVEAL_DELAY = 170;
 const REDUCED_MOTION_TRANSITION_DURATION = 160;
 const REDUCED_MOTION_DRAWER_DURATION = 140;
+const PROJECT_READING_HANDOFF_DURATION = 520;
+const PROJECT_READING_REDUCED_HANDOFF_DURATION = 160;
 const PROJECT_BREATH_DURATION = 4.2;
 const PROJECT_BREATH_DELAYS = [0, 0.8, 1.5, 2.2] as const;
 
@@ -322,6 +324,9 @@ function CaseStudyOverviewConstellation({
   labelsVisible = true,
   selectionPulseId = null,
   ambientPaused = false,
+  focusedEntryId = null,
+  focusedEntryProgress = 0,
+  reducedMotion = false,
 }: {
   selectedId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"];
   onSelect: (id: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"]) => void;
@@ -329,6 +334,9 @@ function CaseStudyOverviewConstellation({
   labelsVisible?: boolean;
   selectionPulseId?: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null;
   ambientPaused?: boolean;
+  focusedEntryId?: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null;
+  focusedEntryProgress?: number;
+  reducedMotion?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
 
@@ -340,7 +348,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.55}
         strokeDasharray="4 7"
-        opacity={transitionPreview ? 0.015 : 0.14}
+        opacity={transitionPreview ? 0.015 : focusedEntryId ? 0.14 * (1 - focusedEntryProgress) : 0.14}
       />
       <path
         d="M118 300 C172 222 248 220 315 278"
@@ -348,7 +356,7 @@ function CaseStudyOverviewConstellation({
         stroke={T.caseStudies}
         strokeWidth={0.35}
         strokeDasharray="2 6"
-        opacity={transitionPreview ? 0.008 : 0.08}
+        opacity={transitionPreview ? 0.008 : focusedEntryId ? 0.08 * (1 - focusedEntryProgress) : 0.08}
       />
 
       <g
@@ -357,7 +365,11 @@ function CaseStudyOverviewConstellation({
           transformOrigin: "center",
           transition: `transform 260ms ${CASE_STUDIES_PULL_EASE}, opacity 220ms ease`,
           cursor: transitionPreview ? "default" : "pointer",
-          opacity: transitionPreview ? 0.86 : 1,
+          opacity: transitionPreview
+            ? 0.86
+            : focusedEntryId
+            ? 1 - focusedEntryProgress
+            : 1,
         }}
         onClick={() => { if (!transitionPreview) onSelect("case-studies"); }}
       >
@@ -394,6 +406,22 @@ function CaseStudyOverviewConstellation({
       {CASE_STUDY_PROJECTS.map((project, index) => {
         const layout = CASE_STUDY_OVERVIEW_LAYOUT[index];
         const isSelected = selectedId === project.id;
+        const isFocusedEntry = focusedEntryId === project.id;
+        const siblingEntryOpacity =
+          focusedEntryId && !isFocusedEntry ? 1 - focusedEntryProgress : 1;
+        const focusedScale = isFocusedEntry
+          ? reducedMotion
+            ? 1
+            : 1 + 0.18 * focusedEntryProgress
+          : 1;
+        const focusedHaloOpacity = isFocusedEntry
+          ? Math.min(1, 0.72 + focusedEntryProgress * 0.28)
+          : 1;
+        const focusedLabelOpacity = isFocusedEntry
+          ? focusedEntryProgress < 0.68
+            ? 1
+            : Math.max(0, 1 - (focusedEntryProgress - 0.68) / 0.32)
+          : 1;
         const lines =
           project.label === "AGENTIC INSURANCE"
             ? ["AGENTIC", "INSURANCE"]
@@ -406,9 +434,12 @@ function CaseStudyOverviewConstellation({
             key={project.id}
             onClick={() => { if (!transitionPreview) onSelect(project.id); }}
             style={{
-              cursor: "pointer",
+              cursor: focusedEntryId ? "default" : "pointer",
               WebkitTapHighlightColor: "transparent",
               userSelect: "none",
+              opacity: siblingEntryOpacity,
+              transition: focusedEntryId ? "none" : FADE,
+              pointerEvents: focusedEntryId ? "none" : "auto",
             }}
           >
             <g
@@ -420,9 +451,11 @@ function CaseStudyOverviewConstellation({
                   : "atlas-node-brightness-sibling"
               }
               style={{
-                transform: `translate(${layout.x}px,${layout.y}px) scale(1)`,
-                transformOrigin: "center",
-                transition: `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
+                transform: `translate(${layout.x}px,${layout.y}px) scale(${focusedScale})`,
+                transformOrigin: `${layout.x}px ${layout.y}px`,
+                transition: focusedEntryId
+                  ? "none"
+                  : `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
                 animationDelay: transitionPreview
                   ? "0s"
                   : `${PROJECT_BREATH_DELAYS[index]}s`,
@@ -448,6 +481,7 @@ function CaseStudyOverviewConstellation({
                     ambientPaused && selectionPulseId !== project.id
                       ? "paused"
                       : "running",
+                  opacity: focusedHaloOpacity,
                 }}
               >
                 <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.13 : 0.07} />
@@ -483,7 +517,17 @@ function CaseStudyOverviewConstellation({
               fontSize={10.5}
               letterSpacing="0.08em"
               fill={project.color}
-              opacity={transitionPreview || !labelsVisible ? 0 : isSelected ? 1 : caseStudiesSelected ? 0.86 : 0.78}
+              opacity={
+                transitionPreview || !labelsVisible
+                  ? 0
+                  : focusedEntryId
+                  ? (isFocusedEntry ? focusedLabelOpacity : 0)
+                  : isSelected
+                  ? 1
+                  : caseStudiesSelected
+                  ? 0.86
+                  : 0.78
+              }
               style={{
                 transition: "opacity 240ms ease",
               }}
@@ -1047,6 +1091,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [reducedEntryProgress, setReducedEntryProgress] = useState(0);
   const [reducedExitProgress, setReducedExitProgress] = useState(0);
+  const [focusedEntryProjectId, setFocusedEntryProjectId] = useState<
+    (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"] | null
+  >(null);
+  const [focusedEntryProgress, setFocusedEntryProgress] = useState(0);
+  const focusedEntryFrameRef = useRef<number | null>(null);
   const reducedEntryFrameRef = useRef<number | null>(null);
   const reducedExitFrameRef = useRef<number | null>(null);
   const exitFrameRef = useRef<number | null>(null);
@@ -1086,6 +1135,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       }
       if (reducedExitFrameRef.current !== null) {
         cancelAnimationFrame(reducedExitFrameRef.current);
+      }
+      if (focusedEntryFrameRef.current !== null) {
+        cancelAnimationFrame(focusedEntryFrameRef.current);
       }
     };
   }, []);
@@ -1222,6 +1274,53 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
         );
       }, DRAWER_CLOSE_DURATION),
     );
+  };
+
+  const enterFocusedReading = (
+    projectId: (typeof CASE_STUDY_FOCUS_ITEMS)[number]["id"],
+  ) => {
+    if (focusedEntryProjectId || isExitingCaseStudies) return;
+    if (projectId === "case-studies") return;
+
+    if (selectionPulseTimerRef.current !== null) {
+      window.clearTimeout(selectionPulseTimerRef.current);
+      selectionPulseTimerRef.current = null;
+      setSelectionPulseId(null);
+    }
+    drawerTimersRef.current.forEach(window.clearTimeout);
+    drawerTimersRef.current = [];
+
+    setFocusedEntryProjectId(projectId);
+    setFocusedEntryProgress(0);
+    setOverviewChromeVisible(false);
+    setDrawerPhase("closing");
+
+    const duration = prefersReducedMotion
+      ? PROJECT_READING_REDUCED_HANDOFF_DURATION
+      : PROJECT_READING_HANDOFF_DURATION;
+    const start = performance.now();
+
+    const tickFocusedEntry = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration);
+      const eased = prefersReducedMotion
+        ? raw
+        : raw * raw * (3 - 2 * raw);
+
+      setFocusedEntryProgress(eased);
+
+      if (raw < 1) {
+        focusedEntryFrameRef.current =
+          requestAnimationFrame(tickFocusedEntry);
+        return;
+      }
+
+      focusedEntryFrameRef.current = null;
+      setFocusedEntryProgress(1);
+      onSelectProject?.();
+    };
+
+    focusedEntryFrameRef.current =
+      requestAnimationFrame(tickFocusedEntry);
   };
 
   const exitCaseStudiesToAtlas = () => {
@@ -1830,6 +1929,9 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               labelsVisible={false}
               selectionPulseId={null}
               ambientPaused
+              focusedEntryId={null}
+              focusedEntryProgress={0}
+              reducedMotion={prefersReducedMotion}
             />
           </g>
         )}
@@ -1858,9 +1960,13 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               selectionPulseId={isExitingCaseStudies ? null : selectionPulseId}
               ambientPaused={
                 isExitingCaseStudies ||
+                focusedEntryProjectId !== null ||
                 drawerPhase !== "open" ||
                 selectionPulseId !== null
               }
+              focusedEntryId={focusedEntryProjectId}
+              focusedEntryProgress={focusedEntryProgress}
+              reducedMotion={prefersReducedMotion}
             />
           </g>
         )}
@@ -2024,7 +2130,12 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               color: T.body,
               opacity: 0.72,
               cursor: "pointer",
-              pointerEvents: overviewChromeVisible && !isExitingCaseStudies ? "auto" : "none",
+              pointerEvents:
+                overviewChromeVisible &&
+                !isExitingCaseStudies &&
+                focusedEntryProjectId === null
+                  ? "auto"
+                  : "none",
               minHeight: 44,
               display: "flex",
               alignItems: "center",
@@ -2058,6 +2169,11 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
       )}
 
       {state === "system-awakened" && (
+        <div
+          style={{
+            pointerEvents: focusedEntryProjectId ? "none" : "auto",
+          }}
+        >
         <ProjectPreviewDrawer
           item={drawerItem}
           phase={drawerPhase}
@@ -2069,9 +2185,10 @@ export default function LandingScene({ state, onSelectCaseStudies, onSelectFrame
               onOverviewExpand();
               return;
             }
-            onSelectProject?.();
+            enterFocusedReading(drawerItem.id);
           }}
         />
+        </div>
       )}
       {state === "system-overview" && <OverviewScrolled item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
