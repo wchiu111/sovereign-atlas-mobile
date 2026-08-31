@@ -165,15 +165,9 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         background: "rgba(5,5,10,0.99)",
         color: T.body,
         opacity: isExitingReading ? 0 : 1,
-        transform: isExitingReading
-          ? prefersReducedMotion
-            ? "none"
-            : "scale(0.995)"
-          : "scale(1)",
-        transformOrigin: "center top",
         transition: prefersReducedMotion
           ? "opacity 140ms ease"
-          : "opacity 260ms ease, transform 280ms cubic-bezier(0.22,1,0.36,1)",
+          : "opacity 260ms ease",
         pointerEvents: isExitingReading ? "none" : "auto",
       }}
     >
