@@ -115,21 +115,25 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width  = W;
-    canvas.height = H;
-
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     type Star = {
-      x: number; y: number; r: number;
-      base: number; phase: number; spd: number; gold: boolean;
+      nx: number;
+      ny: number;
+      r: number;
+      base: number;
+      phase: number;
+      spd: number;
+      gold: boolean;
     };
 
+    // Star positions are normalized to the environmental viewport.
+    // The field therefore fills the device without changing the Atlas scene geometry.
     const stars: Star[] = Array.from({ length: 360 }, () => ({
-      x:     Math.random() * W,
-      y:     Math.random() * H,
+      nx:    Math.random(),
+      ny:    Math.random(),
       r:     Math.pow(Math.random(), 2.8) * 1.5 + 0.18,
       base:  Math.random() * 0.55 + 0.08,
       phase: Math.random() * Math.PI * 2,
@@ -137,52 +141,126 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
       gold:  Math.random() < 0.30,
     }));
 
-    function drawFrame(t: number) {
-      ctx!.clearRect(0, 0, W, H);
-      ctx!.fillStyle = T.bg;
-      ctx!.fillRect(0, 0, W, H);
+    let cssWidth = W;
+    let cssHeight = H;
+    let raf = 0;
+    let t = 0;
 
-      const ng = ctx!.createRadialGradient(NEXUS.x, NEXUS.y, 0, NEXUS.x, NEXUS.y, 310);
+    function syncCanvasSize() {
+      const rect = canvas.getBoundingClientRect();
+      cssWidth = Math.max(1, rect.width);
+      cssHeight = Math.max(1, rect.height);
+
+      // Keep the canvas crisp without allowing very high DPR devices
+      // to multiply the starfield backing store excessively.
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const pixelWidth = Math.max(1, Math.round(cssWidth * dpr));
+      const pixelHeight = Math.max(1, Math.round(cssHeight * dpr));
+
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+      }
+
+      // Continue drawing in CSS-pixel coordinates.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawFrame(time: number) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      ctx.fillStyle = T.bg;
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+      // Map the original atmosphere anchors proportionally into the
+      // environmental viewport. At 390×844 these resolve exactly to
+      // the original authored values.
+      const scaleX = cssWidth / W;
+      const scaleY = cssHeight / H;
+      const radiusScale = Math.min(scaleX, scaleY);
+
+      const nexusX = NEXUS.x * scaleX;
+      const nexusY = NEXUS.y * scaleY;
+      const ng = ctx.createRadialGradient(
+        nexusX,
+        nexusY,
+        0,
+        nexusX,
+        nexusY,
+        310 * radiusScale,
+      );
       ng.addColorStop(0,    "rgba(138,174,200,0.042)");
       ng.addColorStop(0.30, "rgba(166,139,212,0.028)");
       ng.addColorStop(0.60, "rgba(106,184,138,0.014)");
       ng.addColorStop(1,    "transparent");
-      ctx!.fillStyle = ng;
-      ctx!.fillRect(0, 0, W, H);
+      ctx.fillStyle = ng;
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
 
-      const fg = ctx!.createRadialGradient(195, 590, 0, 195, 590, 190);
+      const frameworkX = 195 * scaleX;
+      const frameworkY = 590 * scaleY;
+      const fg = ctx.createRadialGradient(
+        frameworkX,
+        frameworkY,
+        0,
+        frameworkX,
+        frameworkY,
+        190 * radiusScale,
+      );
       fg.addColorStop(0, "rgba(106,184,138,0.032)");
       fg.addColorStop(1, "transparent");
-      ctx!.fillStyle = fg;
-      ctx!.fillRect(0, 0, W, H);
+      ctx.fillStyle = fg;
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
 
-      const ug = ctx!.createRadialGradient(195, 155, 0, 195, 155, 200);
+      const upperX = 195 * scaleX;
+      const upperY = 155 * scaleY;
+      const ug = ctx.createRadialGradient(
+        upperX,
+        upperY,
+        0,
+        upperX,
+        upperY,
+        200 * radiusScale,
+      );
       ug.addColorStop(0,   "rgba(166,139,212,0.022)");
       ug.addColorStop(0.5, "rgba(138,174,200,0.014)");
       ug.addColorStop(1,   "transparent");
-      ctx!.fillStyle = ug;
-      ctx!.fillRect(0, 0, W, H);
+      ctx.fillStyle = ug;
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
 
       for (const s of stars) {
-        const tw = reduceMotion ? 0 : Math.sin(t * s.spd + s.phase) * 0.22;
-        const o  = Math.max(0.04, Math.min(0.88, s.base + tw));
-        ctx!.beginPath();
-        ctx!.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx!.fillStyle = s.gold
-          ? `rgba(232,213,163,${o})`
-          : `rgba(210,218,232,${o * 0.72})`;
-        ctx!.fill();
+        const tw = reduceMotion
+          ? 0
+          : Math.sin(time * s.spd + s.phase) * 0.22;
+        const opacity = Math.max(0.04, Math.min(0.88, s.base + tw));
+
+        ctx.beginPath();
+        ctx.arc(
+          s.nx * cssWidth,
+          s.ny * cssHeight,
+          s.r,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fillStyle = s.gold
+          ? `rgba(232,213,163,${opacity})`
+          : `rgba(210,218,232,${opacity * 0.72})`;
+        ctx.fill();
       }
     }
 
-    // Reduced motion preserves the atmosphere as a static field.
-    if (reduceMotion) {
-      drawFrame(0);
-      return;
+    function handleResize() {
+      syncCanvasSize();
+      if (reduceMotion) drawFrame(0);
     }
 
-    let raf = 0;
-    let t = 0;
+    syncCanvasSize();
+    window.addEventListener("resize", handleResize);
+
+    if (reduceMotion) {
+      drawFrame(0);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }
 
     function draw() {
       t += 16;
@@ -191,6 +269,10 @@ export function useStarfield(ref: RefObject<HTMLCanvasElement>) {
     }
 
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }

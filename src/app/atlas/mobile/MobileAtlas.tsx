@@ -149,12 +149,26 @@ export default function MobileAtlas() {
             width: debugMode ? W : "100%",
             height: debugMode ? H : "100dvh",
             overflow: "hidden",
+            background: T.bg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
+          <canvas
+            ref={canvasRef}
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              display: "block",
+              pointerEvents: "none",
+            }}
+          />
+
           <div style={{
             position: "relative",
             width: W,
@@ -166,13 +180,11 @@ export default function MobileAtlas() {
             boxShadow: debugMode
               ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
               : "none",
-            background: T.bg,
+            background: "transparent",
             flexShrink: 0,
             transform: `scale(${sceneScale})`,
             transformOrigin: "center center",
           }}>
-            <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
-
             {isLanding && (
             <LandingScene
               state={state as "atlas-landing" | "system-awakened" | "system-overview"}
