@@ -22,6 +22,9 @@ import {
 import NexusNode from "../case-studies/constellation/NexusNode";
 import SystemNode from "../case-studies/constellation/SystemNode";
 import CaseStudyOverviewConstellation from "../case-studies/constellation/CaseStudyOverviewConstellation";
+import ProjectPreviewDrawer from "../case-studies/surfaces/ProjectPreviewDrawer";
+import CaseStudiesOverviewSurface from "../case-studies/surfaces/CaseStudiesOverviewSurface";
+import CaseStudiesChrome from "../case-studies/surfaces/CaseStudiesChrome";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 type CaseStudiesEntryPhase =
@@ -325,264 +328,6 @@ function OverviewInitial({ onExplore }: { onExplore: () => void }) {
           EXPLORE →
         </div>
       </div>
-    </div>
-  );
-}
-
-function ProjectPreviewDrawer({
-  item,
-  phase,
-  onExplore,
-  arrivalVisible = true,
-  reducedMotion = false,
-}: {
-  item: (typeof CASE_STUDY_FOCUS_ITEMS)[number];
-  phase: "open" | "closing" | "opening";
-  onExplore: () => void;
-  arrivalVisible?: boolean;
-  reducedMotion?: boolean;
-}) {
-  const isCaseStudies = item.id === "case-studies";
-  const translateY = reducedMotion
-    ? "0%"
-    : phase === "closing"
-    ? "100%"
-    : arrivalVisible
-    ? "0%"
-    : "18px";
-  const opacity =
-    phase === "closing" ? (reducedMotion ? 0 : 0.08) : arrivalVisible ? 1 : 0;
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "auto",
-        bottom: 0,
-        height: "min(374px, 48dvh)",
-        left: 0,
-        right: 0,
-        boxSizing: "border-box",
-        borderTop: `1px solid ${isCaseStudies ? T.caseStudies : item.color}44`,
-        background: "rgba(5,5,10,0.96)",
-        backdropFilter: "blur(26px)",
-        WebkitBackdropFilter: "blur(26px)",
-        padding: "22px 28px calc(26px + env(safe-area-inset-bottom, 0px))",
-        display: "flex",
-        flexDirection: "column",
-        transform: `translateY(${translateY})`,
-        opacity,
-        transition: reducedMotion
-          ? `opacity ${REDUCED_MOTION_DRAWER_DURATION}ms ease`
-          : phase === "closing"
-          ? `transform ${DRAWER_CLOSE_DURATION}ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease`
-          : "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 260ms ease",
-        willChange: "transform, opacity",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
-        <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, letterSpacing: "0.10em", color: isCaseStudies ? T.caseStudies : item.color, opacity: 0.98, lineHeight: 1.1 }}>
-          {item.label}
-        </div>
-        {isCaseStudies && (
-          <div
-            style={{
-              flexShrink: 0,
-              fontFamily: T.mono,
-              fontSize: 9,
-              letterSpacing: "0.14em",
-              color: T.accentGold,
-              opacity: 0.62,
-            }}
-          >
-            4 PROJECTS
-          </div>
-        )}
-      </div>
-
-      <div style={{ height: 0.5, background: "rgba(138,174,200,0.14)", marginBottom: 16 }} />
-
-      {isCaseStudies ? (
-        <>
-          <div style={{ fontFamily: T.serif, fontSize: 15, fontWeight: 600, color: T.identityGold, lineHeight: 1.35, marginBottom: 14 }}>
-            See how decisions became outcomes.
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.90, lineHeight: 1.5, marginBottom: 12 }}>
-            Each case study traces a project through its context, constraints, design decisions, evidence, and results.
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.86, lineHeight: 1.48 }}>
-            Enter a system to understand not only what was created, but why it took the form it did.
-          </div>
-        </>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 18,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14.5,
-              color: "#F0E9D8",
-              opacity: 0.90,
-              lineHeight: 1.56,
-              margin: 0,
-            }}
-          >
-            {item.overview.what}
-          </div>
-
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14.5,
-              color: "#F0E9D8",
-              opacity: 0.84,
-              lineHeight: 1.56,
-              margin: 0,
-            }}
-          >
-            {item.overview.why}
-          </div>
-        </div>
-      )}
-
-      {!isCaseStudies && (
-        <div
-          style={{
-            marginTop: "auto",
-            paddingTop: 18,
-            borderTop: "0.5px solid rgba(240,233,216,0.10)",
-          }}
-        >
-          <div
-            onClick={onExplore}
-            style={{
-              minHeight: 44,
-              display: "flex",
-              alignItems: "center",
-              width: "fit-content",
-              paddingRight: 18,
-              fontFamily: T.mono,
-              fontSize: 10,
-              letterSpacing: "0.18em",
-              color: item.color,
-              opacity: 0.96,
-              cursor: "pointer",
-            }}
-          >
-            EXPLORE →
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function OverviewScrolled({
-  item,
-}: {
-  item: (typeof CASE_STUDY_FOCUS_ITEMS)[number];
-}) {
-  const sections = [
-    { label: "WHAT", body: item.overview.what },
-    { label: "WHY", body: item.overview.why },
-    { label: "RESEARCH FOCUS", body: item.overview.researchFocus },
-    { label: "KEY DISCOVERY", body: item.overview.keyDiscovery },
-  ];
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "auto",
-        bottom: 0,
-        height: "min(382px, 48dvh)",
-        left: 0,
-        right: 0,
-        boxSizing: "border-box",
-        borderTop: `1px solid ${item.id === "case-studies" ? T.caseStudies : item.color}44`,
-        background: "rgba(5,5,10,0.94)",
-        backdropFilter: "blur(26px)",
-        WebkitBackdropFilter: "blur(26px)",
-        padding: "20px 28px calc(28px + env(safe-area-inset-bottom, 0px))",
-        overflowY: "auto",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: 16,
-          marginBottom: 12,
-        }}
-      >
-        <div
-          style={{
-            fontFamily: T.serif,
-            fontSize: 21.5,
-            fontWeight: 600,
-            letterSpacing: "0.10em",
-            color: item.id === "case-studies" ? T.caseStudies : item.color,
-            opacity: 0.98,
-            lineHeight: 1.1,
-          }}
-        >
-          {item.label}
-        </div>
-        <div
-          style={{
-            flexShrink: 0,
-            fontFamily: T.mono,
-            fontSize: 9,
-            letterSpacing: "0.14em",
-            color: T.accentGold,
-            opacity: 0.80,
-          }}
-        >
-          {item.meta}
-        </div>
-      </div>
-
-      <div
-        style={{
-          height: 0.5,
-          background: "rgba(138,174,200,0.14)",
-          marginBottom: 16,
-        }}
-      />
-
-      {sections.map(({ label, body }) => (
-        <div key={label} style={{ marginBottom: label === "KEY DISCOVERY" ? 22 : 20 }}>
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: 9,
-              letterSpacing: "0.18em",
-              color: T.accentGold,
-              opacity: 0.76,
-              marginBottom: 7,
-            }}
-          >
-            {label}
-          </div>
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14.5,
-              color: T.body,
-              opacity: 0.9,
-              lineHeight: 1.62,
-            }}
-          >
-            {body}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -1740,77 +1485,16 @@ export default function LandingScene({
         </div>
       )}
 
-      {state === "system-awakened" && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: "calc(46px + env(safe-area-inset-top, 0px)) 22px 0",
-            display: "flex",
-            alignItems: "center",
-            pointerEvents: "none",
-            opacity:
-              overviewChromeVisible || (isReturningFromReading && returnChromeVisible)
-                ? 1
-                : 0,
-            transform: `translateY(${
-              overviewChromeVisible ||
-              (isReturningFromReading && returnChromeVisible)
-                ? 0
-                : -5
-            }px)`,
-            transition: "opacity 220ms ease, transform 260ms ease",
-          }}
-        >
-          <div
-            onClick={exitCaseStudiesToAtlas}
-            style={{
-              fontFamily: T.mono,
-              fontSize: 9,
-              letterSpacing: "0.18em",
-              color: T.body,
-              opacity: 0.72,
-              cursor: "pointer",
-              pointerEvents:
-                overviewChromeVisible &&
-                !isExitingCaseStudies &&
-                !isReturningFromReading &&
-                focusedEntryProjectId === null
-                  ? "auto"
-                  : "none",
-              minHeight: 44,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            ‹ ATLAS
-          </div>
-        </div>
-      )}
-
-      {state === "system-overview" && (
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "calc(46px + env(safe-area-inset-top, 0px)) 22px 0", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 8 }}>
-          <div
-            onClick={onOverviewBack}
-            style={{
-              fontFamily: T.mono,
-              fontSize: 9,
-              letterSpacing: "0.18em",
-              color: T.body,
-              opacity: 0.72,
-              cursor: "pointer",
-              pointerEvents: "auto",
-              minHeight: 44,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            ‹ CASE STUDIES
-          </div>
-        </div>
-      )}
+      <CaseStudiesChrome
+        state={state}
+        overviewChromeVisible={overviewChromeVisible}
+        isReturningFromReading={isReturningFromReading}
+        returnChromeVisible={returnChromeVisible}
+        isExitingCaseStudies={isExitingCaseStudies}
+        focusedEntryProjectId={focusedEntryProjectId}
+        onExitToAtlas={exitCaseStudiesToAtlas}
+        onOverviewBack={onOverviewBack}
+      />
 
       {state === "system-awakened" && (
         <div
@@ -1830,6 +1514,8 @@ export default function LandingScene({
               : overviewChromeVisible
           }
           reducedMotion={prefersReducedMotion}
+          closeDurationMs={DRAWER_CLOSE_DURATION}
+          reducedDurationMs={REDUCED_MOTION_DRAWER_DURATION}
           onExplore={() => {
             if (drawerItem.id === "case-studies") {
               setActiveFocusIndex(0);
@@ -1841,7 +1527,7 @@ export default function LandingScene({
         />
         </div>
       )}
-      {state === "system-overview" && <OverviewScrolled item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
+      {state === "system-overview" && <CaseStudiesOverviewSurface item={CASE_STUDY_FOCUS_ITEMS[activeFocusIndex]} />}
       {state === "atlas-landing" && <AtlasUtilitySheet />}
         </>
       )}
