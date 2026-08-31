@@ -98,7 +98,8 @@ export default function MobileAtlas() {
       <div
         className="mobile-atlas-root"
         style={{
-          minHeight: "100vh",
+          minHeight: debugMode ? "100vh" : "100dvh",
+          width: "100%",
           background: "#080810",
           display: "flex",
           flexDirection: "column",
@@ -115,23 +116,36 @@ export default function MobileAtlas() {
           </div>
         )}
 
-        <div style={{
-          position: "relative",
-          width: W,
-          height: H,
-          overflow: "hidden",
-          overscrollBehavior: "contain",
-          borderRadius: debugMode ? 48 : 0,
-          border: debugMode ? "1.5px solid rgba(232,213,163,0.10)" : "none",
-          boxShadow: debugMode
-            ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
-            : "none",
-          background: T.bg,
-          flexShrink: 0,
-        }}>
-          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
+        <div
+          className="mobile-atlas-runtime-viewport"
+          style={{
+            position: "relative",
+            width: debugMode ? W : "100%",
+            height: debugMode ? H : "100dvh",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{
+            position: "relative",
+            width: W,
+            height: H,
+            overflow: "hidden",
+            overscrollBehavior: "contain",
+            borderRadius: debugMode ? 48 : 0,
+            border: debugMode ? "1.5px solid rgba(232,213,163,0.10)" : "none",
+            boxShadow: debugMode
+              ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
+              : "none",
+            background: T.bg,
+            flexShrink: 0,
+          }}>
+            <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: W, height: H, display: "block" }} />
 
-          {isLanding && (
+            {isLanding && (
             <LandingScene
               state={state as "atlas-landing" | "system-awakened" | "system-overview"}
               onSelectCaseStudies={() => setState("system-awakened")}
@@ -220,6 +234,7 @@ export default function MobileAtlas() {
               )}
             </>
           )}
+          </div>
         </div>
 
         {debugMode && (
