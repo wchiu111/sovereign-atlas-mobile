@@ -1,9 +1,7 @@
 import { FADE, T } from "../../components/mobileShared";
 import { CASE_STUDY_FOCUS_ITEMS, CASE_STUDY_PROJECTS } from "../caseStudyData";
 import { CASE_STUDY_OVERVIEW_LAYOUT, OVERVIEW_CORE } from "../caseStudyGeometry";
-
-const CASE_STUDIES_PULL_EASE = "cubic-bezier(0.22,1,0.36,1)";
-const PROJECT_BREATH_DELAYS = [0, 0.8, 1.5, 2.2] as const;
+import { CASE_STUDIES_PULL_EASE, PROJECT_BREATH_DELAYS } from "../caseStudyMotion";
 
 export default function CaseStudyOverviewConstellation({
   selectedId,

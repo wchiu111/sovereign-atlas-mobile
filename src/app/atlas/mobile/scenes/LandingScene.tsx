@@ -25,14 +25,13 @@ import ProjectPreviewDrawer from "../case-studies/surfaces/ProjectPreviewDrawer"
 import CaseStudiesOverviewSurface from "../case-studies/surfaces/CaseStudiesOverviewSurface";
 import CaseStudiesChrome from "../case-studies/surfaces/CaseStudiesChrome";
 import CaseStudyProjectFocus from "../case-studies/constellation/CaseStudyProjectFocus";
-import OverviewInitial from "../case-studies/surfaces/OverviewInitial";
 import LandingSceneStyles from "../case-studies/surfaces/LandingSceneStyles";
-import useCaseStudiesChoreography, {
+import useCaseStudiesChoreography from "../case-studies/hooks/useCaseStudiesChoreography";
+import {
   CASE_STUDIES_PULL_EASE,
   DRAWER_CLOSE_DURATION,
-  DRAWER_OPEN_DURATION,
   REDUCED_MOTION_DRAWER_DURATION,
-} from "../case-studies/hooks/useCaseStudiesChoreography";
+} from "../case-studies/caseStudyMotion";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 const CTX_OP: Record<LandingState, number> = {
