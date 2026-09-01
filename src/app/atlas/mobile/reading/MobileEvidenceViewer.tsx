@@ -106,11 +106,12 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
         onPointerCancel={onPointerUp}
         onPointerLeave={onPointerUp}
         onClick={onDoubleTap}
+        className="mobile-evidence-inspectable"
         style={{
           position: "relative",
           overflow: "hidden",
-          minHeight: 310,
-          maxHeight: 520,
+          minHeight: "clamp(220px, 46dvh, 360px)",
+          maxHeight: "min(56dvh, 520px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -125,7 +126,7 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
           draggable={false}
           style={{
             width: "100%",
-            maxHeight: 520,
+            maxHeight: "min(56dvh, 520px)",
             objectFit: item.imageFit,
             display: "block",
             transform: `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`,
@@ -140,15 +141,17 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
       <div
         style={{
           minHeight: 44,
-          padding: "0 22px",
+          padding: "0 max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left))",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: 12,
           borderBottom: `0.5px solid ${T.caseStudies}22`,
         }}
       >
         <div
           style={{
+            minWidth: 0,
             fontFamily: T.mono,
             fontSize: 7,
             letterSpacing: "0.16em",
@@ -165,6 +168,7 @@ function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
           disabled={scale === 1 && translate.x === 0 && translate.y === 0}
           className="mobile-reading-focusable"
           style={{
+            flex: "0 0 auto",
             minWidth: 44,
             minHeight: 44,
             border: "none",
@@ -198,6 +202,12 @@ export default function MobileEvidenceViewer({
   sectionLabel: string;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    dialogRef.current?.focus({ preventScroll: true });
+  }, []);
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -208,31 +218,59 @@ export default function MobileEvidenceViewer({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       tabIndex={-1}
       aria-label={`Evidence: ${item.title}`}
+      className="mobile-evidence-viewer"
       style={{
         position: "absolute",
         inset: 0,
         zIndex: 40,
         display: "flex",
         flexDirection: "column",
+        minHeight: 0,
         background: "rgba(5,5,10,0.985)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
+        outline: "none",
       }}
     >
+      <style>{`
+        .mobile-evidence-viewer {
+          padding-left: env(safe-area-inset-left, 0px);
+          padding-right: env(safe-area-inset-right, 0px);
+        }
+
+        @media (max-height: 700px) {
+          .mobile-evidence-inspectable {
+            min-height: 210px !important;
+            max-height: 44dvh !important;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mobile-evidence-viewer *,
+          .mobile-evidence-viewer *::before,
+          .mobile-evidence-viewer *::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
+
       <div
         style={{
-          minHeight: 68,
-          padding: "12px 20px",
+          minHeight: "calc(68px + env(safe-area-inset-top, 0px))",
+          padding: "calc(12px + env(safe-area-inset-top, 0px)) 20px 12px",
           boxSizing: "border-box",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
           borderBottom: `0.5px solid ${T.caseStudies}22`,
+          flex: "0 0 auto",
         }}
       >
         <button
@@ -267,6 +305,7 @@ export default function MobileEvidenceViewer({
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              maxWidth: "min(58vw, 250px)",
             }}
           >
             {item.number} · {item.title.toUpperCase()}
@@ -286,10 +325,23 @@ export default function MobileEvidenceViewer({
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto" }}>
+      <div
+        style={{
+          flex: "1 1 auto",
+          minHeight: 0,
+          overflowY: "auto",
+          overscrollBehaviorY: "contain",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
         <InspectableEvidenceImage item={item} />
 
-        <div style={{ padding: "20px 26px 58px" }}>
+        <div
+          style={{
+            padding:
+              "20px clamp(20px, 6.6vw, 28px) calc(58px + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
           <div
             style={{
               marginBottom: 8,
