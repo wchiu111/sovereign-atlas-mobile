@@ -16,6 +16,7 @@ import {
   CASE_STUDY_MINIATURE_SCALE,
   CS_FOCUS,
   OVERVIEW_CORE,
+  lerp,
 } from "../case-studies/caseStudyGeometry";
 import NexusNode from "../case-studies/constellation/NexusNode";
 import SystemNode from "../case-studies/constellation/SystemNode";
@@ -95,6 +96,7 @@ export default function LandingScene({
     focusedEntryProgress,
     isReturningFromReading,
     focusedReturnProgress,
+    resolveT,
     drawerItem,
 
     enterCaseStudies,
