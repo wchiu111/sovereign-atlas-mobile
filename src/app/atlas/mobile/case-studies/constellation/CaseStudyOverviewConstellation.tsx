@@ -215,7 +215,7 @@ export default function CaseStudyOverviewConstellation({
               >
                 <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.84} />
               </g>
-              <circle r={24} fill="transparent" pointerEvents="all" />
+              <circle r={28} fill="transparent" pointerEvents="all" />
             </g>
 
             <text
