@@ -187,95 +187,84 @@ export default function MobileAtlas() {
             transformOrigin: "center center",
           }}>
             {isLanding && (
-            <LandingScene
-              state={state as "atlas-landing" | "system-awakened" | "system-overview"}
-              onSelectCaseStudies={() => setState("system-awakened")}
-              onSelectFrameworks={() => setState("frameworks-focus")}
-              onOverviewExpand={() => setState("system-overview")}
-              onOverviewBack={() => setState("system-awakened")}
-              onExplore={() => setState("case-studies-focus")}
-              onSelectProject={(projectId) => {
-                setActiveCaseStudyProjectId(projectId);
-                setReturnCaseStudyProjectId(null);
-                setState("project-reading");
-              }}
-              returnProjectId={returnCaseStudyProjectId}
-              onReturnProjectComplete={() => {
-                setReturnCaseStudyProjectId(null);
-              }}
-              viewportUiTarget={viewportUiTarget}
-              onBack={() => {
-                setActiveCaseStudyProjectId(null);
-                setReturnCaseStudyProjectId(null);
-                setState("atlas-landing");
-              }}
-            />
-          )}
+              <LandingScene
+                state={state as "atlas-landing" | "system-awakened" | "system-overview"}
+                onSelectCaseStudies={() => setState("system-awakened")}
+                onSelectFrameworks={() => setState("frameworks-focus")}
+                onOverviewExpand={() => setState("system-overview")}
+                onOverviewBack={() => setState("system-awakened")}
+                onExplore={() => setState("case-studies-focus")}
+                onSelectProject={(projectId) => {
+                  setActiveCaseStudyProjectId(projectId);
+                  setReturnCaseStudyProjectId(null);
+                  setState("project-reading");
+                }}
+                returnProjectId={returnCaseStudyProjectId}
+                onReturnProjectComplete={() => {
+                  setReturnCaseStudyProjectId(null);
+                }}
+                viewportUiTarget={viewportUiTarget}
+                onBack={() => {
+                  setActiveCaseStudyProjectId(null);
+                  setReturnCaseStudyProjectId(null);
+                  setState("atlas-landing");
+                }}
+              />
+            )}
 
-          {isCSFocus && (
-            <CaseStudiesScene
-              state={state as "case-studies-focus" | "project-awakened" | "project-overview"}
-              onSelectProject={() => setState("project-awakened")}
-              onProjectOverview={() => setState("project-overview")}
-              onExplore={() => setState("project-reading")}
-              onBack={() => setState("system-overview")}
-            />
-          )}
+            {isCSFocus && (
+              <CaseStudiesScene
+                state={state as "case-studies-focus" | "project-awakened" | "project-overview"}
+                onSelectProject={() => setState("project-awakened")}
+                onProjectOverview={() => setState("project-overview")}
+                onExplore={() => setState("project-reading")}
+                onBack={() => setState("system-overview")}
+              />
+            )}
 
-          {isCSReading && (
-            <ReadingScene
-              state="project-reading"
-              onEvidence={() => setState("project-reading")}
-              onBack={() => {
-                setReturnCaseStudyProjectId(activeCaseStudyProjectId);
-                setState("system-awakened");
-              }}
-            />
-          )}
-
-          {isFW && !isFrameworkReadingDepth && (
-            <FrameworksScene
-              state={state as "frameworks-focus" | "framework-awakened" | "framework-overview"}
-              activeLayer={activeLayer}
-              setActiveLayer={setActiveLayer}
-              onSelectFramework={() => setState("framework-awakened")}
-              onFrameworkOverview={() => setState("framework-overview")}
-              onExplore={() => setState("framework-reading")}
-              onCanvas={() => setState("framework-evidence")}
-              onBack={() => {
-                if (state === "framework-overview") setState("frameworks-focus");
-                else if (state === "framework-awakened") setState("frameworks-focus");
-                else setState("atlas-landing");
-              }}
-            />
-          )}
-
-          {isFrameworkReadingDepth && (
-            <>
+            {isFW && !isFrameworkReadingDepth && (
               <FrameworksScene
-                state="framework-reading"
+                state={state as "frameworks-focus" | "framework-awakened" | "framework-overview"}
                 activeLayer={activeLayer}
                 setActiveLayer={setActiveLayer}
                 onSelectFramework={() => setState("framework-awakened")}
                 onFrameworkOverview={() => setState("framework-overview")}
                 onExplore={() => setState("framework-reading")}
                 onCanvas={() => setState("framework-evidence")}
-                onBack={() => setState("framework-overview")}
+                onBack={() => {
+                  if (state === "framework-overview") setState("frameworks-focus");
+                  else if (state === "framework-awakened") setState("frameworks-focus");
+                  else setState("atlas-landing");
+                }}
               />
-              {isFrameworkEvidence && (
+            )}
+
+            {isFrameworkReadingDepth && (
+              <>
                 <FrameworksScene
-                  state="framework-evidence"
+                  state="framework-reading"
                   activeLayer={activeLayer}
                   setActiveLayer={setActiveLayer}
                   onSelectFramework={() => setState("framework-awakened")}
                   onFrameworkOverview={() => setState("framework-overview")}
                   onExplore={() => setState("framework-reading")}
                   onCanvas={() => setState("framework-evidence")}
-                  onBack={() => setState("framework-reading")}
+                  onBack={() => setState("framework-overview")}
                 />
-              )}
-            </>
-          )}
+                {isFrameworkEvidence && (
+                  <FrameworksScene
+                    state="framework-evidence"
+                    activeLayer={activeLayer}
+                    setActiveLayer={setActiveLayer}
+                    onSelectFramework={() => setState("framework-awakened")}
+                    onFrameworkOverview={() => setState("framework-overview")}
+                    onExplore={() => setState("framework-reading")}
+                    onCanvas={() => setState("framework-evidence")}
+                    onBack={() => setState("framework-reading")}
+                  />
+                )}
+              </>
+            )}
           </div>
 
           <div
@@ -289,6 +278,28 @@ export default function MobileAtlas() {
               overflow: "hidden",
             }}
           />
+
+          {isCSReading && (
+            <div
+              className="mobile-atlas-reading-layer"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 30,
+                overflow: "hidden",
+                pointerEvents: "auto",
+              }}
+            >
+              <ReadingScene
+                state="project-reading"
+                onEvidence={() => setState("project-reading")}
+                onBack={() => {
+                  setReturnCaseStudyProjectId(activeCaseStudyProjectId);
+                  setState("system-awakened");
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {debugMode && (

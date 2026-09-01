@@ -21,6 +21,7 @@ import {
 function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   const sections = SOVEREIGN_ATLAS_READING.sections;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chromeRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef(
     new Map<SovereignAtlasSectionId, HTMLElement>(),
   );
@@ -33,6 +34,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
   const [headerElevated, setHeaderElevated] = useState(false);
   const [isExitingReading, setIsExitingReading] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [chromeHeight, setChromeHeight] = useState(114);
   const exitTimerRef = useRef<number | null>(null);
 
   const sectionIds = useMemo(
@@ -46,6 +48,27 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
     sync();
     media.addEventListener?.("change", sync);
     return () => media.removeEventListener?.("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const chrome = chromeRef.current;
+    if (!chrome) return;
+
+    const updateChromeHeight = () => {
+      const nextHeight = Math.ceil(chrome.getBoundingClientRect().height);
+      if (nextHeight > 0) setChromeHeight(nextHeight);
+    };
+
+    updateChromeHeight();
+
+    const observer = new ResizeObserver(updateChromeHeight);
+    observer.observe(chrome);
+    window.addEventListener("resize", updateChromeHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateChromeHeight);
+    };
   }, []);
 
   function requestBack() {
@@ -148,7 +171,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
 
     scroller.scrollTo({
       top: target,
-      behavior: "smooth",
+      behavior: prefersReducedMotion ? "auto" : "smooth",
     });
   };
 
@@ -216,6 +239,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         }
       `}</style>
       <div
+        ref={chromeRef}
         style={{
           position: "absolute",
           inset: "0 0 auto 0",
@@ -240,7 +264,7 @@ function SovereignAtlasReadingSurface({ onBack }: { onBack: () => void }) {
         aria-label="Sovereign Atlas case study"
         style={{
           position: "absolute",
-          top: 114,
+          top: chromeHeight,
           right: 0,
           bottom: 0,
           left: 0,
