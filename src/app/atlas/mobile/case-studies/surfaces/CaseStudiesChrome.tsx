@@ -1,4 +1,8 @@
-import { MOBILE_CONTENT_INSET, T } from "../../components/mobileShared";
+import {
+  MOBILE_CHROME_MIN_HEIGHT,
+  MOBILE_CONTENT_INSET,
+  T,
+} from "../../components/mobileShared";
 
 type CaseStudiesChromeProps = {
   state: "atlas-landing" | "system-awakened" | "system-overview";
@@ -30,7 +34,9 @@ export default function CaseStudiesChrome({
             top: 0,
             left: 0,
             right: 0,
-            padding: `calc(46px + env(safe-area-inset-top, 0px)) ${MOBILE_CONTENT_INSET} 0`,
+            minHeight: MOBILE_CHROME_MIN_HEIGHT,
+            padding: `max(0px, env(safe-area-inset-top)) ${MOBILE_CONTENT_INSET} 0`,
+            boxSizing: "border-box",
             display: "flex",
             alignItems: "center",
             pointerEvents: "none",
@@ -80,7 +86,9 @@ export default function CaseStudiesChrome({
             top: 0,
             left: 0,
             right: 0,
-            padding: `calc(46px + env(safe-area-inset-top, 0px)) ${MOBILE_CONTENT_INSET} 0`,
+            minHeight: MOBILE_CHROME_MIN_HEIGHT,
+            padding: `max(0px, env(safe-area-inset-top)) ${MOBILE_CONTENT_INSET} 0`,
+            boxSizing: "border-box",
             display: "flex",
             alignItems: "center",
             pointerEvents: "none",
