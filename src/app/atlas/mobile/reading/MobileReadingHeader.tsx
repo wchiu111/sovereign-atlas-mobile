@@ -1,3 +1,4 @@
+import MobileBackControl from "../components/MobileBackControl";
 import { MOBILE_CONTENT_INSET, T } from "../components/mobileShared";
 
 export default function MobileReadingHeader({
@@ -28,52 +29,12 @@ export default function MobileReadingHeader({
         transition: "background 220ms ease, border-color 220ms ease",
       }}
     >
-      <button
-        type="button"
-        onClick={onBack}
-        aria-label={`Return from ${title}`}
+      <MobileBackControl
+        label={title}
+        onBack={onBack}
+        ariaLabel={`Return from ${title}`}
         className="mobile-reading-focusable"
-        style={{
-          minHeight: 44,
-          minWidth: 44,
-          maxWidth: "calc(100% - 52px)",
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          color: T.body,
-          cursor: "pointer",
-          borderRadius: 3,
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            fontFamily: T.mono,
-            fontSize: 12,
-            opacity: 0.76,
-            flexShrink: 0,
-          }}
-        >
-          ‹
-        </span>
-        <span
-          style={{
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            fontFamily: T.mono,
-            fontSize: "clamp(9px, 2.45vw, 9.5px)",
-            letterSpacing: "0.15em",
-            color: T.body,
-            opacity: 0.82,
-          }}
-        >
-          {title}
-        </span>
-      </button>
+      />
 
       <div
         aria-hidden
