@@ -148,24 +148,32 @@ export default function ProjectPreviewDrawer({
               borderTop: "0.5px solid rgba(240,233,216,0.10)",
             }}
           >
-            <div
+            <button
+              type="button"
               onClick={onExplore}
+              aria-label={`Explore ${item.label}`}
               style={{
-                minHeight: 44,
+                minHeight: 52,
+                width: "100%",
                 display: "flex",
                 alignItems: "center",
-                width: "fit-content",
-                paddingRight: 18,
+                justifyContent: "center",
+                border: "none",
+                background: "transparent",
+                padding: "0 12px",
                 fontFamily: T.mono,
-                fontSize: 10,
-                letterSpacing: "0.18em",
+                fontSize: 12.5,
+                letterSpacing: "0.14em",
                 color: item.color,
-                opacity: 0.96,
+                opacity: 0.98,
                 cursor: "pointer",
+                borderRadius: 3,
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
               }}
             >
               EXPLORE →
-            </div>
+            </button>
           </div>
         )}
       </div>
