@@ -41,6 +41,8 @@ export const FADE = `opacity 0.32s ease`;
 // Spatial constellations remain full-canvas; chrome and authored content use this inset.
 export const MOBILE_CONTENT_INSET = "clamp(24px, 7.2vw, 30px)";
 export const MOBILE_CHROME_MIN_HEIGHT = 62;
+export const MOBILE_NARRATIVE_SURFACE_TOP = 24;
+export const MOBILE_NARRATIVE_SURFACE_BOTTOM = 28;
 
 export const NEXUS   = { x: 195, y: 355 };
 export const BASE_R  = 18;

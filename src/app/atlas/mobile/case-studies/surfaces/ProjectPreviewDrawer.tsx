@@ -1,4 +1,9 @@
-import { MOBILE_CONTENT_INSET, T } from "../../components/mobileShared";
+import {
+  MOBILE_CONTENT_INSET,
+  MOBILE_NARRATIVE_SURFACE_BOTTOM,
+  MOBILE_NARRATIVE_SURFACE_TOP,
+  T,
+} from "../../components/mobileShared";
 import { CASE_STUDY_FOCUS_ITEMS } from "../caseStudyData";
 
 export default function ProjectPreviewDrawer({
@@ -43,7 +48,7 @@ export default function ProjectPreviewDrawer({
         background: "rgba(5,5,10,0.96)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
-        padding: `22px ${MOBILE_CONTENT_INSET} calc(26px + env(safe-area-inset-bottom, 0px))`,
+        padding: `${MOBILE_NARRATIVE_SURFACE_TOP}px ${MOBILE_CONTENT_INSET} calc(${MOBILE_NARRATIVE_SURFACE_BOTTOM}px + env(safe-area-inset-bottom, 0px))`,
         display: "flex",
         flexDirection: "column",
         transform: `translateY(${translateY})`,
@@ -56,104 +61,114 @@ export default function ProjectPreviewDrawer({
         willChange: "transform, opacity",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
-        <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, letterSpacing: "0.10em", color: isCaseStudies ? T.caseStudies : item.color, opacity: 0.98, lineHeight: 1.1 }}>
-          {item.label}
+      <div
+        style={{
+          width: "100%",
+          minWidth: 0,
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+          <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, letterSpacing: "0.10em", color: isCaseStudies ? T.caseStudies : item.color, opacity: 0.98, lineHeight: 1.1 }}>
+            {item.label}
+          </div>
+          {isCaseStudies && (
+            <div
+              style={{
+                flexShrink: 0,
+                fontFamily: T.mono,
+                fontSize: 9,
+                letterSpacing: "0.14em",
+                color: T.accentGold,
+                opacity: 0.62,
+              }}
+            >
+              4 PROJECTS
+            </div>
+          )}
         </div>
-        {isCaseStudies && (
+
+        <div style={{ height: 0.5, background: "rgba(138,174,200,0.14)", marginBottom: 16 }} />
+
+        {isCaseStudies ? (
+          <>
+            <div style={{ fontFamily: T.serif, fontSize: 15, fontWeight: 600, color: T.identityGold, lineHeight: 1.35, marginBottom: 14 }}>
+              See how decisions became outcomes.
+            </div>
+            <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.90, lineHeight: 1.5, marginBottom: 12 }}>
+              Each case study traces a project through its context, constraints, design decisions, evidence, and results.
+            </div>
+            <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.86, lineHeight: 1.48 }}>
+              Enter a system to understand not only what was created, but why it took the form it did.
+            </div>
+          </>
+        ) : (
           <div
             style={{
-              flexShrink: 0,
-              fontFamily: T.mono,
-              fontSize: 9,
-              letterSpacing: "0.14em",
-              color: T.accentGold,
-              opacity: 0.62,
+              display: "flex",
+              flexDirection: "column",
+              gap: 18,
             }}
           >
-            4 PROJECTS
+            <div
+              style={{
+                fontFamily: T.serif,
+                fontSize: 14.5,
+                color: "#F0E9D8",
+                opacity: 0.90,
+                lineHeight: 1.56,
+                margin: 0,
+              }}
+            >
+              {item.overview.what}
+            </div>
+
+            <div
+              style={{
+                fontFamily: T.serif,
+                fontSize: 14.5,
+                color: "#F0E9D8",
+                opacity: 0.84,
+                lineHeight: 1.56,
+                margin: 0,
+              }}
+            >
+              {item.overview.why}
+            </div>
+          </div>
+        )}
+
+        {!isCaseStudies && (
+          <div
+            style={{
+              marginTop: "auto",
+              paddingTop: 18,
+              borderTop: "0.5px solid rgba(240,233,216,0.10)",
+            }}
+          >
+            <div
+              onClick={onExplore}
+              style={{
+                minHeight: 44,
+                display: "flex",
+                alignItems: "center",
+                width: "fit-content",
+                paddingRight: 18,
+                fontFamily: T.mono,
+                fontSize: 10,
+                letterSpacing: "0.18em",
+                color: item.color,
+                opacity: 0.96,
+                cursor: "pointer",
+              }}
+            >
+              EXPLORE →
+            </div>
           </div>
         )}
       </div>
-
-      <div style={{ height: 0.5, background: "rgba(138,174,200,0.14)", marginBottom: 16 }} />
-
-      {isCaseStudies ? (
-        <>
-          <div style={{ fontFamily: T.serif, fontSize: 15, fontWeight: 600, color: T.identityGold, lineHeight: 1.35, marginBottom: 14 }}>
-            See how decisions became outcomes.
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.90, lineHeight: 1.5, marginBottom: 12 }}>
-            Each case study traces a project through its context, constraints, design decisions, evidence, and results.
-          </div>
-          <div style={{ fontFamily: T.serif, fontSize: 13, color: T.body, opacity: 0.86, lineHeight: 1.48 }}>
-            Enter a system to understand not only what was created, but why it took the form it did.
-          </div>
-        </>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 18,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14.5,
-              color: "#F0E9D8",
-              opacity: 0.90,
-              lineHeight: 1.56,
-              margin: 0,
-            }}
-          >
-            {item.overview.what}
-          </div>
-
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14.5,
-              color: "#F0E9D8",
-              opacity: 0.84,
-              lineHeight: 1.56,
-              margin: 0,
-            }}
-          >
-            {item.overview.why}
-          </div>
-        </div>
-      )}
-
-      {!isCaseStudies && (
-        <div
-          style={{
-            marginTop: "auto",
-            paddingTop: 18,
-            borderTop: "0.5px solid rgba(240,233,216,0.10)",
-          }}
-        >
-          <div
-            onClick={onExplore}
-            style={{
-              minHeight: 44,
-              display: "flex",
-              alignItems: "center",
-              width: "fit-content",
-              paddingRight: 18,
-              fontFamily: T.mono,
-              fontSize: 10,
-              letterSpacing: "0.18em",
-              color: item.color,
-              opacity: 0.96,
-              cursor: "pointer",
-            }}
-          >
-            EXPLORE →
-          </div>
-        </div>
-      )}
     </div>
   );
 }
