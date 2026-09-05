@@ -7,6 +7,7 @@ import {
 import {
   CASE_STUDY_MINIATURE_SCALE,
   CASE_STUDY_OVERVIEW_LAYOUT,
+  CS_FOCUS,
   OVERVIEW_CORE,
   lerp,
 } from "../caseStudyGeometry";
@@ -493,13 +494,15 @@ export default function useCaseStudiesChoreography({
     return () => cancelAnimationFrame(frame);
   }, [resolvingOverview]);
 
+  const landingStartX = CS_FOCUS["atlas-landing"].x;
+  const landingStartY = CS_FOCUS["atlas-landing"].y;
   const animatedCsX = reducedEntryInProgress
-    ? lerp(95, 103, reducedEntryProgress)
-    : 95 + (195 - 95) * entryProgress;
+    ? lerp(landingStartX, landingStartX + 8, reducedEntryProgress)
+    : landingStartX + (195 - landingStartX) * entryProgress;
   const pullTargetY = 250;
   const baseAnimatedCsY = reducedEntryInProgress
-    ? lerp(178, 186, reducedEntryProgress)
-    : 178 + (pullTargetY - 178) * entryProgress;
+    ? lerp(landingStartY, landingStartY + 8, reducedEntryProgress)
+    : landingStartY + (pullTargetY - landingStartY) * entryProgress;
   const animatedCsY =
     entryPhase === "resolving"
       ? lerp(baseAnimatedCsY, OVERVIEW_CORE.y, resolveT)
@@ -536,10 +539,10 @@ export default function useCaseStudiesChoreography({
     : lerp(1, CASE_STUDY_MINIATURE_SCALE, exitProgress);
   const exitTranslateX = reducedExitInProgress
     ? lerp(0, -8, reducedExitProgress)
-    : lerp(0, 95 - OVERVIEW_CORE.x, exitProgress);
+    : lerp(0, landingStartX - OVERVIEW_CORE.x, exitProgress);
   const exitTranslateY = reducedExitInProgress
     ? lerp(0, -6, reducedExitProgress)
-    : lerp(0, 178 - OVERVIEW_CORE.y, exitProgress);
+    : lerp(0, landingStartY - OVERVIEW_CORE.y, exitProgress);
 
   const exitBackgroundT = reducedExitInProgress
     ? reducedExitProgress

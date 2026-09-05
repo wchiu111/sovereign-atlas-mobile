@@ -15,7 +15,7 @@ export const OVERVIEW_CORE = { x: 195, y: 265 } as const;
 export const CASE_STUDY_MINIATURE_SCALE = 0.32;
 
 export const CS_FOCUS = {
-  "atlas-landing": { x: 95, y: 178, orbitR: 36, opacity: 1 },
+  "atlas-landing": { x: 95, y: 196, orbitR: 36, opacity: 1 },
   "system-awakened": { x: 195, y: 250, orbitR: 72, opacity: 1 },
   "system-overview": { x: 195, y: 82, orbitR: 24, opacity: 0.45 },
 } as const;

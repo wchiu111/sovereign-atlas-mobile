@@ -143,6 +143,15 @@ export default function LandingScene({
   const ex = SYSTEMS[1];
   const fw = SYSTEMS[2];
 
+  // Real-device vertical rebalance:
+  // ease the upper composition away from browser chrome while leaving
+  // Frameworks and Enter Observatory anchored.
+  const upperSystemsOffsetY = 18;
+  const nexusOffsetY = 26;
+  const landingContextVisible = state === "atlas-landing" || isExitingCaseStudies;
+  const exY = landingContextVisible ? EX_POS.y + upperSystemsOffsetY : EX_POS.y;
+  const nexusVisualOffsetY = landingContextVisible ? nexusOffsetY : 0;
+
   const contextEntryOpacity = entryInProgress
     ? reducedEntryInProgress
       ? 1 - reducedEntryProgress
@@ -170,7 +179,7 @@ export default function LandingScene({
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ position: "absolute", inset: 0 }} aria-hidden>
         {[22, 67, 112, 157, 202, 247, 292, 337].map((deg) => {
           const r = (deg * Math.PI) / 180;
-          return <line key={deg} x1={NEXUS.x} y1={NEXUS.y} x2={NEXUS.x + Math.cos(r) * 295} y2={NEXUS.y + Math.sin(r) * 295}
+          return <line key={deg} x1={NEXUS.x} y1={NEXUS.y + nexusVisualOffsetY} x2={NEXUS.x + Math.cos(r) * 295} y2={NEXUS.y + nexusVisualOffsetY + Math.sin(r) * 295}
             stroke={T.gold}
             strokeWidth={0.28}
             opacity={
@@ -202,6 +211,7 @@ export default function LandingScene({
 
         <path
           d={cs.orbitPath}
+          transform={state === "atlas-landing" || isExitingCaseStudies ? `translate(0 ${upperSystemsOffsetY})` : undefined}
           fill="none"
           stroke={cs.color}
           strokeWidth={0.55}
@@ -221,6 +231,7 @@ export default function LandingScene({
         />
         <path
           d={ex.orbitPath}
+          transform={state === "atlas-landing" || isExitingCaseStudies ? `translate(0 ${upperSystemsOffsetY})` : undefined}
           fill="none"
           stroke={ex.color}
           strokeWidth={0.55}
@@ -249,6 +260,7 @@ export default function LandingScene({
           }
           style={{ transition: "opacity 360ms ease" }}
         />
+        <g transform={`translate(0 ${nexusVisualOffsetY})`}>
         <g
           style={{
             opacity: isExitingCaseStudies
@@ -269,6 +281,7 @@ export default function LandingScene({
         >
           <NexusNode op={1} />
         </g>
+        </g>
         <g
           style={{
             opacity: isExitingCaseStudies
@@ -283,14 +296,14 @@ export default function LandingScene({
                 ? contextRecede.scale
                 : 1
             })`,
-            transformOrigin: `${EX_POS.x}px ${EX_POS.y}px`,
+            transformOrigin: `${EX_POS.x}px ${exY}px`,
             transition: `opacity 260ms ease, transform 560ms ${CASE_STUDIES_PULL_EASE}`,
           }}
         >
           <SystemNode
             sys={ex}
             cx={EX_POS.x}
-            cy={EX_POS.y}
+            cy={exY}
             orbitR={ORBIT_R}
             awakened={false}
             dimmed={entryInProgress || (isActive && !isExitingCaseStudies)}
@@ -423,7 +436,7 @@ export default function LandingScene({
         )}
         {state === "atlas-landing" && (
           <>
-            <circle cx={95} cy={178} r={56} fill="transparent" onClick={enterCaseStudies} style={{ cursor: entryInProgress ? "default" : "pointer", pointerEvents: entryInProgress ? "none" : "auto" }} />
+            <circle cx={csState.x} cy={csState.y} r={56} fill="transparent" onClick={enterCaseStudies} style={{ cursor: entryInProgress ? "default" : "pointer", pointerEvents: entryInProgress ? "none" : "auto" }} />
             <circle cx={FW_POS.x} cy={FW_POS.y} r={56} fill="transparent" onClick={onSelectFrameworks} style={{ cursor: "pointer" }} />
           </>
         )}
@@ -467,7 +480,7 @@ export default function LandingScene({
             top: 0,
             left: 0,
             right: 0,
-            padding: "calc(44px + env(safe-area-inset-top, 0px)) 22px 0",
+            padding: "calc(58px + env(safe-area-inset-top, 0px)) 22px 0",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",

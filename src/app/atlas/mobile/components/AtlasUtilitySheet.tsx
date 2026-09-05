@@ -150,10 +150,10 @@ export default function AtlasUtilitySheet() {
         style={{
           position: "absolute",
           left: "50%",
-          top: 16,
+          top: 28,
           transform: "translateX(-50%)",
           width: 132,
-          height: 18,
+          height: 44,
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "center",
