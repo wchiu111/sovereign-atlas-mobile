@@ -1,4 +1,4 @@
-import { T } from "../components/mobileShared";
+import { MOBILE_CONTENT_INSET, T } from "../components/mobileShared";
 
 export default function MobileReadingHeader({
   title,
@@ -15,7 +15,7 @@ export default function MobileReadingHeader({
       style={{
         minHeight: 62,
         padding:
-          "max(0px, env(safe-area-inset-top)) clamp(18px, 5.2vw, 22px) 0",
+          `max(0px, env(safe-area-inset-top)) ${MOBILE_CONTENT_INSET} 0`,
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",

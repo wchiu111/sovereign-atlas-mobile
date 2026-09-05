@@ -1,4 +1,4 @@
-import { T } from "../../components/mobileShared";
+import { MOBILE_CONTENT_INSET, T } from "../../components/mobileShared";
 import { CASE_STUDY_FOCUS_ITEMS } from "../caseStudyData";
 
 export default function ProjectPreviewDrawer({
@@ -43,7 +43,7 @@ export default function ProjectPreviewDrawer({
         background: "rgba(5,5,10,0.96)",
         backdropFilter: "blur(26px)",
         WebkitBackdropFilter: "blur(26px)",
-        padding: "22px 28px calc(26px + env(safe-area-inset-bottom, 0px))",
+        padding: `22px ${MOBILE_CONTENT_INSET} calc(26px + env(safe-area-inset-bottom, 0px))`,
         display: "flex",
         flexDirection: "column",
         transform: `translateY(${translateY})`,

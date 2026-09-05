@@ -37,6 +37,10 @@ export const DUR  = "0.52s";
 export const ANIM = `transform ${DUR} ${EASE}`;
 export const FADE = `opacity 0.32s ease`;
 
+// Shared authored-content frame for mobile narrative surfaces.
+// Spatial constellations remain full-canvas; chrome and authored content use this inset.
+export const MOBILE_CONTENT_INSET = "clamp(24px, 7.2vw, 30px)";
+
 export const NEXUS   = { x: 195, y: 355 };
 export const BASE_R  = 18;
 export const EX_POS  = { x: 298, y: 178 };
