@@ -292,6 +292,7 @@ export default function MobileAtlas() {
             >
               <ReadingScene
                 state="project-reading"
+                projectId={activeCaseStudyProjectId}
                 onEvidence={() => setState("project-reading")}
                 onBack={() => {
                   setReturnCaseStudyProjectId(activeCaseStudyProjectId);

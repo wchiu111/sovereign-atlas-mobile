@@ -1,22 +1,19 @@
 import { useEffect, useRef } from "react";
 import { T } from "../components/mobileShared";
-import type {
-  SovereignAtlasReadingSection,
-  SovereignAtlasSectionId,
-} from "./sovereignAtlasReadingScaffold";
+import type { MobileReadingSectionData } from "./mobileReadingTypes";
 
 export default function MobileSectionRail({
   sections,
   activeId,
+  ariaLabel,
   onSelect,
 }: {
-  sections: readonly SovereignAtlasReadingSection[];
-  activeId: SovereignAtlasSectionId;
-  onSelect: (id: SovereignAtlasSectionId) => void;
+  sections: readonly MobileReadingSectionData[];
+  activeId: string;
+  ariaLabel: string;
+  onSelect: (id: string) => void;
 }) {
-  const buttonRefs = useRef(
-    new Map<SovereignAtlasSectionId, HTMLButtonElement>(),
-  );
+  const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
 
   useEffect(() => {
     const activeButton = buttonRefs.current.get(activeId);
@@ -29,7 +26,7 @@ export default function MobileSectionRail({
 
   return (
     <nav
-      aria-label="Sovereign Atlas case study sections"
+      aria-label={ariaLabel}
       className="mobile-section-rail"
       style={{
         minHeight: 52,

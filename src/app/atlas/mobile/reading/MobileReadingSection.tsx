@@ -1,24 +1,26 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { T } from "../components/mobileShared";
 import MobileEvidenceBlock from "./MobileEvidenceBlock";
-import {
-  evidenceForSection,
-  type MobileEvidenceItem,
-} from "./sovereignAtlasEvidence";
-import type { SovereignAtlasReadingSection } from "./sovereignAtlasReadingScaffold";
+import type {
+  MobileEvidenceItem,
+  MobileReadingSectionData,
+} from "./mobileReadingTypes";
 
 export default function MobileReadingSection({
   section,
+  totalSections,
+  evidence,
   setRef,
   onInspectEvidence,
 }: {
-  section: SovereignAtlasReadingSection;
+  section: MobileReadingSectionData;
+  totalSections: number;
+  evidence: readonly MobileEvidenceItem[];
   setRef: (node: HTMLElement | null) => void;
   onInspectEvidence: (item: MobileEvidenceItem) => void;
 }) {
   const localRef = useRef<HTMLElement | null>(null);
   const [entered, setEntered] = useState(false);
-  const evidence = evidenceForSection(section.id);
 
   useEffect(() => {
     const node = localRef.current;
@@ -66,6 +68,7 @@ export default function MobileReadingSection({
     >
       <div
         style={{
+          marginBottom: 18,
           transform: entered ? "translateY(0)" : "translateY(10px)",
           opacity: entered ? 1 : 0,
           transition:
@@ -93,6 +96,7 @@ export default function MobileReadingSection({
           </div>
           <div
             style={{
+              minWidth: 0,
               fontFamily: T.mono,
               fontSize: "clamp(8.5px, 2.3vw, 9px)",
               letterSpacing: "0.18em",
@@ -104,6 +108,7 @@ export default function MobileReadingSection({
           </div>
           <div
             style={{
+              flexShrink: 0,
               fontFamily: T.mono,
               fontSize: "clamp(7.5px, 2vw, 8px)",
               letterSpacing: "0.14em",
@@ -111,7 +116,7 @@ export default function MobileReadingSection({
               opacity: 0.54,
             }}
           >
-            OF 05
+            OF {String(totalSections).padStart(2, "0")}
           </div>
         </div>
 
@@ -159,7 +164,8 @@ export default function MobileReadingSection({
         const isShortEmphasis =
           paragraph.length < 58 &&
           !paragraph.endsWith(".") &&
-          !paragraph.endsWith("?");
+          !paragraph.endsWith("?") &&
+          !paragraph.includes("\n");
 
         const inlineEvidence = evidenceAfter(index);
 
@@ -176,6 +182,7 @@ export default function MobileReadingSection({
                         ? "0 0 18px"
                         : "0 0 21px",
                 maxWidth: 340,
+                whiteSpace: "pre-line",
                 fontFamily: T.serif,
                 fontSize: isShortEmphasis
                   ? "clamp(17px, 4.6vw, 18px)"

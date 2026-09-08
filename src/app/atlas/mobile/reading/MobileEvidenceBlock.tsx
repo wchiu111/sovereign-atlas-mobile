@@ -1,5 +1,5 @@
 import { T } from "../components/mobileShared";
-import type { MobileEvidenceItem } from "./sovereignAtlasEvidence";
+import type { MobileEvidenceItem } from "./mobileReadingTypes";
 
 export default function MobileEvidenceBlock({
   evidence,

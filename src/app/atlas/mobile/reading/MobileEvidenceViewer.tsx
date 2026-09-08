@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { T } from "../components/mobileShared";
-import type { MobileEvidenceItem } from "./sovereignAtlasEvidence";
+import type { MobileEvidenceItem } from "./mobileReadingTypes";
 
 function InspectableEvidenceImage({ item }: { item: MobileEvidenceItem }) {
   const pointers = useRef(new Map<number, { x: number; y: number }>());
