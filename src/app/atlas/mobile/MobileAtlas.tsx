@@ -12,6 +12,8 @@ import LandingScene from "./scenes/LandingScene";
 import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
 import type { MobileCaseStudyProjectId } from "./reading/mobileReadingTypes";
+import type { MobileFrameworkId } from "./frameworks/mobileFrameworkTypes";
+import { DEFAULT_MOBILE_FRAMEWORK_ID, mobileFrameworkFor } from "./frameworks/frameworkRegistry";
 
 const STATE_LABELS: Record<MobileState, string> = {
   "atlas-landing":      "A · Landing",
@@ -49,7 +51,10 @@ export default function MobileAtlas() {
   const [sceneScale, setSceneScale] = useState(1);
   const [viewportUiTarget, setViewportUiTarget] = useState<HTMLDivElement | null>(null);
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
-  const [activeLayer, setActiveLayer] = useState<string>("governance");
+  const [activeFrameworkId, setActiveFrameworkId] =
+    useState<MobileFrameworkId>(DEFAULT_MOBILE_FRAMEWORK_ID);
+  const [activeFrameworkSectionId, setActiveFrameworkSectionId] =
+    useState<string>("governance");
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
@@ -210,9 +215,15 @@ export default function MobileAtlas() {
             {isFW && !isFrameworkReadingDepth && (
               <FrameworksScene
                 state={state as "frameworks-focus" | "framework-awakened" | "framework-overview"}
-                activeLayer={activeLayer}
-                setActiveLayer={setActiveLayer}
-                onSelectFramework={() => setState("framework-awakened")}
+                activeFrameworkId={activeFrameworkId}
+                activeSectionId={activeFrameworkSectionId}
+                setActiveSectionId={setActiveFrameworkSectionId}
+                onSelectFramework={(frameworkId) => {
+                  const nextFramework = mobileFrameworkFor(frameworkId);
+                  setActiveFrameworkId(frameworkId);
+                  setActiveFrameworkSectionId(nextFramework.sections[0]?.id ?? "");
+                  setState("framework-awakened");
+                }}
                 onFrameworkOverview={() => setState("framework-overview")}
                 onExplore={() => setState("framework-reading")}
                 onCanvas={() => setState("framework-evidence")}
@@ -228,9 +239,10 @@ export default function MobileAtlas() {
               <>
                 <FrameworksScene
                   state="framework-reading"
-                  activeLayer={activeLayer}
-                  setActiveLayer={setActiveLayer}
-                  onSelectFramework={() => setState("framework-awakened")}
+                  activeFrameworkId={activeFrameworkId}
+                  activeSectionId={activeFrameworkSectionId}
+                  setActiveSectionId={setActiveFrameworkSectionId}
+                  onSelectFramework={setActiveFrameworkId}
                   onFrameworkOverview={() => setState("framework-overview")}
                   onExplore={() => setState("framework-reading")}
                   onCanvas={() => setState("framework-evidence")}
@@ -239,9 +251,10 @@ export default function MobileAtlas() {
                 {isFrameworkEvidence && (
                   <FrameworksScene
                     state="framework-evidence"
-                    activeLayer={activeLayer}
-                    setActiveLayer={setActiveLayer}
-                    onSelectFramework={() => setState("framework-awakened")}
+                    activeFrameworkId={activeFrameworkId}
+                    activeSectionId={activeFrameworkSectionId}
+                    setActiveSectionId={setActiveFrameworkSectionId}
+                    onSelectFramework={setActiveFrameworkId}
                     onFrameworkOverview={() => setState("framework-overview")}
                     onExplore={() => setState("framework-reading")}
                     onCanvas={() => setState("framework-evidence")}
