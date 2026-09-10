@@ -59,7 +59,6 @@ interface LandingSceneProps {
   onSelectCaseStudies: () => void;
   onSelectFrameworks: () => void;
   onOverviewExpand: () => void;
-  onExplore: () => void;
   onBack: () => void;
   onOverviewBack: () => void;
   onSelectProject?: (projectId: (typeof CASE_STUDY_PROJECTS)[number]["id"]) => void;
@@ -73,7 +72,6 @@ export default function LandingScene({
   onSelectCaseStudies,
   onSelectFrameworks,
   onOverviewExpand,
-  onExplore,
   onBack,
   onOverviewBack,
   onSelectProject,
@@ -460,7 +458,10 @@ export default function LandingScene({
               activeIndex={activeFocusIndex}
               onSelect={(index) => {
                 if (index === activeFocusIndex) {
-                  if (index > 0) onSelectProject?.();
+                  const selectedItem = CASE_STUDY_FOCUS_ITEMS[index];
+                  if (selectedItem.id !== "case-studies") {
+                    onSelectProject?.(selectedItem.id);
+                  }
                   return;
                 }
                 setActiveFocusIndex(index);

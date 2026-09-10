@@ -9,17 +9,14 @@ import {
   type MobileState,
 } from "./components/mobileShared";
 import LandingScene from "./scenes/LandingScene";
-import CaseStudiesScene from "./scenes/CaseStudiesScene";
 import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
+import type { MobileCaseStudyProjectId } from "./reading/mobileReadingTypes";
 
 const STATE_LABELS: Record<MobileState, string> = {
   "atlas-landing":      "A · Landing",
   "system-awakened":    "B · CS Awakened",
   "system-overview":    "C · CS Overview",
-  "case-studies-focus": "E · CS Focus",
-  "project-awakened":   "F · Proj. Awakened",
-  "project-overview":   "G · Proj. Overview",
   "project-reading":    "H · Reading",
   "evidence-viewer":    "I · Evidence",
   "frameworks-focus":   "J · FW Focus",
@@ -31,20 +28,14 @@ const STATE_LABELS: Record<MobileState, string> = {
 
 const STATE_GROUPS: { label: string; color: string; states: MobileState[] }[] = [
   { label: "LANDING", color: T.gold, states: ["atlas-landing", "system-awakened", "system-overview"] },
-  { label: "CASE STUDIES", color: T.caseStudies, states: ["case-studies-focus", "project-awakened", "project-overview", "project-reading", "evidence-viewer"] },
+  { label: "CASE STUDIES", color: T.caseStudies, states: ["project-reading", "evidence-viewer"] },
   { label: "FRAMEWORKS", color: T.frameworks, states: ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"] },
 ];
 
 const LANDING_STATES: readonly MobileState[] = ["atlas-landing", "system-awakened", "system-overview"];
-const CS_FOCUS_STATES: readonly MobileState[] = ["case-studies-focus", "project-awakened", "project-overview"];
 const CS_READING_STATES: readonly MobileState[] = ["project-reading", "evidence-viewer"];
 const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"];
 
-type CaseStudyProjectId =
-  | "agentic-insurance"
-  | "globality"
-  | "oracle"
-  | "sovereign-atlas";
 
 function isDebugMode() {
   if (typeof window === "undefined") return false;
@@ -61,9 +52,9 @@ export default function MobileAtlas() {
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
   const [activeLayer, setActiveLayer] = useState<string>("governance");
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
-    useState<CaseStudyProjectId | null>(null);
+    useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
-    useState<CaseStudyProjectId | null>(null);
+    useState<MobileCaseStudyProjectId | null>(null);
   const debugMode = isDebugMode();
 
   useLayoutEffect(() => {
@@ -95,7 +86,6 @@ export default function MobileAtlas() {
   }
 
   const isLanding = (LANDING_STATES as readonly string[]).includes(state);
-  const isCSFocus = (CS_FOCUS_STATES as readonly string[]).includes(state);
   const isCSReading = (CS_READING_STATES as readonly string[]).includes(state);
   const isFW = (FW_STATES as readonly string[]).includes(state);
   const isFrameworkReadingDepth = state === "framework-reading" || state === "framework-evidence";
@@ -193,7 +183,6 @@ export default function MobileAtlas() {
                 onSelectFrameworks={() => setState("frameworks-focus")}
                 onOverviewExpand={() => setState("system-overview")}
                 onOverviewBack={() => setState("system-awakened")}
-                onExplore={() => setState("case-studies-focus")}
                 onSelectProject={(projectId) => {
                   setActiveCaseStudyProjectId(projectId);
                   setReturnCaseStudyProjectId(null);
@@ -209,16 +198,6 @@ export default function MobileAtlas() {
                   setReturnCaseStudyProjectId(null);
                   setState("atlas-landing");
                 }}
-              />
-            )}
-
-            {isCSFocus && (
-              <CaseStudiesScene
-                state={state as "case-studies-focus" | "project-awakened" | "project-overview"}
-                onSelectProject={() => setState("project-awakened")}
-                onProjectOverview={() => setState("project-overview")}
-                onExplore={() => setState("project-reading")}
-                onBack={() => setState("system-overview")}
               />
             )}
 

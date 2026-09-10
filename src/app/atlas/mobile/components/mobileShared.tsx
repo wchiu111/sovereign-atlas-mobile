@@ -54,9 +54,6 @@ export type MobileState =
   | "atlas-landing"
   | "system-awakened"
   | "system-overview"
-  | "case-studies-focus"
-  | "project-awakened"
-  | "project-overview"
   | "project-reading"
   | "evidence-viewer"
   | "frameworks-focus"
@@ -67,7 +64,6 @@ export type MobileState =
 
 export const MOBILE_STATES: readonly MobileState[] = [
   "atlas-landing", "system-awakened", "system-overview",
-  "case-studies-focus", "project-awakened", "project-overview",
   "project-reading", "evidence-viewer",
   "frameworks-focus", "framework-awakened", "framework-overview",
   "framework-reading", "framework-evidence",
