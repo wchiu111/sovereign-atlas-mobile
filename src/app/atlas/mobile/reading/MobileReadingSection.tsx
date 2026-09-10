@@ -51,6 +51,19 @@ export default function MobileReadingSection({
   const evidenceAfter = (paragraphIndex: number) =>
     evidence.filter((item) => item.insertAfterParagraph === paragraphIndex);
 
+  const splitListParagraph = (paragraph: string) => {
+    const marker = "\n\n• ";
+    if (!paragraph.includes(marker)) return null;
+
+    const [intro, listBody] = paragraph.split(marker, 2);
+    const items = listBody
+      .split("\n• ")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    return { intro: intro.trim(), items };
+  };
+
   return (
     <section
       id={`mobile-reading-${section.id}`}
@@ -171,18 +184,19 @@ export default function MobileReadingSection({
 
         return (
           <Fragment key={index}>
-            <p
-              style={{
-                margin:
-                  inlineEvidence.length > 0
-                    ? "0 0 20px"
-                    : index === section.paragraphs.length - 1
-                      ? 0
-                      : isShortEmphasis
-                        ? "0 0 18px"
-                        : "0 0 21px",
+            {(() => {
+              const listParagraph = splitListParagraph(paragraph);
+              const blockMargin =
+                inlineEvidence.length > 0
+                  ? "0 0 20px"
+                  : index === section.paragraphs.length - 1
+                    ? 0
+                    : isShortEmphasis
+                      ? "0 0 18px"
+                      : "0 0 21px";
+
+              const baseTextStyle = {
                 maxWidth: 340,
-                whiteSpace: "pre-line",
                 fontFamily: T.serif,
                 fontSize: isShortEmphasis
                   ? "clamp(17px, 4.6vw, 18px)"
@@ -191,10 +205,56 @@ export default function MobileReadingSection({
                 lineHeight: isShortEmphasis ? 1.42 : 1.7,
                 color: isShortEmphasis ? T.accentGold : "#F0E9D8",
                 opacity: isShortEmphasis ? 0.92 : 0.89,
-              }}
-            >
-              {paragraph}
-            </p>
+              } as const;
+
+              if (!listParagraph) {
+                return (
+                  <p
+                    style={{
+                      ...baseTextStyle,
+                      margin: blockMargin,
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {paragraph}
+                  </p>
+                );
+              }
+
+              return (
+                <div style={{ margin: blockMargin, maxWidth: 340 }}>
+                  {listParagraph.intro && (
+                    <p
+                      style={{
+                        ...baseTextStyle,
+                        margin: "0 0 12px",
+                      }}
+                    >
+                      {listParagraph.intro}
+                    </p>
+                  )}
+                  <ul
+                    style={{
+                      ...baseTextStyle,
+                      margin: 0,
+                      paddingLeft: 20,
+                    }}
+                  >
+                    {listParagraph.items.map((item) => (
+                      <li
+                        key={item}
+                        style={{
+                          marginBottom: 6,
+                          paddingLeft: 2,
+                        }}
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
 
             {inlineEvidence.map((item) => (
               <MobileEvidenceBlock
