@@ -18,7 +18,6 @@ const STATE_LABELS: Record<MobileState, string> = {
   "system-awakened":    "B · CS Awakened",
   "system-overview":    "C · CS Overview",
   "project-reading":    "H · Reading",
-  "evidence-viewer":    "I · Evidence",
   "frameworks-focus":   "J · FW Focus",
   "framework-awakened": "K · FW Awakened",
   "framework-overview": "L · FW Overview",
@@ -28,12 +27,12 @@ const STATE_LABELS: Record<MobileState, string> = {
 
 const STATE_GROUPS: { label: string; color: string; states: MobileState[] }[] = [
   { label: "LANDING", color: T.gold, states: ["atlas-landing", "system-awakened", "system-overview"] },
-  { label: "CASE STUDIES", color: T.caseStudies, states: ["project-reading", "evidence-viewer"] },
+  { label: "CASE STUDIES", color: T.caseStudies, states: ["project-reading"] },
   { label: "FRAMEWORKS", color: T.frameworks, states: ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"] },
 ];
 
 const LANDING_STATES: readonly MobileState[] = ["atlas-landing", "system-awakened", "system-overview"];
-const CS_READING_STATES: readonly MobileState[] = ["project-reading", "evidence-viewer"];
+const CS_READING_STATES: readonly MobileState[] = ["project-reading"];
 const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"];
 
 
@@ -270,9 +269,7 @@ export default function MobileAtlas() {
               }}
             >
               <ReadingScene
-                state="project-reading"
                 projectId={activeCaseStudyProjectId}
-                onEvidence={() => setState("project-reading")}
                 onBack={() => {
                   setReturnCaseStudyProjectId(activeCaseStudyProjectId);
                   setState("system-awakened");

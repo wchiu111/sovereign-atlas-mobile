@@ -355,9 +355,7 @@ function CaseStudyReadingSurface({
 }
 
 interface ReadingSceneProps {
-  state: "project-reading" | "evidence-viewer";
   projectId: MobileCaseStudyProjectId | null;
-  onEvidence: () => void;
   onBack: () => void;
 }
 
