@@ -38,6 +38,7 @@ function CaseStudyReadingSurface({
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [chromeHeight, setChromeHeight] = useState(114);
   const exitTimerRef = useRef<number | null>(null);
+  const evidenceTriggerRef = useRef<HTMLElement | null>(null);
 
   const sectionIds = useMemo(
     () => sections.map((section) => section.id),
@@ -297,7 +298,13 @@ function CaseStudyReadingSurface({
               if (node) sectionRefs.current.set(section.id, node);
               else sectionRefs.current.delete(section.id);
             }}
-            onInspectEvidence={(item) => setSelectedEvidence(item)}
+            onInspectEvidence={(item) => {
+              evidenceTriggerRef.current =
+                document.activeElement instanceof HTMLElement
+                  ? document.activeElement
+                  : null;
+              setSelectedEvidence(item);
+            }}
           />
         ))}
 
@@ -347,7 +354,13 @@ function CaseStudyReadingSurface({
         <MobileEvidenceViewer
           item={selectedEvidence}
           sectionLabel={activeSection.label}
-          onClose={() => setSelectedEvidence(null)}
+          onClose={() => {
+            setSelectedEvidence(null);
+            window.requestAnimationFrame(() => {
+              evidenceTriggerRef.current?.focus({ preventScroll: true });
+              evidenceTriggerRef.current = null;
+            });
+          }}
         />
       )}
     </div>
