@@ -67,7 +67,14 @@ export default function MobileAtlas() {
 
       // Uniform contain scaling:
       // preserve the authored 390×844 scene as one composition.
-      const nextScale = Math.min(width / W, height / H);
+      // On wide preview surfaces, stop scaling once the mobile presentation
+      // reaches the same 430px width used by Focused Mode.
+      const maxPresentationScale = 430 / W;
+      const nextScale = Math.min(
+        width / W,
+        height / H,
+        maxPresentationScale,
+      );
       setSceneScale(nextScale);
     }
 
@@ -250,7 +257,11 @@ export default function MobileAtlas() {
             className="mobile-atlas-viewport-ui"
             style={{
               position: "absolute",
-              inset: 0,
+              top: 0,
+              bottom: 0,
+              left: "50%",
+              width: "min(100%, 430px)",
+              transform: "translateX(-50%)",
               zIndex: 20,
               pointerEvents: "none",
               overflow: "hidden",

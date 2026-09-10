@@ -24,8 +24,8 @@ function CaseStudyReadingSurface({
   projectId: MobileCaseStudyProjectId | null;
   onBack: () => void;
 }) {
-  const document = mobileCaseStudyDocumentFor(projectId);
-  const sections = document.sections;
+  const caseStudyDocument = mobileCaseStudyDocumentFor(projectId);
+  const sections = caseStudyDocument.sections;
   const scrollRef = useRef<HTMLDivElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef(new Map<string, HTMLElement>());
@@ -49,7 +49,7 @@ function CaseStudyReadingSurface({
     setActiveId(sections[0].id);
     setSelectedEvidence(null);
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [document.id, sections]);
+  }, [caseStudyDocument.id, sections]);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -188,7 +188,7 @@ function CaseStudyReadingSurface({
     sections.find((section) => section.id === activeId) ?? sections[0];
 
   const evidenceForSection = (sectionId: string) =>
-    document.evidence.filter((item) => item.sectionId === sectionId);
+    caseStudyDocument.evidence.filter((item) => item.sectionId === sectionId);
 
   return (
     <div
@@ -260,14 +260,14 @@ function CaseStudyReadingSurface({
         }}
       >
         <MobileReadingHeader
-          title={document.title}
+          title={caseStudyDocument.title}
           onBack={requestBack}
           elevated={headerElevated}
         />
         <MobileSectionRail
           sections={sections}
           activeId={activeId}
-          ariaLabel={`${document.title} case study sections`}
+          ariaLabel={`${caseStudyDocument.title} case study sections`}
           onSelect={scrollToSection}
         />
       </div>
@@ -275,7 +275,7 @@ function CaseStudyReadingSurface({
       <div
         ref={scrollRef}
         role="main"
-        aria-label={document.ariaLabel}
+        aria-label={caseStudyDocument.ariaLabel}
         style={{
           position: "absolute",
           top: chromeHeight,
@@ -300,8 +300,8 @@ function CaseStudyReadingSurface({
             }}
             onInspectEvidence={(item) => {
               evidenceTriggerRef.current =
-                document.activeElement instanceof HTMLElement
-                  ? document.activeElement
+                window.document.activeElement instanceof HTMLElement
+                  ? window.document.activeElement
                   : null;
               setSelectedEvidence(item);
             }}
