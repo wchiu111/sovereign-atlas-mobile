@@ -457,7 +457,7 @@ function FrameworkReadingSurface({
   framework: MobileFrameworkDocument;
   activeSectionId: string;
   setActiveSectionId: (id: string) => void;
-  onCanvas: () => void;
+  onCanvas: (evidenceId: string) => void;
   onBack: () => void;
 }) {
   const current =
@@ -473,7 +473,7 @@ function FrameworkReadingSurface({
   if (!current) return null;
 
   const evidence = framework.evidence.filter(
-    (item) => item.sectionId === current.id,
+    (item) => item.sectionId === current.id || item.sectionId === "*",
   );
 
   return (
@@ -638,7 +638,7 @@ function FrameworkReadingSurface({
           <button
             key={item.id}
             type="button"
-            onClick={onCanvas}
+            onClick={() => onCanvas(item.id)}
             style={{
               width: "100%",
               borderRadius: 4,
@@ -696,15 +696,20 @@ function FrameworkReadingSurface({
 function FrameworkEvidenceViewer({
   framework,
   section,
+  evidenceId,
   onClose,
 }: {
   framework: MobileFrameworkDocument;
   section: MobileFrameworkSection;
+  evidenceId: string | null;
   onClose: () => void;
 }) {
-  const item = framework.evidence.find(
-    (evidence) => evidence.sectionId === section.id,
-  );
+  const item =
+    framework.evidence.find((evidence) => evidence.id === evidenceId) ??
+    framework.evidence.find(
+      (evidence) =>
+        evidence.sectionId === section.id || evidence.sectionId === "*",
+    );
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -975,7 +980,8 @@ interface FrameworksSceneProps {
   onSelectFramework: (id: MobileFrameworkId) => void;
   onFrameworkOverview: () => void;
   onExplore: () => void;
-  onCanvas: () => void;
+  onCanvas: (evidenceId: string) => void;
+  activeEvidenceId: string | null;
   onBack: () => void;
 }
 
@@ -988,6 +994,7 @@ export default function FrameworksScene({
   onFrameworkOverview,
   onExplore,
   onCanvas,
+  activeEvidenceId,
   onBack,
 }: FrameworksSceneProps) {
   const framework = mobileFrameworkFor(activeFrameworkId);
@@ -1016,6 +1023,7 @@ export default function FrameworksScene({
       <FrameworkEvidenceViewer
         framework={framework}
         section={currentSection}
+        evidenceId={activeEvidenceId}
         onClose={onBack}
       />
     );

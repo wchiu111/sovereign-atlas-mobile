@@ -55,6 +55,8 @@ export default function MobileAtlas() {
     useState<MobileFrameworkId>(DEFAULT_MOBILE_FRAMEWORK_ID);
   const [activeFrameworkSectionId, setActiveFrameworkSectionId] =
     useState<string>("governance");
+  const [activeFrameworkEvidenceId, setActiveFrameworkEvidenceId] =
+    useState<string | null>(null);
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
@@ -222,11 +224,16 @@ export default function MobileAtlas() {
                   const nextFramework = mobileFrameworkFor(frameworkId);
                   setActiveFrameworkId(frameworkId);
                   setActiveFrameworkSectionId(nextFramework.sections[0]?.id ?? "");
+                  setActiveFrameworkEvidenceId(null);
                   setState("framework-awakened");
                 }}
                 onFrameworkOverview={() => setState("framework-overview")}
                 onExplore={() => setState("framework-reading")}
-                onCanvas={() => setState("framework-evidence")}
+                onCanvas={(evidenceId) => {
+                  setActiveFrameworkEvidenceId(evidenceId);
+                  setState("framework-evidence");
+                }}
+                activeEvidenceId={activeFrameworkEvidenceId}
                 onBack={() => {
                   if (state === "framework-overview") setState("frameworks-focus");
                   else if (state === "framework-awakened") setState("frameworks-focus");
@@ -245,7 +252,11 @@ export default function MobileAtlas() {
                   onSelectFramework={setActiveFrameworkId}
                   onFrameworkOverview={() => setState("framework-overview")}
                   onExplore={() => setState("framework-reading")}
-                  onCanvas={() => setState("framework-evidence")}
+                  onCanvas={(evidenceId) => {
+                  setActiveFrameworkEvidenceId(evidenceId);
+                  setState("framework-evidence");
+                }}
+                activeEvidenceId={activeFrameworkEvidenceId}
                   onBack={() => setState("framework-overview")}
                 />
                 {isFrameworkEvidence && (
@@ -257,8 +268,15 @@ export default function MobileAtlas() {
                     onSelectFramework={setActiveFrameworkId}
                     onFrameworkOverview={() => setState("framework-overview")}
                     onExplore={() => setState("framework-reading")}
-                    onCanvas={() => setState("framework-evidence")}
-                    onBack={() => setState("framework-reading")}
+                    onCanvas={(evidenceId) => {
+                  setActiveFrameworkEvidenceId(evidenceId);
+                  setState("framework-evidence");
+                }}
+                activeEvidenceId={activeFrameworkEvidenceId}
+                    onBack={() => {
+                      setActiveFrameworkEvidenceId(null);
+                      setState("framework-reading");
+                    }}
                   />
                 )}
               </>
