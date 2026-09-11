@@ -227,6 +227,7 @@ export default function MobileAtlas() {
                   setActiveFrameworkEvidenceId(null);
                   setState("framework-awakened");
                 }}
+                onSelectParent={() => setState("frameworks-focus")}
                 onFrameworkOverview={() => setState("framework-overview")}
                 onExplore={() => setState("framework-reading")}
                 onCanvas={(evidenceId) => {
@@ -234,11 +235,7 @@ export default function MobileAtlas() {
                   setState("framework-evidence");
                 }}
                 activeEvidenceId={activeFrameworkEvidenceId}
-                onBack={() => {
-                  if (state === "framework-overview") setState("frameworks-focus");
-                  else if (state === "framework-awakened") setState("frameworks-focus");
-                  else setState("atlas-landing");
-                }}
+                onBack={() => setState("atlas-landing")}
               />
             )}
 
@@ -250,6 +247,7 @@ export default function MobileAtlas() {
                   activeSectionId={activeFrameworkSectionId}
                   setActiveSectionId={setActiveFrameworkSectionId}
                   onSelectFramework={setActiveFrameworkId}
+                  onSelectParent={() => setState("frameworks-focus")}
                   onFrameworkOverview={() => setState("framework-overview")}
                   onExplore={() => setState("framework-reading")}
                   onCanvas={(evidenceId) => {
@@ -266,6 +264,7 @@ export default function MobileAtlas() {
                     activeSectionId={activeFrameworkSectionId}
                     setActiveSectionId={setActiveFrameworkSectionId}
                     onSelectFramework={setActiveFrameworkId}
+                    onSelectParent={() => setState("frameworks-focus")}
                     onFrameworkOverview={() => setState("framework-overview")}
                     onExplore={() => setState("framework-reading")}
                     onCanvas={(evidenceId) => {

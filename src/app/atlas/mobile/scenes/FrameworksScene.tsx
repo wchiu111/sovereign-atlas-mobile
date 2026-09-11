@@ -9,6 +9,9 @@ import { useEffect, useRef, useState } from "react";
 import { T, W, H } from "../components/mobileShared";
 import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
 import FrameworkOverviewConstellation from "../frameworks/constellation/FrameworkOverviewConstellation";
+import FrameworkPreviewDrawer from "../frameworks/surfaces/FrameworkPreviewDrawer";
+import FrameworksChrome from "../frameworks/surfaces/FrameworksChrome";
+import { FRAMEWORK_FOCUS_ITEMS } from "../frameworks/frameworkOverviewData";
 import type { FrameworkOverviewId } from "../frameworks/frameworkGeometry";
 import type {
   MobileFrameworkDocument,
@@ -23,7 +26,7 @@ type FWState =
   | "framework-reading"
   | "framework-evidence";
 
-function FrameworkTopBar({
+function FrameworkReadingTopBar({
   title,
   onBack,
 }: {
@@ -82,152 +85,6 @@ function FrameworkTopBar({
   );
 }
 
-function FrameworkOverviewSurface({
-  framework,
-  onExplore,
-}: {
-  framework: MobileFrameworkDocument;
-  onExplore: () => void;
-}) {
-  const c = T.frameworks;
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        boxSizing: "border-box",
-        borderTop: `0.5px solid rgba(106,184,138,0.24)`,
-        background: "rgba(5,5,10,0.94)",
-        backdropFilter: "blur(28px)",
-        padding: "22px 28px 34px",
-      }}
-    >
-      <div
-        style={{
-          fontFamily: T.mono,
-          fontSize: 11,
-          letterSpacing: "0.18em",
-          color: c,
-          opacity: 0.94,
-          marginBottom: 7,
-        }}
-      >
-        {framework.title}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          flexWrap: "wrap",
-          marginBottom: 16,
-        }}
-      >
-        {framework.tags.map((tag) => (
-          <span
-            key={tag}
-            style={{
-              fontFamily: T.mono,
-              fontSize: 6.5,
-              letterSpacing: "0.13em",
-              color: c,
-              opacity: 0.72,
-              border: `0.5px solid rgba(106,184,138,0.25)`,
-              borderRadius: 2,
-              padding: "3px 7px",
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div
-        style={{
-          height: 0.5,
-          background: "rgba(232,213,163,0.09)",
-          marginBottom: 15,
-        }}
-      />
-
-      {[
-        ["WHAT", framework.overview.what],
-        ["KEY DISCOVERY", framework.overview.keyDiscovery],
-      ].map(([label, body]) => (
-        <div key={label} style={{ marginBottom: 13 }}>
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.20em",
-              color: T.accentGold,
-              opacity: 0.72,
-              marginBottom: 6,
-            }}
-          >
-            {label}
-          </div>
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 13,
-              color: T.body,
-              opacity: 0.84,
-              lineHeight: 1.58,
-            }}
-          >
-            {body}
-          </div>
-        </div>
-      ))}
-
-      {framework.status === "ready" ? (
-        <button
-          type="button"
-          onClick={onExplore}
-          style={{
-            width: "100%",
-            minHeight: 52,
-            border: "none",
-            borderTop: `0.5px solid rgba(106,184,138,0.16)`,
-            background: "transparent",
-            padding: "14px 0 0",
-            marginTop: 4,
-            fontFamily: T.mono,
-            fontSize: 12.5,
-            letterSpacing: "0.14em",
-            color: c,
-            cursor: "pointer",
-          }}
-        >
-          EXPLORE →
-        </button>
-      ) : (
-        <div
-          style={{
-            minHeight: 44,
-            display: "flex",
-            alignItems: "center",
-            borderTop: `0.5px solid rgba(106,184,138,0.12)`,
-            marginTop: 4,
-            paddingTop: 10,
-            fontFamily: T.mono,
-            fontSize: 7,
-            letterSpacing: "0.16em",
-            color: c,
-            opacity: 0.42,
-          }}
-        >
-          READING CONTENT · NEXT MIGRATION PASS
-        </div>
-      )}
-    </div>
-  );
-}
-
 function FrameworkReadingSurface({
   framework,
   activeSectionId,
@@ -266,7 +123,7 @@ function FrameworkReadingSurface({
           "linear-gradient(to bottom, rgba(5,5,10,0.72), rgba(5,5,10,0.99) 180px)",
       }}
     >
-      <FrameworkTopBar title={framework.title} onBack={onBack} />
+      <FrameworkReadingTopBar title={framework.title} onBack={onBack} />
 
       <div
         style={{
@@ -759,6 +616,7 @@ interface FrameworksSceneProps {
   activeSectionId: string;
   setActiveSectionId: (id: string) => void;
   onSelectFramework: (id: MobileFrameworkId) => void;
+  onSelectParent: () => void;
   onFrameworkOverview: () => void;
   onExplore: () => void;
   onCanvas: (evidenceId: string) => void;
@@ -772,6 +630,7 @@ export default function FrameworksScene({
   activeSectionId,
   setActiveSectionId,
   onSelectFramework,
+  onSelectParent,
   onFrameworkOverview,
   onExplore,
   onCanvas,
@@ -781,6 +640,8 @@ export default function FrameworksScene({
   const framework = mobileFrameworkFor(activeFrameworkId);
   const selected =
     state === "framework-awakened" || state === "framework-overview";
+  const overviewItem =
+    FRAMEWORK_FOCUS_ITEMS.find((item) => item.id === activeFrameworkId) ?? null;
 
   const currentSection =
     framework.sections.find((section) => section.id === activeSectionId) ??
@@ -822,7 +683,7 @@ export default function FrameworksScene({
           selectedId={selected ? activeFrameworkId : "frameworks"}
           onSelect={(id: FrameworkOverviewId) => {
             if (id === "frameworks") {
-              if (state !== "frameworks-focus") onBack();
+              if (state !== "frameworks-focus") onSelectParent();
               return;
             }
 
@@ -841,17 +702,12 @@ export default function FrameworksScene({
         />
       </svg>
 
-      <FrameworkTopBar
-        onBack={onBack}
-        title={selected ? framework.title : undefined}
-      />
+      <FrameworksChrome onExitToAtlas={onBack} />
 
-      {state === "framework-overview" && (
-        <FrameworkOverviewSurface
-          framework={framework}
-          onExplore={onExplore}
-        />
-      )}
+      <FrameworkPreviewDrawer
+        item={selected ? overviewItem : null}
+        onExplore={onExplore}
+      />
     </>
   );
 }
