@@ -8,19 +8,8 @@
 import { useEffect, useRef, useState } from "react";
 import { T, W, H } from "../components/mobileShared";
 import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
-import { FRAMEWORK_FOCUS_ITEMS } from "../frameworks/frameworkOverviewData";
-import {
-  FRAMEWORK_LEGACY_SELECTED_CENTER,
-  FRAMEWORK_OVERVIEW_LAYOUT,
-  FRAMEWORK_PARENT_CORE,
-  FRAMEWORK_RADIAL_GUIDES,
-  FRAMEWORK_SECTION_STAR_GEOMETRY,
-  frameworkGeometryFor,
-} from "../frameworks/frameworkGeometry";
-import {
-  FRAMEWORK_FADE_TRANSITION,
-  FRAMEWORK_POSITION_TRANSITION,
-} from "../frameworks/frameworkMotion";
+import FrameworkOverviewConstellation from "../frameworks/constellation/FrameworkOverviewConstellation";
+import type { FrameworkOverviewId } from "../frameworks/frameworkGeometry";
 import type {
   MobileFrameworkDocument,
   MobileFrameworkId,
@@ -33,199 +22,6 @@ type FWState =
   | "framework-overview"
   | "framework-reading"
   | "framework-evidence";
-
-function FrameworkNode({
-  framework,
-  x,
-  y,
-  selected,
-  dimmed,
-  onSelect,
-}: {
-  framework: MobileFrameworkDocument;
-  x: number;
-  y: number;
-  selected: boolean;
-  dimmed: boolean;
-  onSelect: () => void;
-}) {
-  const c = T.frameworks;
-  const coreR = selected ? 8 : 5;
-  const innerR = selected ? 20 : 13;
-  const outerR = selected ? 36 : 20;
-
-  return (
-    <g
-      onClick={onSelect}
-      style={{
-        transform: `translate(${x}px,${y}px)`,
-        opacity: dimmed ? 0.10 : 1,
-        transition: FRAMEWORK_POSITION_TRANSITION,
-        cursor: "pointer",
-      }}
-    >
-      <circle
-        r={outerR}
-        fill={c}
-        opacity={selected ? 0.09 : 0.04}
-        pointerEvents="none"
-      />
-      <circle
-        r={innerR}
-        fill={c}
-        opacity={selected ? 0.19 : 0.10}
-        pointerEvents="none"
-      />
-      <circle
-        r={selected ? 26 : 16}
-        fill="none"
-        stroke={c}
-        strokeWidth={0.5}
-        opacity={selected ? 0.30 : 0.09}
-        pointerEvents="none"
-      />
-      <circle r={coreR} fill={c} pointerEvents="none" />
-      <text
-        y={coreR + 16}
-        textAnchor="middle"
-        fontFamily={T.mono}
-        fontSize={7.1}
-        letterSpacing="0.12em"
-        fill={c}
-        opacity={0.74}
-        pointerEvents="none"
-      >
-        {framework.title}
-      </text>
-      <circle r={28} fill="transparent" pointerEvents="all" />
-    </g>
-  );
-}
-
-function FrameworkConnections({ opacity }: { opacity: number }) {
-  const c = T.frameworks;
-  const points = FRAMEWORK_OVERVIEW_LAYOUT;
-
-  return (
-    <g style={{ opacity, transition: FRAMEWORK_FADE_TRANSITION }}>
-      {points.map((point) => (
-        <line
-          key={point.id}
-          x1={FRAMEWORK_PARENT_CORE.x}
-          y1={FRAMEWORK_PARENT_CORE.y}
-          x2={point.x}
-          y2={point.y}
-          stroke={c}
-          strokeWidth={0.25}
-          strokeDasharray="2 8"
-          opacity={0.10}
-        />
-      ))}
-      {points.slice(0, -1).map((point, index) => {
-        const next = points[index + 1];
-        return (
-          <line
-            key={`${point.id}-${next.id}`}
-            x1={point.x}
-            y1={point.y}
-            x2={next.x}
-            y2={next.y}
-            stroke={c}
-            strokeWidth={0.26}
-            strokeDasharray="3 7"
-            opacity={0.12}
-          />
-        );
-      })}
-    </g>
-  );
-}
-
-function FrameworkParent({ opacity }: { opacity: number }) {
-  const c = T.frameworks;
-  return (
-    <g
-      style={{
-        transform: `translate(${FRAMEWORK_PARENT_CORE.x}px,${FRAMEWORK_PARENT_CORE.y}px)`,
-        opacity,
-        transition: FRAMEWORK_FADE_TRANSITION,
-      }}
-    >
-      <circle r={72} fill="none" stroke={c} strokeWidth={0.3} opacity={0.05} />
-      <circle r={48} fill="none" stroke={c} strokeWidth={0.35} opacity={0.08} />
-      <circle r={28} fill="none" stroke={c} strokeWidth={0.4} opacity={0.12} />
-      <circle r={10} fill={c} opacity={0.40} />
-      <circle r={4} fill={c} opacity={0.80} />
-      <text
-        y={26}
-        textAnchor="middle"
-        fontFamily={T.mono}
-        fontSize={6.5}
-        letterSpacing="0.2em"
-        fill={c}
-        opacity={0.66}
-      >
-        FRAMEWORKS
-      </text>
-    </g>
-  );
-}
-
-function SectionStars({
-  framework,
-  opacity,
-}: {
-  framework: MobileFrameworkDocument;
-  opacity: number;
-}) {
-  if (!framework.sections.length) return null;
-
-  const c = T.frameworks;
-  const { radius, startDegrees, endDegrees } =
-    FRAMEWORK_SECTION_STAR_GEOMETRY;
-  const step =
-    framework.sections.length > 1
-      ? (endDegrees - startDegrees) / (framework.sections.length - 1)
-      : 0;
-
-  return (
-    <g style={{ opacity, transition: FRAMEWORK_FADE_TRANSITION }}>
-      {framework.sections.map((section, index) => {
-        const deg = startDegrees + step * index;
-        const rad = (deg * Math.PI) / 180;
-        const x = FRAMEWORK_LEGACY_SELECTED_CENTER.x + Math.cos(rad) * radius;
-        const y = FRAMEWORK_LEGACY_SELECTED_CENTER.y + Math.sin(rad) * radius;
-        return (
-          <g key={section.id}>
-            <line
-              x1={FRAMEWORK_LEGACY_SELECTED_CENTER.x}
-              y1={FRAMEWORK_LEGACY_SELECTED_CENTER.y}
-              x2={x}
-              y2={y}
-              stroke={c}
-              strokeWidth={0.3}
-              opacity={0.10}
-            />
-            <circle cx={x} cy={y} r={8} fill={c} opacity={0.08} />
-            <circle cx={x} cy={y} r={2.6} fill={c} opacity={0.68} />
-            <text
-              x={x}
-              y={y + 15}
-              textAnchor="middle"
-              fontFamily={T.mono}
-              fontSize={5}
-              letterSpacing="0.10em"
-              fill={c}
-              opacity={0.52}
-            >
-              {section.label}
-            </text>
-          </g>
-        );
-      })}
-    </g>
-  );
-}
 
 function FrameworkTopBar({
   title,
@@ -983,7 +779,6 @@ export default function FrameworksScene({
   onBack,
 }: FrameworksSceneProps) {
   const framework = mobileFrameworkFor(activeFrameworkId);
-  const selectedGeometry = frameworkGeometryFor(activeFrameworkId);
   const selected =
     state === "framework-awakened" || state === "framework-overview";
 
@@ -1023,60 +818,26 @@ export default function FrameworksScene({
         style={{ position: "absolute", inset: 0 }}
         aria-label="Frameworks constellation"
       >
-        {FRAMEWORK_RADIAL_GUIDES.map((deg) => {
-          const r = (deg * Math.PI) / 180;
-          return (
-            <line
-              key={deg}
-              x1={FRAMEWORK_PARENT_CORE.x}
-              y1={FRAMEWORK_PARENT_CORE.y}
-              x2={FRAMEWORK_PARENT_CORE.x + Math.cos(r) * 320}
-              y2={FRAMEWORK_PARENT_CORE.y + Math.sin(r) * 320}
-              stroke={T.frameworks}
-              strokeWidth={0.18}
-              opacity={0.035}
-            />
-          );
-        })}
+        <FrameworkOverviewConstellation
+          selectedId={selected ? activeFrameworkId : "frameworks"}
+          onSelect={(id: FrameworkOverviewId) => {
+            if (id === "frameworks") {
+              if (state !== "frameworks-focus") onBack();
+              return;
+            }
 
-        <FrameworkConnections opacity={selected ? 0.08 : 1} />
-        <FrameworkParent opacity={selected ? 0.08 : 0.20} />
+            if (state === "frameworks-focus") {
+              onSelectFramework(id);
+              return;
+            }
 
-        {FRAMEWORK_FOCUS_ITEMS.map((item) => {
-          const geometry = frameworkGeometryFor(item.id);
-          const isActive = item.id === activeFrameworkId;
-          const x = selected && isActive ? FRAMEWORK_LEGACY_SELECTED_CENTER.x : geometry.x;
-          const y = selected && isActive ? FRAMEWORK_LEGACY_SELECTED_CENTER.y : geometry.y;
+            if (id === activeFrameworkId && state === "framework-awakened") {
+              onFrameworkOverview();
+              return;
+            }
 
-          return (
-            <FrameworkNode
-              key={item.id}
-              framework={item}
-              x={x}
-              y={y}
-              selected={selected && isActive}
-              dimmed={selected && !isActive}
-              onSelect={() => {
-                if (state === "frameworks-focus") {
-                  onSelectFramework(item.id);
-                  return;
-                }
-                if (
-                  isActive &&
-                  state === "framework-awakened"
-                ) {
-                  onFrameworkOverview();
-                  return;
-                }
-                onSelectFramework(item.id);
-              }}
-            />
-          );
-        })}
-
-        <SectionStars
-          framework={framework}
-          opacity={selected ? 0.82 : 0}
+            onSelectFramework(id);
+          }}
         />
       </svg>
 
