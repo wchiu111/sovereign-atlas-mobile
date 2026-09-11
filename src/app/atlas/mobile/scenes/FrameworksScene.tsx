@@ -6,11 +6,21 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { T, ANIM, FADE, W, H } from "../components/mobileShared";
+import { T, W, H } from "../components/mobileShared";
+import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
+import { FRAMEWORK_FOCUS_ITEMS } from "../frameworks/frameworkOverviewData";
 import {
-  MOBILE_FRAMEWORKS,
-  mobileFrameworkFor,
-} from "../frameworks/frameworkRegistry";
+  FRAMEWORK_LEGACY_SELECTED_CENTER,
+  FRAMEWORK_OVERVIEW_LAYOUT,
+  FRAMEWORK_PARENT_CORE,
+  FRAMEWORK_RADIAL_GUIDES,
+  FRAMEWORK_SECTION_STAR_GEOMETRY,
+  frameworkGeometryFor,
+} from "../frameworks/frameworkGeometry";
+import {
+  FRAMEWORK_FADE_TRANSITION,
+  FRAMEWORK_POSITION_TRANSITION,
+} from "../frameworks/frameworkMotion";
 import type {
   MobileFrameworkDocument,
   MobileFrameworkId,
@@ -23,30 +33,6 @@ type FWState =
   | "framework-overview"
   | "framework-reading"
   | "framework-evidence";
-
-interface FrameworkNodeGeometry {
-  id: MobileFrameworkId;
-  x: number;
-  y: number;
-}
-
-const FRAMEWORK_GEOMETRY: readonly FrameworkNodeGeometry[] = [
-  { id: "authority-gradient", x: 90, y: 192 },
-  { id: "behavioral-architecture", x: 293, y: 220 },
-  { id: "relational-ai-literacy", x: 90, y: 360 },
-  { id: "presence-navigation", x: 292, y: 372 },
-  { id: "regenerative-systems", x: 150, y: 518 },
-];
-
-const FW_CTR = { x: 192, y: 358 };
-const SELECTED_CENTER = { x: 195, y: 236 };
-
-function geometryFor(id: MobileFrameworkId) {
-  return (
-    FRAMEWORK_GEOMETRY.find((item) => item.id === id) ??
-    FRAMEWORK_GEOMETRY[1]
-  );
-}
 
 function FrameworkNode({
   framework,
@@ -74,7 +60,7 @@ function FrameworkNode({
       style={{
         transform: `translate(${x}px,${y}px)`,
         opacity: dimmed ? 0.10 : 1,
-        transition: ANIM,
+        transition: FRAMEWORK_POSITION_TRANSITION,
         cursor: "pointer",
       }}
     >
@@ -118,15 +104,15 @@ function FrameworkNode({
 
 function FrameworkConnections({ opacity }: { opacity: number }) {
   const c = T.frameworks;
-  const points = FRAMEWORK_GEOMETRY;
+  const points = FRAMEWORK_OVERVIEW_LAYOUT;
 
   return (
-    <g style={{ opacity, transition: FADE }}>
+    <g style={{ opacity, transition: FRAMEWORK_FADE_TRANSITION }}>
       {points.map((point) => (
         <line
           key={point.id}
-          x1={FW_CTR.x}
-          y1={FW_CTR.y}
+          x1={FRAMEWORK_PARENT_CORE.x}
+          y1={FRAMEWORK_PARENT_CORE.y}
           x2={point.x}
           y2={point.y}
           stroke={c}
@@ -160,9 +146,9 @@ function FrameworkParent({ opacity }: { opacity: number }) {
   return (
     <g
       style={{
-        transform: `translate(${FW_CTR.x}px,${FW_CTR.y}px)`,
+        transform: `translate(${FRAMEWORK_PARENT_CORE.x}px,${FRAMEWORK_PARENT_CORE.y}px)`,
         opacity,
-        transition: FADE,
+        transition: FRAMEWORK_FADE_TRANSITION,
       }}
     >
       <circle r={72} fill="none" stroke={c} strokeWidth={0.3} opacity={0.05} />
@@ -195,26 +181,25 @@ function SectionStars({
   if (!framework.sections.length) return null;
 
   const c = T.frameworks;
-  const radius = 94;
-  const start = -160;
-  const end = -30;
+  const { radius, startDegrees, endDegrees } =
+    FRAMEWORK_SECTION_STAR_GEOMETRY;
   const step =
     framework.sections.length > 1
-      ? (end - start) / (framework.sections.length - 1)
+      ? (endDegrees - startDegrees) / (framework.sections.length - 1)
       : 0;
 
   return (
-    <g style={{ opacity, transition: FADE }}>
+    <g style={{ opacity, transition: FRAMEWORK_FADE_TRANSITION }}>
       {framework.sections.map((section, index) => {
-        const deg = start + step * index;
+        const deg = startDegrees + step * index;
         const rad = (deg * Math.PI) / 180;
-        const x = SELECTED_CENTER.x + Math.cos(rad) * radius;
-        const y = SELECTED_CENTER.y + Math.sin(rad) * radius;
+        const x = FRAMEWORK_LEGACY_SELECTED_CENTER.x + Math.cos(rad) * radius;
+        const y = FRAMEWORK_LEGACY_SELECTED_CENTER.y + Math.sin(rad) * radius;
         return (
           <g key={section.id}>
             <line
-              x1={SELECTED_CENTER.x}
-              y1={SELECTED_CENTER.y}
+              x1={FRAMEWORK_LEGACY_SELECTED_CENTER.x}
+              y1={FRAMEWORK_LEGACY_SELECTED_CENTER.y}
               x2={x}
               y2={y}
               stroke={c}
@@ -998,7 +983,7 @@ export default function FrameworksScene({
   onBack,
 }: FrameworksSceneProps) {
   const framework = mobileFrameworkFor(activeFrameworkId);
-  const selectedGeometry = geometryFor(activeFrameworkId);
+  const selectedGeometry = frameworkGeometryFor(activeFrameworkId);
   const selected =
     state === "framework-awakened" || state === "framework-overview";
 
@@ -1038,15 +1023,15 @@ export default function FrameworksScene({
         style={{ position: "absolute", inset: 0 }}
         aria-label="Frameworks constellation"
       >
-        {[0, 60, 120, 180, 240, 300].map((deg) => {
+        {FRAMEWORK_RADIAL_GUIDES.map((deg) => {
           const r = (deg * Math.PI) / 180;
           return (
             <line
               key={deg}
-              x1={FW_CTR.x}
-              y1={FW_CTR.y}
-              x2={FW_CTR.x + Math.cos(r) * 320}
-              y2={FW_CTR.y + Math.sin(r) * 320}
+              x1={FRAMEWORK_PARENT_CORE.x}
+              y1={FRAMEWORK_PARENT_CORE.y}
+              x2={FRAMEWORK_PARENT_CORE.x + Math.cos(r) * 320}
+              y2={FRAMEWORK_PARENT_CORE.y + Math.sin(r) * 320}
               stroke={T.frameworks}
               strokeWidth={0.18}
               opacity={0.035}
@@ -1057,11 +1042,11 @@ export default function FrameworksScene({
         <FrameworkConnections opacity={selected ? 0.08 : 1} />
         <FrameworkParent opacity={selected ? 0.08 : 0.20} />
 
-        {MOBILE_FRAMEWORKS.map((item) => {
-          const geometry = geometryFor(item.id);
+        {FRAMEWORK_FOCUS_ITEMS.map((item) => {
+          const geometry = frameworkGeometryFor(item.id);
           const isActive = item.id === activeFrameworkId;
-          const x = selected && isActive ? SELECTED_CENTER.x : geometry.x;
-          const y = selected && isActive ? SELECTED_CENTER.y : geometry.y;
+          const x = selected && isActive ? FRAMEWORK_LEGACY_SELECTED_CENTER.x : geometry.x;
+          const y = selected && isActive ? FRAMEWORK_LEGACY_SELECTED_CENTER.y : geometry.y;
 
           return (
             <FrameworkNode
