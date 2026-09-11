@@ -60,6 +60,8 @@ export default function MobileAtlas() {
     useState<string | null>(null);
   const [returnFrameworkId, setReturnFrameworkId] =
     useState<MobileFrameworkId | null>(null);
+  const [returningFrameworksToAtlas, setReturningFrameworksToAtlas] =
+    useState(false);
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
@@ -197,6 +199,7 @@ export default function MobileAtlas() {
                 state={state as "atlas-landing" | "system-awakened" | "system-overview"}
                 onSelectCaseStudies={() => setState("system-awakened")}
                 onSelectFrameworks={() => {
+                  setReturningFrameworksToAtlas(false);
                   setFrameworkOverviewSelectionId("frameworks");
                   setReturnFrameworkId(null);
                   setState("frameworks-focus");
@@ -211,6 +214,10 @@ export default function MobileAtlas() {
                 returnProjectId={returnCaseStudyProjectId}
                 onReturnProjectComplete={() => {
                   setReturnCaseStudyProjectId(null);
+                }}
+                returningFromFrameworks={returningFrameworksToAtlas}
+                onFrameworkReturnComplete={() => {
+                  setReturningFrameworksToAtlas(false);
                 }}
                 viewportUiTarget={viewportUiTarget}
                 onBack={() => {
@@ -257,6 +264,8 @@ export default function MobileAtlas() {
                 }}
                 onBack={() => {
                   setReturnFrameworkId(null);
+                  setFrameworkOverviewSelectionId("frameworks");
+                  setReturningFrameworksToAtlas(true);
                   setState("atlas-landing");
                 }}
               />

@@ -36,6 +36,10 @@ import {
   FRAMEWORK_OVERVIEW_TARGETS,
   FRAMEWORK_TOPOLOGY_RADIUS,
 } from "../frameworks/frameworkTopology";
+import { FRAMEWORK_PARENT_CORE } from "../frameworks/frameworkGeometry";
+import FrameworkOverviewConstellation from "../frameworks/constellation/FrameworkOverviewConstellation";
+import useFrameworksAtlasTransition from "../frameworks/hooks/useFrameworksAtlasTransition";
+import { FRAMEWORK_ATLAS_PULL_EASE } from "../frameworks/frameworkMotion";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 const CTX_OP: Record<LandingState, number> = {
@@ -68,6 +72,8 @@ interface LandingSceneProps {
   onSelectProject?: (projectId: (typeof CASE_STUDY_PROJECTS)[number]["id"]) => void;
   returnProjectId?: (typeof CASE_STUDY_PROJECTS)[number]["id"] | null;
   onReturnProjectComplete?: () => void;
+  returningFromFrameworks?: boolean;
+  onFrameworkReturnComplete?: () => void;
   viewportUiTarget?: HTMLElement | null;
 }
 
@@ -81,6 +87,8 @@ export default function LandingScene({
   onSelectProject,
   returnProjectId = null,
   onReturnProjectComplete,
+  returningFromFrameworks = false,
+  onFrameworkReturnComplete,
   viewportUiTarget = null,
 }: LandingSceneProps) {
   const [activeFocusIndex, setActiveFocusIndex] = useState(0);
@@ -107,7 +115,9 @@ export default function LandingScene({
 
     entryInProgress,
     reducedEntryInProgress,
+    reducedEntryProgress,
     reducedExitInProgress,
+    reducedExitProgress,
     entryProgress,
     resolvingOverview,
     animatedCsX,
@@ -137,6 +147,45 @@ export default function LandingScene({
     onBack,
   });
 
+  const {
+    entryPhase: frameworkEntryPhase,
+    resolveT: frameworkResolveT,
+    prefersReducedMotion: frameworkPrefersReducedMotion,
+    reducedEntryProgress: frameworkReducedEntryProgress,
+    reducedExitProgress: frameworkReducedExitProgress,
+
+    enterFrameworks,
+
+    entryInProgress: frameworkEntryInProgress,
+    reducedEntryInProgress: frameworkReducedEntryInProgress,
+    reducedExitInProgress: frameworkReducedExitInProgress,
+    entryProgress: frameworkEntryProgress,
+    resolvingOverview: resolvingFrameworkOverview,
+
+    animatedFrameworkX,
+    animatedFrameworkY,
+    animatedFrameworkOrbitR,
+    selectedSystemScale: frameworkSelectedSystemScale,
+    travelingSystemOpacity: frameworkTravelingSystemOpacity,
+    overviewResolveOpacity: frameworkOverviewResolveOpacity,
+    overviewResolveScale: frameworkOverviewResolveScale,
+    overviewResolveTargets: frameworkOverviewResolveTargets,
+
+    exitScale: frameworkExitScale,
+    exitTranslateX: frameworkExitTranslateX,
+    exitTranslateY: frameworkExitTranslateY,
+    exitBackgroundT: frameworkExitBackgroundT,
+    exitChromeT: frameworkExitChromeT,
+
+    contextRecede: frameworkContextRecede,
+    nexusRecede: frameworkNexusRecede,
+    orbitRecedeOpacity: frameworkOrbitRecedeOpacity,
+  } = useFrameworksAtlasTransition({
+    returningToAtlas: returningFromFrameworks,
+    onEnterComplete: onSelectFrameworks,
+    onReturnComplete: onFrameworkReturnComplete,
+  });
+
   const csState = CS_FOCUS[state];
   const ctxOp = CTX_OP[state];
   const nexusOp = NEXUS_OP[state];
@@ -159,6 +208,85 @@ export default function LandingScene({
       ? 1 - reducedEntryProgress
       : Math.max(0, 1 - entryProgress * 1.2)
     : ctxOp;
+
+  const frameworkContextEntryOpacity = frameworkEntryInProgress
+    ? frameworkReducedEntryInProgress
+      ? 1 - frameworkReducedEntryProgress
+      : Math.max(0, 1 - frameworkEntryProgress * 1.2)
+    : ctxOp;
+
+  const anyEntryInProgress =
+    entryInProgress || frameworkEntryInProgress;
+  const anyAtlasExitInProgress =
+    isExitingCaseStudies || returningFromFrameworks;
+
+  const activeContextRecede = frameworkEntryInProgress
+    ? frameworkContextRecede
+    : contextRecede;
+
+  const activeNexusRecede = frameworkEntryInProgress
+    ? frameworkNexusRecede
+    : nexusRecede;
+
+  const activeOrbitRecedeOpacity = frameworkEntryInProgress
+    ? frameworkOrbitRecedeOpacity
+    : orbitRecedeOpacity;
+
+  const activeContextEntryOpacity = frameworkEntryInProgress
+    ? frameworkContextEntryOpacity
+    : contextEntryOpacity;
+
+  const activeEntryPhase = frameworkEntryInProgress
+    ? frameworkEntryPhase
+    : entryPhase;
+
+  const activeEntryProgress = frameworkEntryInProgress
+    ? frameworkEntryProgress
+    : entryProgress;
+
+  const activeReducedEntryInProgress = frameworkEntryInProgress
+    ? frameworkReducedEntryInProgress
+    : reducedEntryInProgress;
+
+  const activeReducedEntryProgress = frameworkEntryInProgress
+    ? frameworkReducedEntryProgress
+    : reducedEntryProgress;
+
+  const landingChromeOpacity = isExitingCaseStudies
+    ? exitChromeT
+    : returningFromFrameworks
+    ? frameworkExitChromeT
+    : activeReducedEntryInProgress
+    ? 1 - activeReducedEntryProgress
+    : anyEntryInProgress
+    ? Math.max(0, 1 - activeEntryProgress * 1.35)
+    : 1;
+
+  const landingChromeTranslateY = isExitingCaseStudies
+    ? lerp(-6, 0, exitChromeT)
+    : returningFromFrameworks
+    ? lerp(-6, 0, frameworkExitChromeT)
+    : anyEntryInProgress
+    ? -6 * activeEntryProgress
+    : 0;
+
+  const landingBottomOpacity = isExitingCaseStudies
+    ? exitChromeT
+    : returningFromFrameworks
+    ? frameworkExitChromeT
+    : activeReducedEntryInProgress
+    ? 1 - activeReducedEntryProgress
+    : anyEntryInProgress
+    ? Math.max(0, 1 - activeEntryProgress * 1.8)
+    : 1;
+
+  const landingBottomTranslateY = isExitingCaseStudies
+    ? lerp(5, 0, exitChromeT)
+    : returningFromFrameworks
+    ? lerp(5, 0, frameworkExitChromeT)
+    : anyEntryInProgress
+    ? 5 * activeEntryProgress
+    : 0;
 
   // The top-level Case Studies cluster is a compressed miniature of the
   // overview constellation. Shared geometry remains authored outside the hook.
@@ -190,12 +318,14 @@ export default function LandingScene({
             stroke={T.gold}
             strokeWidth={0.28}
             opacity={
-              entryInProgress
-                ? entryPhase === "acknowledge"
+              anyEntryInProgress
+                ? activeEntryPhase === "acknowledge"
                   ? 0.018
                   : 0
                 : isExitingCaseStudies
                 ? 0.036 * exitBackgroundT
+                : returningFromFrameworks
+                ? 0.036 * frameworkExitBackgroundT
                 : isActive
                 ? 0.014
                 : 0.036
@@ -203,14 +333,20 @@ export default function LandingScene({
             style={{ transition: "opacity 220ms ease" }}
           />;
         })}
-        {entryInProgress && (
+        {anyEntryInProgress && (
           <rect
             x={0}
             y={0}
             width={W}
             height={H}
             fill="rgba(5,5,10,0.22)"
-            opacity={entryPhase === "acknowledge" ? 0.16 : entryPhase === "pulling" ? 0.34 : 0.38}
+            opacity={
+              activeEntryPhase === "acknowledge"
+                ? 0.16
+                : activeEntryPhase === "pulling"
+                ? 0.34
+                : 0.38
+            }
             style={{ transition: "opacity 260ms ease" }}
             pointerEvents="none"
           />
@@ -230,8 +366,12 @@ export default function LandingScene({
                 : entryPhase === "pulling"
                 ? 0.045
                 : 0
+              : frameworkEntryInProgress
+              ? (frameworkOrbitRecedeOpacity ?? CS_ARC_OP[state])
               : isExitingCaseStudies
               ? 0.20 * exitChromeT
+              : returningFromFrameworks
+              ? 0.20 * frameworkExitBackgroundT
               : CS_ARC_OP[state]
           }
           style={{ transition: "opacity 360ms ease" }}
@@ -246,8 +386,10 @@ export default function LandingScene({
           opacity={
             isExitingCaseStudies
               ? 0.20 * exitBackgroundT
-              : entryInProgress
-              ? (orbitRecedeOpacity ?? CTX_ARC_OP[state])
+              : returningFromFrameworks
+              ? 0.20 * frameworkExitBackgroundT
+              : anyEntryInProgress
+              ? (activeOrbitRecedeOpacity ?? CTX_ARC_OP[state])
               : CTX_ARC_OP[state]
           }
           style={{ transition: "opacity 360ms ease" }}
@@ -259,7 +401,15 @@ export default function LandingScene({
           strokeWidth={0.55}
           strokeDasharray="4.5 7"
           opacity={
-            isExitingCaseStudies
+            frameworkEntryInProgress
+              ? frameworkEntryPhase === "acknowledge"
+                ? 0.13
+                : frameworkEntryPhase === "pulling"
+                ? 0.045
+                : 0
+              : returningFromFrameworks
+              ? 0.20 * frameworkExitChromeT
+              : isExitingCaseStudies
               ? 0.20 * exitBackgroundT
               : entryInProgress
               ? (orbitRecedeOpacity ?? CTX_ARC_OP[state])
@@ -272,14 +422,18 @@ export default function LandingScene({
           style={{
             opacity: isExitingCaseStudies
               ? exitBackgroundT
-              : entryInProgress
-              ? nexusRecede.opacity
+              : returningFromFrameworks
+              ? frameworkExitBackgroundT
+              : anyEntryInProgress
+              ? activeNexusRecede.opacity
               : nexusOp,
             transform: `scale(${
               isExitingCaseStudies
                 ? lerp(0.972, 1, exitBackgroundT)
-                : entryInProgress
-                ? nexusRecede.scale
+                : returningFromFrameworks
+                ? lerp(0.972, 1, frameworkExitBackgroundT)
+                : anyEntryInProgress
+                ? activeNexusRecede.scale
                 : 1
             })`,
             transformOrigin: `${NEXUS.x}px ${NEXUS.y}px`,
@@ -293,14 +447,18 @@ export default function LandingScene({
           style={{
             opacity: isExitingCaseStudies
               ? exitBackgroundT
-              : entryInProgress
-              ? contextRecede.opacity
-              : contextEntryOpacity,
+              : returningFromFrameworks
+              ? frameworkExitBackgroundT
+              : anyEntryInProgress
+              ? activeContextRecede.opacity
+              : activeContextEntryOpacity,
             transform: `scale(${
               isExitingCaseStudies
                 ? lerp(0.978, 1, exitBackgroundT)
-                : entryInProgress
-                ? contextRecede.scale
+                : returningFromFrameworks
+                ? lerp(0.978, 1, frameworkExitBackgroundT)
+                : anyEntryInProgress
+                ? activeContextRecede.scale
                 : 1
             })`,
             transformOrigin: `${EX_POS.x}px ${exY}px`,
@@ -313,17 +471,27 @@ export default function LandingScene({
             cy={exY}
             orbitR={ORBIT_R}
             awakened={false}
-            dimmed={entryInProgress || (isActive && !isExitingCaseStudies)}
-            showLabel={!isActive || isExitingCaseStudies}
+            dimmed={
+              anyEntryInProgress ||
+              (isActive && !isExitingCaseStudies) ||
+              returningFromFrameworks
+            }
+            showLabel={
+              (!isActive || isExitingCaseStudies) &&
+              !frameworkEntryInProgress
+            }
           />
         </g>
         <g
           style={{
-            opacity: isExitingCaseStudies
-              ? exitBackgroundT
-              : entryInProgress
-              ? contextRecede.opacity
-              : contextEntryOpacity,
+            opacity:
+              frameworkEntryInProgress || returningFromFrameworks
+                ? 0
+                : isExitingCaseStudies
+                ? exitBackgroundT
+                : entryInProgress
+                ? contextRecede.opacity
+                : contextEntryOpacity,
             transform: `scale(${
               isExitingCaseStudies
                 ? lerp(0.978, 1, exitBackgroundT)
@@ -342,7 +510,11 @@ export default function LandingScene({
             orbitR={ORBIT_R}
             awakened={false}
             dimmed={entryInProgress || (isActive && !isExitingCaseStudies)}
-            showLabel={!isActive || isExitingCaseStudies}
+            showLabel={
+              (!isActive || isExitingCaseStudies) &&
+              !frameworkEntryInProgress &&
+              !returningFromFrameworks
+            }
             baseLayoutTargets={FRAMEWORK_OVERVIEW_TARGETS}
             baseLayoutScale={frameworkMiniatureScale}
           />
@@ -350,8 +522,18 @@ export default function LandingScene({
                 {state === "atlas-landing" && (
           <g
             style={{
-              opacity: travelingSystemOpacity,
-              transform: `scale(${selectedSystemScale})`,
+              opacity: returningFromFrameworks
+                ? frameworkExitBackgroundT
+                : frameworkEntryInProgress
+                ? frameworkContextRecede.opacity
+                : travelingSystemOpacity,
+              transform: `scale(${
+                returningFromFrameworks
+                  ? lerp(0.978, 1, frameworkExitBackgroundT)
+                  : frameworkEntryInProgress
+                  ? frameworkContextRecede.scale
+                  : selectedSystemScale
+              })`,
               transformOrigin: `${animatedCsX}px ${animatedCsY}px`,
               transition: resolvingOverview
                 ? "opacity 180ms ease"
@@ -364,8 +546,12 @@ export default function LandingScene({
               cy={entryInProgress ? animatedCsY : csState.y}
               orbitR={entryInProgress ? animatedCsOrbitR : csState.orbitR}
               awakened={entryInProgress}
-              dimmed={false}
-              showLabel={!entryInProgress}
+              dimmed={frameworkEntryInProgress || returningFromFrameworks}
+              showLabel={
+                !entryInProgress &&
+                !frameworkEntryInProgress &&
+                !returningFromFrameworks
+              }
               planetColors={CASE_STUDY_COLORS}
               baseLayoutTargets={caseStudyMiniatureTargets}
               baseLayoutScale={CASE_STUDY_MINIATURE_SCALE}
@@ -396,6 +582,92 @@ export default function LandingScene({
               focusedReturnId={null}
               focusedReturnProgress={0}
               reducedMotion={prefersReducedMotion}
+            />
+          </g>
+        )}
+        {state === "atlas-landing" && frameworkEntryInProgress && (
+          <g
+            style={{
+              opacity: frameworkTravelingSystemOpacity,
+              transform: `scale(${frameworkSelectedSystemScale})`,
+              transformOrigin: `${animatedFrameworkX}px ${animatedFrameworkY}px`,
+              transition: resolvingFrameworkOverview
+                ? "opacity 180ms ease"
+                : `transform 760ms ${FRAMEWORK_ATLAS_PULL_EASE}, opacity 180ms ease`,
+            }}
+          >
+            <SystemNode
+              sys={fw}
+              cx={animatedFrameworkX}
+              cy={animatedFrameworkY}
+              orbitR={animatedFrameworkOrbitR}
+              awakened
+              dimmed={false}
+              showLabel={false}
+              baseLayoutTargets={FRAMEWORK_OVERVIEW_TARGETS}
+              baseLayoutScale={frameworkMiniatureScale}
+              resolveTargets={
+                resolvingFrameworkOverview
+                  ? frameworkOverviewResolveTargets
+                  : undefined
+              }
+              resolveT={
+                resolvingFrameworkOverview ? frameworkResolveT : 0
+              }
+            />
+          </g>
+        )}
+
+        {resolvingFrameworkOverview && (
+          <g
+            style={{
+              opacity:
+                frameworkResolveT < 0.82
+                  ? 0
+                  : frameworkOverviewResolveOpacity,
+              transform: `scale(${frameworkOverviewResolveScale})`,
+              transformOrigin: `${FRAMEWORK_PARENT_CORE.x}px ${FRAMEWORK_PARENT_CORE.y}px`,
+              transition: "opacity 120ms ease",
+              pointerEvents: "none",
+            }}
+          >
+            <FrameworkOverviewConstellation
+              selectedId="frameworks"
+              selectionPulseId={null}
+              ambientPaused
+              labelsVisible={false}
+              focusedEntryId={null}
+              focusedEntryProgress={0}
+              focusedReturnId={null}
+              focusedReturnProgress={0}
+              reducedMotion={frameworkPrefersReducedMotion}
+              onSelect={() => {}}
+            />
+          </g>
+        )}
+
+        {returningFromFrameworks && (
+          <g
+            style={{
+              opacity: frameworkReducedExitInProgress
+                ? 1 - frameworkReducedExitProgress
+                : 1,
+              transform: `translate(${frameworkExitTranslateX}px, ${frameworkExitTranslateY}px) scale(${frameworkExitScale})`,
+              transformOrigin: `${FRAMEWORK_PARENT_CORE.x}px ${FRAMEWORK_PARENT_CORE.y}px`,
+              pointerEvents: "none",
+            }}
+          >
+            <FrameworkOverviewConstellation
+              selectedId="frameworks"
+              selectionPulseId={null}
+              ambientPaused
+              labelsVisible={false}
+              focusedEntryId={null}
+              focusedEntryProgress={0}
+              focusedReturnId={null}
+              focusedReturnProgress={0}
+              reducedMotion={frameworkPrefersReducedMotion}
+              onSelect={() => {}}
             />
           </g>
         )}
@@ -445,8 +717,40 @@ export default function LandingScene({
         )}
         {state === "atlas-landing" && (
           <>
-            <circle cx={csState.x} cy={csState.y} r={56} fill="transparent" onClick={enterCaseStudies} style={{ cursor: entryInProgress ? "default" : "pointer", pointerEvents: entryInProgress ? "none" : "auto" }} />
-            <circle cx={FW_POS.x} cy={FW_POS.y} r={56} fill="transparent" onClick={onSelectFrameworks} style={{ cursor: "pointer" }} />
+            <circle
+              cx={csState.x}
+              cy={csState.y}
+              r={56}
+              fill="transparent"
+              onClick={enterCaseStudies}
+              style={{
+                cursor:
+                  anyEntryInProgress || anyAtlasExitInProgress
+                    ? "default"
+                    : "pointer",
+                pointerEvents:
+                  anyEntryInProgress || anyAtlasExitInProgress
+                    ? "none"
+                    : "auto",
+              }}
+            />
+            <circle
+              cx={FW_POS.x}
+              cy={FW_POS.y}
+              r={56}
+              fill="transparent"
+              onClick={enterFrameworks}
+              style={{
+                cursor:
+                  anyEntryInProgress || anyAtlasExitInProgress
+                    ? "default"
+                    : "pointer",
+                pointerEvents:
+                  anyEntryInProgress || anyAtlasExitInProgress
+                    ? "none"
+                    : "auto",
+              }}
+            />
           </>
         )}
       </svg>
@@ -498,21 +802,9 @@ export default function LandingScene({
             alignItems: "center",
             textAlign: "center",
             pointerEvents: "none",
-            opacity: isExitingCaseStudies
-              ? exitChromeT
-              : reducedEntryInProgress
-              ? 1 - reducedEntryProgress
-              : entryInProgress
-              ? Math.max(0, 1 - entryProgress * 1.35)
-              : 1,
-            transform: `translateY(${
-              isExitingCaseStudies
-                ? lerp(-6, 0, exitChromeT)
-                : entryInProgress
-                ? -6 * entryProgress
-                : 0
-            }px)`,
-            transition: isExitingCaseStudies
+            opacity: landingChromeOpacity,
+            transform: `translateY(${landingChromeTranslateY}px)`,
+            transition: anyAtlasExitInProgress
               ? "none"
               : "opacity 320ms ease, transform 420ms ease",
           }}
@@ -559,21 +851,9 @@ export default function LandingScene({
             alignItems: "center",
             gap: 6,
             pointerEvents: "none",
-            opacity: isExitingCaseStudies
-              ? exitChromeT
-              : reducedEntryInProgress
-              ? 1 - reducedEntryProgress
-              : entryInProgress
-              ? Math.max(0, 1 - entryProgress * 1.8)
-              : 1,
-            transform: `translateY(${
-              isExitingCaseStudies
-                ? lerp(5, 0, exitChromeT)
-                : entryInProgress
-                ? 5 * entryProgress
-                : 0
-            }px)`,
-            transition: isExitingCaseStudies
+            opacity: landingBottomOpacity,
+            transform: `translateY(${landingBottomTranslateY}px)`,
+            transition: anyAtlasExitInProgress
               ? "none"
               : "opacity 240ms ease, transform 320ms ease",
           }}
