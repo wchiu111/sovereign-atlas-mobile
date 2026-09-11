@@ -56,16 +56,13 @@ export type MobileState =
   | "system-overview"
   | "project-reading"
   | "frameworks-focus"
-  | "framework-awakened"
-  | "framework-overview"
   | "framework-reading"
   | "framework-evidence";
 
 export const MOBILE_STATES: readonly MobileState[] = [
   "atlas-landing", "system-awakened", "system-overview",
   "project-reading",
-  "frameworks-focus", "framework-awakened", "framework-overview",
-  "framework-reading", "framework-evidence",
+  "frameworks-focus", "framework-reading", "framework-evidence",
 ];
 
 export interface Planet { angle: number; label: string; }

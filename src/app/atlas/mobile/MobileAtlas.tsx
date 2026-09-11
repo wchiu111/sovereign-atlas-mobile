@@ -13,6 +13,7 @@ import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
 import type { MobileCaseStudyProjectId } from "./reading/mobileReadingTypes";
 import type { MobileFrameworkId } from "./frameworks/mobileFrameworkTypes";
+import type { FrameworkOverviewId } from "./frameworks/frameworkGeometry";
 import { DEFAULT_MOBILE_FRAMEWORK_ID, mobileFrameworkFor } from "./frameworks/frameworkRegistry";
 
 const STATE_LABELS: Record<MobileState, string> = {
@@ -20,22 +21,20 @@ const STATE_LABELS: Record<MobileState, string> = {
   "system-awakened":    "B · CS Awakened",
   "system-overview":    "C · CS Overview",
   "project-reading":    "H · Reading",
-  "frameworks-focus":   "J · FW Focus",
-  "framework-awakened": "K · FW Awakened",
-  "framework-overview": "L · FW Overview",
-  "framework-reading":  "M · FW Reading",
-  "framework-evidence": "N · FW Evidence",
+  "frameworks-focus":   "J · FW Overview",
+  "framework-reading":  "K · FW Reading",
+  "framework-evidence": "L · FW Evidence",
 };
 
 const STATE_GROUPS: { label: string; color: string; states: MobileState[] }[] = [
   { label: "LANDING", color: T.gold, states: ["atlas-landing", "system-awakened", "system-overview"] },
   { label: "CASE STUDIES", color: T.caseStudies, states: ["project-reading"] },
-  { label: "FRAMEWORKS", color: T.frameworks, states: ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"] },
+  { label: "FRAMEWORKS", color: T.frameworks, states: ["frameworks-focus", "framework-reading", "framework-evidence"] },
 ];
 
 const LANDING_STATES: readonly MobileState[] = ["atlas-landing", "system-awakened", "system-overview"];
 const CS_READING_STATES: readonly MobileState[] = ["project-reading"];
-const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-awakened", "framework-overview", "framework-reading", "framework-evidence"];
+const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-reading", "framework-evidence"];
 
 
 function isDebugMode() {
@@ -53,10 +52,14 @@ export default function MobileAtlas() {
   const [state, setStateRaw] = useState<MobileState>("atlas-landing");
   const [activeFrameworkId, setActiveFrameworkId] =
     useState<MobileFrameworkId>(DEFAULT_MOBILE_FRAMEWORK_ID);
+  const [frameworkOverviewSelectionId, setFrameworkOverviewSelectionId] =
+    useState<FrameworkOverviewId>("frameworks");
   const [activeFrameworkSectionId, setActiveFrameworkSectionId] =
     useState<string>("governance");
   const [activeFrameworkEvidenceId, setActiveFrameworkEvidenceId] =
     useState<string | null>(null);
+  const [returnFrameworkId, setReturnFrameworkId] =
+    useState<MobileFrameworkId | null>(null);
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
@@ -193,7 +196,11 @@ export default function MobileAtlas() {
               <LandingScene
                 state={state as "atlas-landing" | "system-awakened" | "system-overview"}
                 onSelectCaseStudies={() => setState("system-awakened")}
-                onSelectFrameworks={() => setState("frameworks-focus")}
+                onSelectFrameworks={() => {
+                  setFrameworkOverviewSelectionId("frameworks");
+                  setReturnFrameworkId(null);
+                  setState("frameworks-focus");
+                }}
                 onOverviewExpand={() => setState("system-overview")}
                 onOverviewBack={() => setState("system-awakened")}
                 onSelectProject={(projectId) => {
@@ -216,26 +223,41 @@ export default function MobileAtlas() {
 
             {isFW && !isFrameworkReadingDepth && (
               <FrameworksScene
-                state={state as "frameworks-focus" | "framework-awakened" | "framework-overview"}
+                state="frameworks-focus"
                 activeFrameworkId={activeFrameworkId}
+                overviewSelectionId={frameworkOverviewSelectionId}
                 activeSectionId={activeFrameworkSectionId}
                 setActiveSectionId={setActiveFrameworkSectionId}
                 onSelectFramework={(frameworkId) => {
                   const nextFramework = mobileFrameworkFor(frameworkId);
+                  setReturnFrameworkId(null);
                   setActiveFrameworkId(frameworkId);
                   setActiveFrameworkSectionId(nextFramework.sections[0]?.id ?? "");
                   setActiveFrameworkEvidenceId(null);
-                  setState("framework-awakened");
+                  setFrameworkOverviewSelectionId(frameworkId);
                 }}
-                onSelectParent={() => setState("frameworks-focus")}
-                onFrameworkOverview={() => setState("framework-overview")}
-                onExplore={() => setState("framework-reading")}
+                onSelectParent={() => {
+                  setReturnFrameworkId(null);
+                  setFrameworkOverviewSelectionId("frameworks");
+                }}
+                onExplore={() => {
+                  setReturnFrameworkId(null);
+                  setFrameworkOverviewSelectionId(activeFrameworkId);
+                  setState("framework-reading");
+                }}
                 onCanvas={(evidenceId) => {
                   setActiveFrameworkEvidenceId(evidenceId);
                   setState("framework-evidence");
                 }}
                 activeEvidenceId={activeFrameworkEvidenceId}
-                onBack={() => setState("atlas-landing")}
+                returnFrameworkId={returnFrameworkId}
+                onReturnFrameworkComplete={() => {
+                  setReturnFrameworkId(null);
+                }}
+                onBack={() => {
+                  setReturnFrameworkId(null);
+                  setState("atlas-landing");
+                }}
               />
             )}
 
@@ -244,28 +266,32 @@ export default function MobileAtlas() {
                 <FrameworksScene
                   state="framework-reading"
                   activeFrameworkId={activeFrameworkId}
+                  overviewSelectionId={frameworkOverviewSelectionId}
                   activeSectionId={activeFrameworkSectionId}
                   setActiveSectionId={setActiveFrameworkSectionId}
                   onSelectFramework={setActiveFrameworkId}
-                  onSelectParent={() => setState("frameworks-focus")}
-                  onFrameworkOverview={() => setState("framework-overview")}
+                  onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
                   onExplore={() => setState("framework-reading")}
                   onCanvas={(evidenceId) => {
                   setActiveFrameworkEvidenceId(evidenceId);
                   setState("framework-evidence");
                 }}
                 activeEvidenceId={activeFrameworkEvidenceId}
-                  onBack={() => setState("framework-overview")}
+                  onBack={() => {
+                    setReturnFrameworkId(activeFrameworkId);
+                    setFrameworkOverviewSelectionId(activeFrameworkId);
+                    setState("frameworks-focus");
+                  }}
                 />
                 {isFrameworkEvidence && (
                   <FrameworksScene
                     state="framework-evidence"
                     activeFrameworkId={activeFrameworkId}
+                    overviewSelectionId={frameworkOverviewSelectionId}
                     activeSectionId={activeFrameworkSectionId}
                     setActiveSectionId={setActiveFrameworkSectionId}
                     onSelectFramework={setActiveFrameworkId}
-                    onSelectParent={() => setState("frameworks-focus")}
-                    onFrameworkOverview={() => setState("framework-overview")}
+                    onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
                     onExplore={() => setState("framework-reading")}
                     onCanvas={(evidenceId) => {
                   setActiveFrameworkEvidenceId(evidenceId);

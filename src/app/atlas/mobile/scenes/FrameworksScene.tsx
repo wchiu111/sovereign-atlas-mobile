@@ -25,8 +25,6 @@ import type {
 
 type FWState =
   | "frameworks-focus"
-  | "framework-awakened"
-  | "framework-overview"
   | "framework-reading"
   | "framework-evidence";
 
@@ -617,11 +615,11 @@ function FrameworkEvidenceViewer({
 interface FrameworksSceneProps {
   state: FWState;
   activeFrameworkId: MobileFrameworkId;
+  overviewSelectionId: import("../frameworks/frameworkGeometry").FrameworkOverviewId;
   activeSectionId: string;
   setActiveSectionId: (id: string) => void;
   onSelectFramework: (id: MobileFrameworkId) => void;
   onSelectParent: () => void;
-  onFrameworkOverview: () => void;
   onExplore: () => void;
   onCanvas: (evidenceId: string) => void;
   activeEvidenceId: string | null;
@@ -633,11 +631,11 @@ interface FrameworksSceneProps {
 export default function FrameworksScene({
   state,
   activeFrameworkId,
+  overviewSelectionId,
   activeSectionId,
   setActiveSectionId,
   onSelectFramework,
   onSelectParent,
-  onFrameworkOverview,
   onExplore,
   onCanvas,
   activeEvidenceId,
@@ -665,6 +663,7 @@ export default function FrameworksScene({
   } = useFrameworksChoreography({
     state,
     activeFrameworkId,
+    overviewSelectionId,
     returnFrameworkId,
     onReturnFrameworkComplete,
     onSelectFramework,

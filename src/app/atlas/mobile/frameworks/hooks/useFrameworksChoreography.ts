@@ -20,14 +20,13 @@ export type FrameworkDrawerPhase = "open" | "closing" | "opening";
 
 type FrameworkOverviewState =
   | "frameworks-focus"
-  | "framework-awakened"
-  | "framework-overview"
   | "framework-reading"
   | "framework-evidence";
 
 interface UseFrameworksChoreographyArgs {
   state: FrameworkOverviewState;
   activeFrameworkId: MobileFrameworkId;
+  overviewSelectionId: FrameworkOverviewId;
   returnFrameworkId?: MobileFrameworkId | null;
   onReturnFrameworkComplete?: () => void;
   onSelectFramework: (id: MobileFrameworkId) => void;
@@ -38,20 +37,17 @@ interface UseFrameworksChoreographyArgs {
 export default function useFrameworksChoreography({
   state,
   activeFrameworkId,
+  overviewSelectionId,
   returnFrameworkId = null,
   onReturnFrameworkComplete,
   onSelectFramework,
   onSelectParent,
   onExplore,
 }: UseFrameworksChoreographyArgs) {
-  const overviewActive =
-    state === "frameworks-focus" ||
-    state === "framework-awakened" ||
-    state === "framework-overview";
+  const overviewActive = state === "frameworks-focus";
 
   const initialOverviewId: FrameworkOverviewId =
-    returnFrameworkId ??
-    (state === "frameworks-focus" ? "frameworks" : activeFrameworkId);
+    returnFrameworkId ?? overviewSelectionId;
 
   const [drawerItemId, setDrawerItemId] =
     useState<FrameworkOverviewId>(initialOverviewId);
@@ -198,21 +194,18 @@ export default function useFrameworksChoreography({
   useEffect(() => {
     if (!overviewActive || returnFrameworkId || isReturningFromReading) return;
 
-    const expected: FrameworkOverviewId =
-      state === "frameworks-focus" ? "frameworks" : activeFrameworkId;
+    const expected: FrameworkOverviewId = overviewSelectionId;
 
     if (drawerPhase === "open") setDrawerItemId(expected);
   }, [
     overviewActive,
-    state,
-    activeFrameworkId,
+    overviewSelectionId,
     drawerPhase,
     returnFrameworkId,
     isReturningFromReading,
   ]);
 
-  const selectedId: FrameworkOverviewId =
-    state === "frameworks-focus" ? "frameworks" : activeFrameworkId;
+  const selectedId: FrameworkOverviewId = overviewSelectionId;
 
   const drawerItem = useMemo(() => {
     if (drawerItemId === "frameworks") return null;
