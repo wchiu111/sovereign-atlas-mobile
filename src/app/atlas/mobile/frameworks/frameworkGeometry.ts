@@ -1,4 +1,5 @@
 import type { MobileFrameworkId } from "./mobileFrameworkTypes";
+import { FRAMEWORK_TOPOLOGY } from "./frameworkTopology";
 
 export type FrameworkOverviewId = "frameworks" | MobileFrameworkId;
 export type FrameworkLabelAnchor = "start" | "middle" | "end";
@@ -13,60 +14,31 @@ export interface FrameworkOverviewGeometry {
 }
 
 /**
- * Stable authored Frameworks overview.
- *
- * The composition deliberately mirrors the Case Studies grammar:
- * a dominant parent core, authored child positions, and all destinations kept
- * above the narrative drawer boundary. Selection changes emphasis, not place.
- */
-export const FRAMEWORK_OVERVIEW_LAYOUT: readonly FrameworkOverviewGeometry[] = [
-  {
-    id: "authority-gradient",
-    x: 96,
-    y: 176,
-    labelX: 96,
-    labelY: 203,
-    anchor: "middle",
-  },
-  {
-    id: "behavioral-architecture",
-    x: 294,
-    y: 192,
-    labelX: 294,
-    labelY: 219,
-    anchor: "middle",
-  },
-  {
-    id: "relational-ai-literacy",
-    x: 86,
-    y: 334,
-    labelX: 86,
-    labelY: 361,
-    anchor: "middle",
-  },
-  {
-    id: "presence-navigation",
-    x: 304,
-    y: 340,
-    labelX: 304,
-    labelY: 367,
-    anchor: "middle",
-  },
-  {
-    id: "regenerative-systems",
-    x: 195,
-    y: 414,
-    labelX: 195,
-    labelY: 441,
-    anchor: "middle",
-  },
-];
-
-/**
- * Parent placement intentionally aligns with the Case Studies overview's
- * visual center rather than the old tall Frameworks prototype.
+ * Parent placement remains the visual center of the expanded overview.
  */
 export const FRAMEWORK_PARENT_CORE = { x: 195, y: 270 } as const;
+
+/**
+ * Expanded overview geometry is now derived from the same relative topology
+ * used by the top-level Frameworks miniature.
+ *
+ * Selection changes emphasis, not place. More importantly, entering the
+ * overview will no longer require child nodes to swap positions.
+ */
+export const FRAMEWORK_OVERVIEW_LAYOUT: readonly FrameworkOverviewGeometry[] =
+  FRAMEWORK_TOPOLOGY.map(({ id, vector }) => {
+    const x = FRAMEWORK_PARENT_CORE.x + vector.x;
+    const y = FRAMEWORK_PARENT_CORE.y + vector.y;
+
+    return {
+      id,
+      x,
+      y,
+      labelX: x,
+      labelY: y + 27,
+      anchor: "middle" as const,
+    };
+  });
 
 export const FRAMEWORK_LABEL_LINES: Record<
   MobileFrameworkId,
@@ -79,25 +51,39 @@ export const FRAMEWORK_LABEL_LINES: Record<
   "regenerative-systems": ["REGENERATIVE", "SYSTEMS"],
 };
 
+function pointFor(id: MobileFrameworkId) {
+  return (
+    FRAMEWORK_OVERVIEW_LAYOUT.find((item) => item.id === id) ??
+    FRAMEWORK_OVERVIEW_LAYOUT[0]
+  );
+}
+
+function spokePath(id: MobileFrameworkId) {
+  const target = pointFor(id);
+  return `M${FRAMEWORK_PARENT_CORE.x} ${FRAMEWORK_PARENT_CORE.y} L${target.x} ${target.y}`;
+}
+
+const authority = pointFor("authority-gradient");
+const behavioral = pointFor("behavioral-architecture");
+const presence = pointFor("presence-navigation");
+const regenerative = pointFor("regenerative-systems");
+
 /**
- * Relationship paths are authored rather than generated as a perfect radial
- * graph. They keep the system spatial and slightly asymmetric.
+ * Relationship paths now terminate on topology-derived node positions.
+ * The two light cross-links preserve the existing "system" feeling without
+ * becoming a second source of node geometry.
  */
-export const FRAMEWORK_RELATION_PATHS = [
-  "M195 270 C160 232 126 198 96 176",
-  "M195 270 C226 236 260 207 294 192",
-  "M195 270 C155 286 118 310 86 334",
-  "M195 270 C236 288 273 314 304 340",
-  "M195 270 C195 318 195 365 195 414",
-  "M96 176 C155 150 235 154 294 192",
-  "M86 334 C149 302 239 305 304 340",
-] as const;
+export const FRAMEWORK_RELATION_PATHS: readonly string[] = [
+  ...FRAMEWORK_TOPOLOGY.map(({ id }) => spokePath(id)),
+  `M${authority.x} ${authority.y} C${authority.x + 45} ${authority.y - 12} ${behavioral.x - 45} ${behavioral.y - 12} ${behavioral.x} ${behavioral.y}`,
+  `M${regenerative.x} ${regenerative.y} C${regenerative.x + 55} ${regenerative.y + 18} ${presence.x - 55} ${presence.y + 18} ${presence.x} ${presence.y}`,
+];
 
 export function frameworkGeometryFor(
   id: MobileFrameworkId,
 ): FrameworkOverviewGeometry {
   return (
     FRAMEWORK_OVERVIEW_LAYOUT.find((item) => item.id === id) ??
-    FRAMEWORK_OVERVIEW_LAYOUT[1]
+    FRAMEWORK_OVERVIEW_LAYOUT[0]
   );
 }

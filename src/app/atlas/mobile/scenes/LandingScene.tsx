@@ -32,6 +32,10 @@ import {
   DRAWER_CLOSE_DURATION,
   REDUCED_MOTION_DRAWER_DURATION,
 } from "../case-studies/caseStudyMotion";
+import {
+  FRAMEWORK_OVERVIEW_TARGETS,
+  FRAMEWORK_TOPOLOGY_RADIUS,
+} from "../frameworks/frameworkTopology";
 
 type LandingState = "atlas-landing" | "system-awakened" | "system-overview";
 const CTX_OP: Record<LandingState, number> = {
@@ -159,6 +163,11 @@ export default function LandingScene({
   // The top-level Case Studies cluster is a compressed miniature of the
   // overview constellation. Shared geometry remains authored outside the hook.
   const caseStudyMiniatureTargets = overviewResolveTargets;
+
+  // Frameworks follows the same continuity rule: top-level and overview use
+  // one relative topology. The miniature is only a scale of the expanded
+  // constellation, which prepares the system for a seamless future transition.
+  const frameworkMiniatureScale = ORBIT_R / FRAMEWORK_TOPOLOGY_RADIUS;
 
   const cycleProject = (direction: -1 | 1) => {
     setActiveFocusIndex((current) => {
@@ -334,6 +343,8 @@ export default function LandingScene({
             awakened={false}
             dimmed={entryInProgress || (isActive && !isExitingCaseStudies)}
             showLabel={!isActive || isExitingCaseStudies}
+            baseLayoutTargets={FRAMEWORK_OVERVIEW_TARGETS}
+            baseLayoutScale={frameworkMiniatureScale}
           />
         </g>
                 {state === "atlas-landing" && (

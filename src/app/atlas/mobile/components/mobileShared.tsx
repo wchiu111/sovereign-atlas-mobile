@@ -4,6 +4,7 @@
  */
 
 import { useEffect, type RefObject } from "react";
+import { FRAMEWORK_SYSTEM_PLANETS } from "../frameworks/frameworkTopology";
 
 /**
  * Canonical authored coordinate space for the mobile Atlas.
@@ -96,14 +97,7 @@ export const SYSTEMS: SystemDef[] = [
   {
     id: "frameworks", label: "FRAMEWORKS", color: T.frameworks,
     orbitPath: "M -60 430 C 40 520 140 565 195 565 C 250 565 350 520 450 430",
-    planets: [
-      { angle: -100, label: "AUTHORITY GRADIENT" },
-      { angle:  -28, label: "RELATIONAL AI LITERACY" },
-      { angle:   44, label: "MODEL DESIGN" },
-      { angle:  116, label: "APPLICATION KIT" },
-      { angle:  188, label: "REGENERATIVE SYSTEMS" },
-      { angle:  260, label: "PRESENCE NAVIGATION" },
-    ],
+    planets: [...FRAMEWORK_SYSTEM_PLANETS],
   },
 ];
 
