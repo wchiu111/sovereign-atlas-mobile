@@ -48,8 +48,37 @@ export interface AtlasOverviewPresentationState<
 }
 
 /**
- * Minimum adapter shape a future overview implementation can expose to the
- * shared frame without surrendering its system-specific spatial behavior.
+ * Shared observable interaction state.
+ *
+ * This is deliberately a contract, not a generic React hook. Case Studies,
+ * Frameworks, and future Experiments may implement different spatial motion
+ * while still exposing the same behavioral vocabulary to the overview frame.
+ */
+export interface AtlasOverviewInteractionState<
+  TSelectionId extends string = string,
+> extends AtlasOverviewPresentationState<TSelectionId> {
+  parentId: TSelectionId;
+  selectionPulseId: TSelectionId | null;
+  labelsVisible: boolean;
+  ambientPaused: boolean;
+  focusedEntryId: TSelectionId | null;
+  focusedEntryProgress: number;
+  isReturningFromReading: boolean;
+  focusedReturnProgress: number;
+}
+
+export interface AtlasOverviewInteractionActions<
+  TSelectionId extends string = string,
+> {
+  selectOverviewItem: (id: TSelectionId) => void;
+  enterFocusedReading: (id: TSelectionId) => void;
+  selectParent: () => void;
+  exitToAtlas: () => void;
+}
+
+/**
+ * Minimum adapter shape a system can expose to the shared frame without
+ * surrendering its system-specific spatial behavior.
  */
 export interface AtlasOverviewAdapter<
   TSelectionId extends string = string,
