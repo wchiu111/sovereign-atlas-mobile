@@ -4,12 +4,18 @@ import { FRAMEWORK_POSITION_TRANSITION } from "../frameworkMotion";
 
 export default function FrameworkParent({
   selected,
+  selectionPulse,
+  ambientPaused,
   onSelect,
 }: {
   selected: boolean;
+  selectionPulse: boolean;
+  ambientPaused: boolean;
   onSelect: () => void;
 }) {
   const activate = () => onSelect();
+  const animationPlayState =
+    ambientPaused && !selectionPulse ? "paused" : "running";
 
   return (
     <g
@@ -33,40 +39,52 @@ export default function FrameworkParent({
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <circle
-        r={selected ? 74 : 62}
-        fill={T.frameworks}
-        opacity={selected ? 0.10 : 0.035}
-        pointerEvents="none"
-      />
-      <circle
-        r={selected ? 48 : 42}
-        fill={T.frameworks}
-        opacity={selected ? 0.18 : 0.065}
-        pointerEvents="none"
-      />
-      <circle
-        r={selected ? 57 : 50}
-        fill="none"
-        stroke={T.frameworks}
-        strokeWidth={selected ? 0.72 : 0.42}
-        opacity={selected ? 0.36 : 0.14}
-        pointerEvents="none"
-      />
-      <circle
-        r={selected ? 34 : 30}
-        fill="none"
-        stroke={T.frameworks}
-        strokeWidth={0.35}
-        opacity={selected ? 0.23 : 0.09}
-        pointerEvents="none"
-      />
-      <circle
-        r={selected ? 14 : 11}
-        fill={T.frameworks}
-        opacity={selected ? 1 : 0.55}
-        pointerEvents="none"
-      />
+      <g
+        className={
+          selectionPulse
+            ? "framework-selection-pulse"
+            : selected
+            ? "framework-parent-selected"
+            : "framework-parent-available"
+        }
+        style={{ animationPlayState }}
+      >
+        <circle
+          r={selected ? 74 : 62}
+          fill={T.frameworks}
+          opacity={selected ? 0.10 : 0.035}
+          pointerEvents="none"
+        />
+        <circle
+          r={selected ? 48 : 42}
+          fill={T.frameworks}
+          opacity={selected ? 0.18 : 0.065}
+          pointerEvents="none"
+        />
+        <circle
+          r={selected ? 57 : 50}
+          fill="none"
+          stroke={T.frameworks}
+          strokeWidth={selected ? 0.72 : 0.42}
+          opacity={selected ? 0.36 : 0.14}
+          pointerEvents="none"
+        />
+        <circle
+          r={selected ? 34 : 30}
+          fill="none"
+          stroke={T.frameworks}
+          strokeWidth={0.35}
+          opacity={selected ? 0.23 : 0.09}
+          pointerEvents="none"
+        />
+        <circle
+          r={selected ? 14 : 11}
+          fill={T.frameworks}
+          opacity={selected ? 1 : 0.55}
+          pointerEvents="none"
+        />
+      </g>
+
       <circle r={36} fill="transparent" pointerEvents="all" />
 
       <text

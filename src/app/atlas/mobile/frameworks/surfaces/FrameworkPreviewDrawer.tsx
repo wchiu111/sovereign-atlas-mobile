@@ -11,12 +11,31 @@ import {
 
 export default function FrameworkPreviewDrawer({
   item,
+  phase,
   onExplore,
+  arrivalVisible = true,
+  reducedMotion = false,
+  closeDurationMs,
+  reducedDurationMs,
 }: {
   item: FrameworkFocusItem | null;
+  phase: "open" | "closing" | "opening";
   onExplore: () => void;
+  arrivalVisible?: boolean;
+  reducedMotion?: boolean;
+  closeDurationMs: number;
+  reducedDurationMs: number;
 }) {
   const isParent = item === null;
+  const translateY = reducedMotion
+    ? "0%"
+    : phase === "closing"
+    ? "100%"
+    : arrivalVisible
+    ? "0%"
+    : "18px";
+  const opacity =
+    phase === "closing" ? (reducedMotion ? 0 : 0.08) : arrivalVisible ? 1 : 0;
 
   return (
     <div
@@ -35,6 +54,14 @@ export default function FrameworkPreviewDrawer({
         padding: `${MOBILE_NARRATIVE_SURFACE_TOP}px ${MOBILE_CONTENT_INSET} calc(${MOBILE_NARRATIVE_SURFACE_BOTTOM}px + env(safe-area-inset-bottom, 0px))`,
         display: "flex",
         flexDirection: "column",
+        transform: `translateY(${translateY})`,
+        opacity,
+        transition: reducedMotion
+          ? `opacity ${reducedDurationMs}ms ease`
+          : phase === "closing"
+          ? `transform ${closeDurationMs}ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease`
+          : "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 260ms ease",
+        willChange: "transform, opacity",
       }}
     >
       <div

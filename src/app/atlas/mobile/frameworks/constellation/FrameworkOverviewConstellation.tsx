@@ -5,15 +5,24 @@ import {
   type FrameworkOverviewId,
   frameworkGeometryFor,
 } from "../frameworkGeometry";
-import { FRAMEWORK_FADE_TRANSITION } from "../frameworkMotion";
+import {
+  FRAMEWORK_BREATH_DELAYS,
+  FRAMEWORK_FADE_TRANSITION,
+} from "../frameworkMotion";
 import FrameworkNode from "./FrameworkNode";
 import FrameworkParent from "./FrameworkParent";
 
 export default function FrameworkOverviewConstellation({
   selectedId,
+  selectionPulseId,
+  ambientPaused,
+  labelsVisible,
   onSelect,
 }: {
   selectedId: FrameworkOverviewId;
+  selectionPulseId: FrameworkOverviewId | null;
+  ambientPaused: boolean;
+  labelsVisible: boolean;
   onSelect: (id: FrameworkOverviewId) => void;
 }) {
   const parentSelected = selectedId === "frameworks";
@@ -42,16 +51,22 @@ export default function FrameworkOverviewConstellation({
 
       <FrameworkParent
         selected={parentSelected}
+        selectionPulse={selectionPulseId === "frameworks"}
+        ambientPaused={ambientPaused}
         onSelect={() => onSelect("frameworks")}
       />
 
-      {FRAMEWORK_FOCUS_ITEMS.map((item) => (
+      {FRAMEWORK_FOCUS_ITEMS.map((item, index) => (
         <FrameworkNode
           key={item.id}
           item={item}
           geometry={frameworkGeometryFor(item.id)}
           selected={selectedId === item.id}
           parentSelected={parentSelected}
+          selectionPulse={selectionPulseId === item.id}
+          ambientPaused={ambientPaused}
+          labelsVisible={labelsVisible}
+          breathDelay={FRAMEWORK_BREATH_DELAYS[index] ?? 0}
           onSelect={() => onSelect(item.id)}
         />
       ))}

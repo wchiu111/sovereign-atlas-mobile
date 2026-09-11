@@ -5,8 +5,10 @@ import {
 } from "../../components/mobileShared";
 
 export default function FrameworksChrome({
+  visible,
   onExitToAtlas,
 }: {
+  visible: boolean;
   onExitToAtlas: () => void;
 }) {
   return (
@@ -23,12 +25,16 @@ export default function FrameworksChrome({
         alignItems: "center",
         pointerEvents: "none",
         zIndex: 8,
+        opacity: visible ? 1 : 0,
+        transform: `translateY(${visible ? 0 : -5}px)`,
+        transition: "opacity 220ms ease, transform 260ms ease",
       }}
     >
       <MobileBackControl
         label="ATLAS"
         onBack={onExitToAtlas}
         ariaLabel="Return to Atlas"
+        interactive={visible}
       />
     </div>
   );

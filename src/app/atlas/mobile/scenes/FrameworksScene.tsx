@@ -11,8 +11,12 @@ import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
 import FrameworkOverviewConstellation from "../frameworks/constellation/FrameworkOverviewConstellation";
 import FrameworkPreviewDrawer from "../frameworks/surfaces/FrameworkPreviewDrawer";
 import FrameworksChrome from "../frameworks/surfaces/FrameworksChrome";
-import { FRAMEWORK_FOCUS_ITEMS } from "../frameworks/frameworkOverviewData";
-import type { FrameworkOverviewId } from "../frameworks/frameworkGeometry";
+import FrameworkSceneStyles from "../frameworks/surfaces/FrameworkSceneStyles";
+import useFrameworksChoreography from "../frameworks/hooks/useFrameworksChoreography";
+import {
+  FRAMEWORK_DRAWER_CLOSE_DURATION,
+  FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION,
+} from "../frameworks/frameworkMotion";
 import type {
   MobileFrameworkDocument,
   MobileFrameworkId,
@@ -638,10 +642,24 @@ export default function FrameworksScene({
   onBack,
 }: FrameworksSceneProps) {
   const framework = mobileFrameworkFor(activeFrameworkId);
-  const selected =
-    state === "framework-awakened" || state === "framework-overview";
-  const overviewItem =
-    FRAMEWORK_FOCUS_ITEMS.find((item) => item.id === activeFrameworkId) ?? null;
+  const {
+    selectedId,
+    drawerItem,
+    drawerPhase,
+    selectionPulseId,
+    labelsVisible,
+    chromeVisible,
+    drawerVisible,
+    prefersReducedMotion,
+    ambientPaused,
+    selectOverviewItem,
+  } = useFrameworksChoreography({
+    state,
+    activeFrameworkId,
+    onSelectFramework,
+    onSelectParent,
+    onExplore,
+  });
 
   const currentSection =
     framework.sections.find((section) => section.id === activeSectionId) ??
@@ -672,6 +690,8 @@ export default function FrameworksScene({
 
   return (
     <>
+      <FrameworkSceneStyles />
+
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width={W}
@@ -680,32 +700,26 @@ export default function FrameworksScene({
         aria-label="Frameworks constellation"
       >
         <FrameworkOverviewConstellation
-          selectedId={selected ? activeFrameworkId : "frameworks"}
-          onSelect={(id: FrameworkOverviewId) => {
-            if (id === "frameworks") {
-              if (state !== "frameworks-focus") onSelectParent();
-              return;
-            }
-
-            if (state === "frameworks-focus") {
-              onSelectFramework(id);
-              return;
-            }
-
-            if (id === activeFrameworkId && state === "framework-awakened") {
-              onFrameworkOverview();
-              return;
-            }
-
-            onSelectFramework(id);
-          }}
+          selectedId={selectedId}
+          selectionPulseId={selectionPulseId}
+          ambientPaused={ambientPaused}
+          labelsVisible={labelsVisible}
+          onSelect={selectOverviewItem}
         />
       </svg>
 
-      <FrameworksChrome onExitToAtlas={onBack} />
+      <FrameworksChrome
+        visible={chromeVisible}
+        onExitToAtlas={onBack}
+      />
 
       <FrameworkPreviewDrawer
-        item={selected ? overviewItem : null}
+        item={drawerItem}
+        phase={drawerPhase}
+        arrivalVisible={drawerVisible}
+        reducedMotion={prefersReducedMotion}
+        closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
+        reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
         onExplore={onExplore}
       />
     </>
