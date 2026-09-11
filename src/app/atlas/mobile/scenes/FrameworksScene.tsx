@@ -5,7 +5,7 @@
  * Framework identity and authored overview/reading data come from the registry.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { T, ANIM, FADE, W, H } from "../components/mobileShared";
 import {
   MOBILE_FRAMEWORKS,

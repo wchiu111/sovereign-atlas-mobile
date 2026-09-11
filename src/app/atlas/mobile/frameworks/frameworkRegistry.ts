@@ -8,10 +8,6 @@ import type {
   MobileFrameworkId,
 } from "./mobileFrameworkTypes";
 
-const OVERVIEW_ONLY: readonly MobileFrameworkDocument[] = [
-
-];
-
 export const MOBILE_FRAMEWORKS: readonly MobileFrameworkDocument[] = [
   AUTHORITY_GRADIENT,
   BEHAVIORAL_ARCHITECTURE,
