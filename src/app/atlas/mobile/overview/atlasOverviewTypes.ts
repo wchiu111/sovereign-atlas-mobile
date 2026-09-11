@@ -17,19 +17,49 @@ export interface AtlasOverviewParentContent {
 }
 
 /**
- * Shared system metadata only.
- *
- * Constellation geometry, node rendering, relationship paths, reading content,
- * and evidence behavior intentionally stay outside this contract.
+ * Identity can exist before authored overview copy is ready.
+ * This is useful for a new system such as Experiments while it is still being
+ * scaffolded into the shared frame.
  */
-export interface AtlasOverviewSystemDefinition<
+export interface AtlasOverviewSystemIdentity<
   TSystemId extends string = AtlasOverviewSystemId,
 > {
   id: TSystemId;
   title: string;
   countLabel: string;
   color: string;
+}
+
+/**
+ * Full product-ready system definition.
+ */
+export interface AtlasOverviewSystemDefinition<
+  TSystemId extends string = AtlasOverviewSystemId,
+> extends AtlasOverviewSystemIdentity<TSystemId> {
   parentContent: AtlasOverviewParentContent;
+}
+
+export interface AtlasOverviewItemIdentity<
+  TSelectionId extends string = string,
+> {
+  id: TSelectionId;
+  label: string;
+}
+
+/**
+ * Adapter definition used to plug a domain-specific constellation into the
+ * shared Atlas overview architecture.
+ *
+ * It deliberately stops at identity + selection topology. Geometry, node
+ * rendering, relationship paths, reading surfaces, and evidence remain local.
+ */
+export interface AtlasOverviewSystemAdapterDefinition<
+  TSystemId extends string = AtlasOverviewSystemId,
+  TSelectionId extends string = string,
+> {
+  system: AtlasOverviewSystemIdentity<TSystemId>;
+  parentId: TSelectionId;
+  items: readonly AtlasOverviewItemIdentity<TSelectionId>[];
 }
 
 export interface AtlasOverviewFrameSlots {
