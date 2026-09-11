@@ -12,6 +12,7 @@ import FrameworkOverviewConstellation from "../frameworks/constellation/Framewor
 import FrameworkPreviewDrawer from "../frameworks/surfaces/FrameworkPreviewDrawer";
 import FrameworksChrome from "../frameworks/surfaces/FrameworksChrome";
 import FrameworkSceneStyles from "../frameworks/surfaces/FrameworkSceneStyles";
+import AtlasOverviewFrame from "../overview/AtlasOverviewFrame";
 import useFrameworksChoreography from "../frameworks/hooks/useFrameworksChoreography";
 import {
   FRAMEWORK_DRAWER_CLOSE_DURATION,
@@ -623,6 +624,7 @@ interface FrameworksSceneProps {
   onExplore: () => void;
   onCanvas: (evidenceId: string) => void;
   activeEvidenceId: string | null;
+  viewportUiTarget?: HTMLElement | null;
   returnFrameworkId?: MobileFrameworkId | null;
   onReturnFrameworkComplete?: () => void;
   onBack: () => void;
@@ -639,6 +641,7 @@ export default function FrameworksScene({
   onExplore,
   onCanvas,
   activeEvidenceId,
+  viewportUiTarget = null,
   returnFrameworkId = null,
   onReturnFrameworkComplete,
   onBack,
@@ -725,23 +728,29 @@ export default function FrameworksScene({
         />
       </svg>
 
-      <FrameworksChrome
-        visible={chromeVisible}
-        onExitToAtlas={onBack}
-      />
-
-      <FrameworkPreviewDrawer
-        item={drawerItem}
-        phase={drawerPhase}
-        arrivalVisible={drawerVisible}
-        reducedMotion={prefersReducedMotion}
-        closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
-        reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
-        onExplore={() => {
-          if (selectedId !== "frameworks") {
-            enterFocusedReading(selectedId);
-          }
-        }}
+      <AtlasOverviewFrame
+        target={viewportUiTarget}
+        chrome={
+          <FrameworksChrome
+            visible={chromeVisible}
+            onExitToAtlas={onBack}
+          />
+        }
+        narrative={
+          <FrameworkPreviewDrawer
+            item={drawerItem}
+            phase={drawerPhase}
+            arrivalVisible={drawerVisible}
+            reducedMotion={prefersReducedMotion}
+            closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
+            reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
+            onExplore={() => {
+              if (selectedId !== "frameworks") {
+                enterFocusedReading(selectedId);
+              }
+            }}
+          />
+        }
       />
     </>
   );

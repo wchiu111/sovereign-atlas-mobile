@@ -250,6 +250,7 @@ export default function MobileAtlas() {
                   setState("framework-evidence");
                 }}
                 activeEvidenceId={activeFrameworkEvidenceId}
+                viewportUiTarget={viewportUiTarget}
                 returnFrameworkId={returnFrameworkId}
                 onReturnFrameworkComplete={() => {
                   setReturnFrameworkId(null);

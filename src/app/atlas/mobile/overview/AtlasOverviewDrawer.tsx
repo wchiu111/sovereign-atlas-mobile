@@ -76,6 +76,7 @@ export default function AtlasOverviewDrawer({
           ? `transform ${closeDurationMs}ms cubic-bezier(0.4,0,0.2,1), opacity 180ms ease`
           : "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 260ms ease",
         willChange: "transform, opacity",
+        pointerEvents: "auto",
       }}
     >
       <div
