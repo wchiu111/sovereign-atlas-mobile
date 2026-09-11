@@ -625,6 +625,8 @@ interface FrameworksSceneProps {
   onExplore: () => void;
   onCanvas: (evidenceId: string) => void;
   activeEvidenceId: string | null;
+  returnFrameworkId?: MobileFrameworkId | null;
+  onReturnFrameworkComplete?: () => void;
   onBack: () => void;
 }
 
@@ -639,6 +641,8 @@ export default function FrameworksScene({
   onExplore,
   onCanvas,
   activeEvidenceId,
+  returnFrameworkId = null,
+  onReturnFrameworkComplete,
   onBack,
 }: FrameworksSceneProps) {
   const framework = mobileFrameworkFor(activeFrameworkId);
@@ -652,10 +656,17 @@ export default function FrameworksScene({
     drawerVisible,
     prefersReducedMotion,
     ambientPaused,
+    focusedEntryFrameworkId,
+    focusedEntryProgress,
+    isReturningFromReading,
+    focusedReturnProgress,
     selectOverviewItem,
+    enterFocusedReading,
   } = useFrameworksChoreography({
     state,
     activeFrameworkId,
+    returnFrameworkId,
+    onReturnFrameworkComplete,
     onSelectFramework,
     onSelectParent,
     onExplore,
@@ -704,6 +715,13 @@ export default function FrameworksScene({
           selectionPulseId={selectionPulseId}
           ambientPaused={ambientPaused}
           labelsVisible={labelsVisible}
+          focusedEntryId={focusedEntryFrameworkId}
+          focusedEntryProgress={focusedEntryProgress}
+          focusedReturnId={
+            isReturningFromReading ? returnFrameworkId : null
+          }
+          focusedReturnProgress={focusedReturnProgress}
+          reducedMotion={prefersReducedMotion}
           onSelect={selectOverviewItem}
         />
       </svg>
@@ -720,7 +738,11 @@ export default function FrameworksScene({
         reducedMotion={prefersReducedMotion}
         closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
         reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
-        onExplore={onExplore}
+        onExplore={() => {
+          if (selectedId !== "frameworks") {
+            enterFocusedReading(selectedId);
+          }
+        }}
       />
     </>
   );

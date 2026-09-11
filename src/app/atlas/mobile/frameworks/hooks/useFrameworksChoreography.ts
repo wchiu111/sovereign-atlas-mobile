@@ -8,7 +8,11 @@ import {
   FRAMEWORK_DRAWER_CLOSE_DURATION,
   FRAMEWORK_DRAWER_OPEN_DURATION,
   FRAMEWORK_LABEL_REVEAL_DELAY,
+  FRAMEWORK_READING_HANDOFF_DURATION,
+  FRAMEWORK_READING_REDUCED_HANDOFF_DURATION,
   FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION,
+  FRAMEWORK_RETURN_DURATION,
+  FRAMEWORK_RETURN_REDUCED_DURATION,
   FRAMEWORK_SELECTION_PULSE_DURATION,
 } from "../frameworkMotion";
 
@@ -24,6 +28,8 @@ type FrameworkOverviewState =
 interface UseFrameworksChoreographyArgs {
   state: FrameworkOverviewState;
   activeFrameworkId: MobileFrameworkId;
+  returnFrameworkId?: MobileFrameworkId | null;
+  onReturnFrameworkComplete?: () => void;
   onSelectFramework: (id: MobileFrameworkId) => void;
   onSelectParent: () => void;
   onExplore: () => void;
@@ -32,6 +38,8 @@ interface UseFrameworksChoreographyArgs {
 export default function useFrameworksChoreography({
   state,
   activeFrameworkId,
+  returnFrameworkId = null,
+  onReturnFrameworkComplete,
   onSelectFramework,
   onSelectParent,
   onExplore,
@@ -42,7 +50,8 @@ export default function useFrameworksChoreography({
     state === "framework-overview";
 
   const initialOverviewId: FrameworkOverviewId =
-    state === "frameworks-focus" ? "frameworks" : activeFrameworkId;
+    returnFrameworkId ??
+    (state === "frameworks-focus" ? "frameworks" : activeFrameworkId);
 
   const [drawerItemId, setDrawerItemId] =
     useState<FrameworkOverviewId>(initialOverviewId);
@@ -55,9 +64,17 @@ export default function useFrameworksChoreography({
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
+  const [focusedEntryFrameworkId, setFocusedEntryFrameworkId] =
+    useState<MobileFrameworkId | null>(null);
+  const [focusedEntryProgress, setFocusedEntryProgress] = useState(0);
+  const [isReturningFromReading, setIsReturningFromReading] = useState(false);
+  const [focusedReturnProgress, setFocusedReturnProgress] = useState(0);
+
   const drawerTimersRef = useRef<number[]>([]);
   const revealTimersRef = useRef<number[]>([]);
   const pulseTimerRef = useRef<number | null>(null);
+  const focusedEntryFrameRef = useRef<number | null>(null);
+  const focusedReturnFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -73,14 +90,21 @@ export default function useFrameworksChoreography({
       revealTimersRef.current.forEach(window.clearTimeout);
       drawerTimersRef.current = [];
       revealTimersRef.current = [];
+
       if (pulseTimerRef.current !== null) {
         window.clearTimeout(pulseTimerRef.current);
+      }
+      if (focusedEntryFrameRef.current !== null) {
+        cancelAnimationFrame(focusedEntryFrameRef.current);
+      }
+      if (focusedReturnFrameRef.current !== null) {
+        cancelAnimationFrame(focusedReturnFrameRef.current);
       }
     };
   }, []);
 
   useEffect(() => {
-    if (!overviewActive) return;
+    if (!overviewActive || returnFrameworkId) return;
 
     revealTimersRef.current.forEach(window.clearTimeout);
     revealTimersRef.current = [];
@@ -104,18 +128,88 @@ export default function useFrameworksChoreography({
       revealTimersRef.current.forEach(window.clearTimeout);
       revealTimersRef.current = [];
     };
-  }, [overviewActive, prefersReducedMotion]);
+  }, [overviewActive, prefersReducedMotion, returnFrameworkId]);
 
-  // A fresh non-reading scene mounts after returning from reading. Align its
-  // drawer identity with the outer state immediately; Pass 5 will replace this
-  // simple restore with an authored reverse handoff.
   useEffect(() => {
-    if (!overviewActive) return;
+    if (!overviewActive || !returnFrameworkId) return;
+
+    drawerTimersRef.current.forEach(window.clearTimeout);
+    revealTimersRef.current.forEach(window.clearTimeout);
+    drawerTimersRef.current = [];
+    revealTimersRef.current = [];
+
+    setDrawerItemId(returnFrameworkId);
+    setDrawerPhase("open");
+    setSelectionPulseId(null);
+    setLabelsVisible(false);
+    setChromeVisible(false);
+    setDrawerVisible(false);
+    setFocusedEntryFrameworkId(null);
+    setFocusedEntryProgress(0);
+    setIsReturningFromReading(true);
+    setFocusedReturnProgress(0);
+
+    const duration = prefersReducedMotion
+      ? FRAMEWORK_RETURN_REDUCED_DURATION
+      : FRAMEWORK_RETURN_DURATION;
+    const start = performance.now();
+
+    const tickReturn = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration);
+      const eased = prefersReducedMotion
+        ? raw
+        : raw * raw * (3 - 2 * raw);
+
+      setFocusedReturnProgress(eased);
+
+      if (raw >= 0.42) setLabelsVisible(true);
+      if (raw >= 0.56) setDrawerVisible(true);
+      if (raw >= 0.70) setChromeVisible(true);
+
+      if (raw < 1) {
+        focusedReturnFrameRef.current = requestAnimationFrame(tickReturn);
+        return;
+      }
+
+      focusedReturnFrameRef.current = null;
+      setFocusedReturnProgress(1);
+      setLabelsVisible(true);
+      setDrawerVisible(true);
+      setChromeVisible(true);
+      setIsReturningFromReading(false);
+      onReturnFrameworkComplete?.();
+    };
+
+    focusedReturnFrameRef.current = requestAnimationFrame(tickReturn);
+
+    return () => {
+      if (focusedReturnFrameRef.current !== null) {
+        cancelAnimationFrame(focusedReturnFrameRef.current);
+        focusedReturnFrameRef.current = null;
+      }
+    };
+  }, [
+    overviewActive,
+    returnFrameworkId,
+    prefersReducedMotion,
+    onReturnFrameworkComplete,
+  ]);
+
+  useEffect(() => {
+    if (!overviewActive || returnFrameworkId || isReturningFromReading) return;
+
     const expected: FrameworkOverviewId =
       state === "frameworks-focus" ? "frameworks" : activeFrameworkId;
 
     if (drawerPhase === "open") setDrawerItemId(expected);
-  }, [overviewActive, state, activeFrameworkId, drawerPhase]);
+  }, [
+    overviewActive,
+    state,
+    activeFrameworkId,
+    drawerPhase,
+    returnFrameworkId,
+    isReturningFromReading,
+  ]);
 
   const selectedId: FrameworkOverviewId =
     state === "frameworks-focus" ? "frameworks" : activeFrameworkId;
@@ -135,13 +229,63 @@ export default function useFrameworksChoreography({
     setSelectionPulseId(null);
   };
 
-  const selectOverviewItem = (id: FrameworkOverviewId) => {
-    if (!overviewActive || drawerPhase === "closing") return;
+  const enterFocusedReading = (frameworkId: MobileFrameworkId) => {
+    if (
+      !overviewActive ||
+      focusedEntryFrameworkId ||
+      isReturningFromReading ||
+      drawerPhase === "closing"
+    ) {
+      return;
+    }
 
-    // Same second-tap contract as Case Studies: the first tap establishes
-    // context; tapping the already-selected destination commits to reading.
+    clearSelectionPulse();
+    drawerTimersRef.current.forEach(window.clearTimeout);
+    drawerTimersRef.current = [];
+
+    setFocusedEntryFrameworkId(frameworkId);
+    setFocusedEntryProgress(0);
+    setChromeVisible(false);
+    setDrawerPhase("closing");
+
+    const duration = prefersReducedMotion
+      ? FRAMEWORK_READING_REDUCED_HANDOFF_DURATION
+      : FRAMEWORK_READING_HANDOFF_DURATION;
+    const start = performance.now();
+
+    const tickEntry = (now: number) => {
+      const raw = Math.min(1, (now - start) / duration);
+      const eased = prefersReducedMotion
+        ? raw
+        : raw * raw * (3 - 2 * raw);
+
+      setFocusedEntryProgress(eased);
+
+      if (raw < 1) {
+        focusedEntryFrameRef.current = requestAnimationFrame(tickEntry);
+        return;
+      }
+
+      focusedEntryFrameRef.current = null;
+      setFocusedEntryProgress(1);
+      onExplore();
+    };
+
+    focusedEntryFrameRef.current = requestAnimationFrame(tickEntry);
+  };
+
+  const selectOverviewItem = (id: FrameworkOverviewId) => {
+    if (
+      !overviewActive ||
+      drawerPhase === "closing" ||
+      focusedEntryFrameworkId ||
+      isReturningFromReading
+    ) {
+      return;
+    }
+
     if (id === selectedId) {
-      if (id !== "frameworks") onExplore();
+      if (id !== "frameworks") enterFocusedReading(id);
       return;
     }
 
@@ -159,8 +303,6 @@ export default function useFrameworksChoreography({
 
     setDrawerPhase("closing");
 
-    // Change spatial selection immediately. Drawer identity intentionally lags
-    // until the current surface has closed.
     if (id === "frameworks") onSelectParent();
     else onSelectFramework(id);
 
@@ -185,7 +327,10 @@ export default function useFrameworksChoreography({
   };
 
   const ambientPaused =
-    drawerPhase !== "open" || selectionPulseId !== null;
+    drawerPhase !== "open" ||
+    selectionPulseId !== null ||
+    focusedEntryFrameworkId !== null ||
+    isReturningFromReading;
 
   return {
     selectedId,
@@ -197,6 +342,11 @@ export default function useFrameworksChoreography({
     drawerVisible,
     prefersReducedMotion,
     ambientPaused,
+    focusedEntryFrameworkId,
+    focusedEntryProgress,
+    isReturningFromReading,
+    focusedReturnProgress,
     selectOverviewItem,
+    enterFocusedReading,
   };
 }

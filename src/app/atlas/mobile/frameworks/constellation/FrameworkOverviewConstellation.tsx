@@ -5,6 +5,7 @@ import {
   type FrameworkOverviewId,
   frameworkGeometryFor,
 } from "../frameworkGeometry";
+import type { MobileFrameworkId } from "../mobileFrameworkTypes";
 import {
   FRAMEWORK_BREATH_DELAYS,
   FRAMEWORK_FADE_TRANSITION,
@@ -17,22 +18,45 @@ export default function FrameworkOverviewConstellation({
   selectionPulseId,
   ambientPaused,
   labelsVisible,
+  focusedEntryId = null,
+  focusedEntryProgress = 0,
+  focusedReturnId = null,
+  focusedReturnProgress = 0,
+  reducedMotion = false,
   onSelect,
 }: {
   selectedId: FrameworkOverviewId;
   selectionPulseId: FrameworkOverviewId | null;
   ambientPaused: boolean;
   labelsVisible: boolean;
+  focusedEntryId?: MobileFrameworkId | null;
+  focusedEntryProgress?: number;
+  focusedReturnId?: MobileFrameworkId | null;
+  focusedReturnProgress?: number;
+  reducedMotion?: boolean;
   onSelect: (id: FrameworkOverviewId) => void;
 }) {
   const parentSelected = selectedId === "frameworks";
+  const transitionLocked =
+    focusedEntryId !== null || focusedReturnId !== null;
+
+  const relationFocusOpacity = focusedEntryId
+    ? 1 - focusedEntryProgress
+    : focusedReturnId
+    ? focusedReturnProgress
+    : 1;
+
+  const parentFocusOpacity = relationFocusOpacity;
 
   return (
     <g>
       <g
         style={{
-          opacity: parentSelected ? 1 : 0.72,
-          transition: FRAMEWORK_FADE_TRANSITION,
+          opacity:
+            (parentSelected ? 1 : 0.72) * relationFocusOpacity,
+          transition: transitionLocked
+            ? "none"
+            : FRAMEWORK_FADE_TRANSITION,
           pointerEvents: "none",
         }}
       >
@@ -53,23 +77,74 @@ export default function FrameworkOverviewConstellation({
         selected={parentSelected}
         selectionPulse={selectionPulseId === "frameworks"}
         ambientPaused={ambientPaused}
+        focusOpacity={parentFocusOpacity}
+        interactive={!transitionLocked}
         onSelect={() => onSelect("frameworks")}
       />
 
-      {FRAMEWORK_FOCUS_ITEMS.map((item, index) => (
-        <FrameworkNode
-          key={item.id}
-          item={item}
-          geometry={frameworkGeometryFor(item.id)}
-          selected={selectedId === item.id}
-          parentSelected={parentSelected}
-          selectionPulse={selectionPulseId === item.id}
-          ambientPaused={ambientPaused}
-          labelsVisible={labelsVisible}
-          breathDelay={FRAMEWORK_BREATH_DELAYS[index] ?? 0}
-          onSelect={() => onSelect(item.id)}
-        />
-      ))}
+      {FRAMEWORK_FOCUS_ITEMS.map((item, index) => {
+        const isFocusedEntry = focusedEntryId === item.id;
+        const isFocusedReturn = focusedReturnId === item.id;
+
+        const focusOpacity = focusedEntryId
+          ? isFocusedEntry
+            ? 1
+            : 1 - focusedEntryProgress
+          : focusedReturnId
+          ? isFocusedReturn
+            ? 1
+            : focusedReturnProgress
+          : 1;
+
+        const focusScale = isFocusedEntry
+          ? reducedMotion
+            ? 1
+            : 1 + 0.18 * focusedEntryProgress
+          : isFocusedReturn
+          ? reducedMotion
+            ? 1
+            : 1 + 0.18 * (1 - focusedReturnProgress)
+          : 1;
+
+        const entryLabelOpacity = isFocusedEntry
+          ? focusedEntryProgress < 0.68
+            ? 1
+            : Math.max(
+                0,
+                1 - (focusedEntryProgress - 0.68) / 0.32,
+              )
+          : 1;
+
+        const returnLabelOpacity = focusedReturnId
+          ? isFocusedReturn
+            ? 1
+            : Math.max(
+                0,
+                Math.min(1, (focusedReturnProgress - 0.52) / 0.48),
+              )
+          : 1;
+
+        return (
+          <FrameworkNode
+            key={item.id}
+            item={item}
+            geometry={frameworkGeometryFor(item.id)}
+            selected={selectedId === item.id}
+            parentSelected={parentSelected}
+            selectionPulse={selectionPulseId === item.id}
+            ambientPaused={ambientPaused}
+            labelsVisible={labelsVisible || isFocusedReturn}
+            breathDelay={FRAMEWORK_BREATH_DELAYS[index] ?? 0}
+            focusOpacity={focusOpacity}
+            focusScale={focusScale}
+            labelOpacityMultiplier={
+              focusedEntryId ? entryLabelOpacity : returnLabelOpacity
+            }
+            interactive={!transitionLocked}
+            onSelect={() => onSelect(item.id)}
+          />
+        );
+      })}
     </g>
   );
 }

@@ -6,26 +6,36 @@ export default function FrameworkParent({
   selected,
   selectionPulse,
   ambientPaused,
+  focusOpacity = 1,
+  interactive = true,
   onSelect,
 }: {
   selected: boolean;
   selectionPulse: boolean;
   ambientPaused: boolean;
+  focusOpacity?: number;
+  interactive?: boolean;
   onSelect: () => void;
 }) {
-  const activate = () => onSelect();
+  const activate = () => {
+    if (interactive) onSelect();
+  };
   const animationPlayState =
     ambientPaused && !selectionPulse ? "paused" : "running";
 
   return (
     <g
       role="button"
-      tabIndex={0}
+      tabIndex={interactive ? 0 : -1}
       aria-label="Frameworks"
       aria-pressed={selected}
+      aria-disabled={!interactive}
       onClick={activate}
       onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (
+          interactive &&
+          (event.key === "Enter" || event.key === " ")
+        ) {
           event.preventDefault();
           activate();
         }
@@ -34,8 +44,10 @@ export default function FrameworkParent({
         transform: `translate(${FRAMEWORK_PARENT_CORE.x}px,${FRAMEWORK_PARENT_CORE.y}px)`,
         transformOrigin: `${FRAMEWORK_PARENT_CORE.x}px ${FRAMEWORK_PARENT_CORE.y}px`,
         transition: FRAMEWORK_POSITION_TRANSITION,
-        cursor: "pointer",
+        cursor: interactive ? "pointer" : "default",
+        opacity: focusOpacity,
         outline: "none",
+        pointerEvents: interactive ? "auto" : "none",
         WebkitTapHighlightColor: "transparent",
       }}
     >

@@ -12,6 +12,10 @@ export default function FrameworkNode({
   ambientPaused,
   labelsVisible,
   breathDelay,
+  focusOpacity = 1,
+  focusScale = 1,
+  labelOpacityMultiplier = 1,
+  interactive = true,
   onSelect,
 }: {
   item: FrameworkFocusItem;
@@ -22,6 +26,10 @@ export default function FrameworkNode({
   ambientPaused: boolean;
   labelsVisible: boolean;
   breathDelay: number;
+  focusOpacity?: number;
+  focusScale?: number;
+  labelOpacityMultiplier?: number;
+  interactive?: boolean;
   onSelect: () => void;
 }) {
   const coreR = selected ? 7.5 : 6.5;
@@ -29,32 +37,39 @@ export default function FrameworkNode({
   const animationPlayState =
     ambientPaused && !selectionPulse ? "paused" : "running";
 
-  const activate = () => onSelect();
+  const activate = () => {
+    if (interactive) onSelect();
+  };
 
   return (
     <g
       role="button"
-      tabIndex={0}
+      tabIndex={interactive ? 0 : -1}
       aria-label={item.title}
       aria-pressed={selected}
+      aria-disabled={!interactive}
       onClick={activate}
       onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (
+          interactive &&
+          (event.key === "Enter" || event.key === " ")
+        ) {
           event.preventDefault();
           activate();
         }
       }}
       style={{
-        cursor: "pointer",
-        opacity: siblingOpacity,
+        cursor: interactive ? "pointer" : "default",
+        opacity: siblingOpacity * focusOpacity,
         transition: FRAMEWORK_POSITION_TRANSITION,
         outline: "none",
+        pointerEvents: interactive ? "auto" : "none",
         WebkitTapHighlightColor: "transparent",
       }}
     >
       <g
         style={{
-          transform: `translate(${geometry.x}px,${geometry.y}px)`,
+          transform: `translate(${geometry.x}px,${geometry.y}px) scale(${focusScale})`,
           transformOrigin: `${geometry.x}px ${geometry.y}px`,
           transition: FRAMEWORK_POSITION_TRANSITION,
         }}
@@ -124,11 +139,8 @@ export default function FrameworkNode({
         fill={T.frameworks}
         opacity={
           labelsVisible
-            ? selected
-              ? 1
-              : parentSelected
-              ? 0.86
-              : 0.78
+            ? (selected ? 1 : parentSelected ? 0.86 : 0.78) *
+              labelOpacityMultiplier
             : 0
         }
         pointerEvents="none"
