@@ -33,6 +33,7 @@ import {
   REDUCED_MOTION_DRAWER_DURATION,
 } from "../case-studies/caseStudyMotion";
 import {
+  FRAMEWORK_SYSTEM_COLORS,
   FRAMEWORK_OVERVIEW_TARGETS,
   FRAMEWORK_TOPOLOGY_RADIUS,
 } from "../frameworks/frameworkTopology";
@@ -510,6 +511,7 @@ export default function LandingScene({
             orbitR={ORBIT_R}
             awakened={false}
             dimmed={entryInProgress || (isActive && !isExitingCaseStudies)}
+            planetColors={FRAMEWORK_SYSTEM_COLORS}
             showLabel={
               (!isActive || isExitingCaseStudies) &&
               !frameworkEntryInProgress &&
