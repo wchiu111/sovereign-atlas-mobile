@@ -101,7 +101,7 @@ export default function MobileReadingSection({
               fontFamily: T.mono,
               fontSize: "clamp(8px, 2.2vw, 8.5px)",
               letterSpacing: "0.14em",
-              color: T.identityGold,
+              color: T.caseStudies,
               opacity: 0.56,
             }}
           >
@@ -113,7 +113,7 @@ export default function MobileReadingSection({
               fontFamily: T.mono,
               fontSize: "clamp(8.5px, 2.3vw, 9px)",
               letterSpacing: "0.18em",
-              color: "#F0E9D8",
+              color: T.caseStudies,
               opacity: 0.84,
             }}
           >
@@ -125,7 +125,7 @@ export default function MobileReadingSection({
               fontFamily: T.mono,
               fontSize: "clamp(7.5px, 2vw, 8px)",
               letterSpacing: "0.14em",
-              color: T.accentGold,
+              color: T.caseStudies,
               opacity: 0.54,
             }}
           >

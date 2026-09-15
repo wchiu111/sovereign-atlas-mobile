@@ -46,7 +46,7 @@ export default function CaseStudiesOverviewSurface({
             fontSize: 21.5,
             fontWeight: 600,
             letterSpacing: "0.10em",
-            color: item.id === "case-studies" ? T.caseStudies : item.color,
+            color: T.caseStudies,
             opacity: 0.98,
             lineHeight: 1.1,
           }}

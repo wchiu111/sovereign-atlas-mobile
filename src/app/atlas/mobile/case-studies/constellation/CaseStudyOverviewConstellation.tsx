@@ -93,6 +93,19 @@ export default function CaseStudyOverviewConstellation({
           <circle r={14} fill={T.caseStudies} opacity={caseStudiesSelected ? 1 : 0.58} />
         </g>
         <circle r={34} fill="transparent" pointerEvents="all" />
+
+        <text
+          y={caseStudiesSelected ? 29 : 27}
+          textAnchor="middle"
+          fontFamily={T.mono}
+          fontSize={7.4}
+          letterSpacing="0.19em"
+          fill={T.caseStudies}
+          opacity={caseStudiesSelected ? 0.90 : 0.55}
+          pointerEvents="none"
+        >
+          CASE STUDIES
+        </text>
       </g>
 
       {CASE_STUDY_PROJECTS.map((project, index) => {
