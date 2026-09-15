@@ -202,14 +202,16 @@ function FrameworkReadingSurface({
           right: 0,
           bottom: 0,
           overflowY: "auto",
-          padding: "34px 28px 80px",
+          padding:
+            "clamp(34px, 9vw, 40px) clamp(22px, 6.6vw, 28px) 80px",
         }}
       >
         <h2
           style={{
             margin: "0 0 10px",
             fontFamily: T.serif,
-            fontSize: 30,
+            fontSize: "clamp(30px, 8vw, 34px)",
+            fontWeight: 600,
             lineHeight: 1.08,
             color: "#F0E9D8",
           }}
@@ -236,7 +238,7 @@ function FrameworkReadingSurface({
           style={{
             height: 0.5,
             background: "rgba(232,213,163,0.10)",
-            marginBottom: 22,
+            marginBottom: 24,
           }}
         />
 
@@ -246,10 +248,10 @@ function FrameworkReadingSurface({
             style={{
               margin: "0 0 18px",
               fontFamily: T.serif,
-              fontSize: 14.5,
+              fontSize: "clamp(15px, 4.1vw, 16px)",
               color: "#F0E9D8",
               opacity: 0.86,
-              lineHeight: 1.68,
+              lineHeight: 1.7,
             }}
           >
             {paragraph}
