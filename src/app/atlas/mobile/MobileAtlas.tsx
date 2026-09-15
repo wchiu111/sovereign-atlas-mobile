@@ -270,52 +270,6 @@ export default function MobileAtlas() {
                 }}
               />
             )}
-
-            {isFrameworkReadingDepth && (
-              <>
-                <FrameworksScene
-                  state="framework-reading"
-                  activeFrameworkId={activeFrameworkId}
-                  overviewSelectionId={frameworkOverviewSelectionId}
-                  activeSectionId={activeFrameworkSectionId}
-                  setActiveSectionId={setActiveFrameworkSectionId}
-                  onSelectFramework={setActiveFrameworkId}
-                  onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
-                  onExplore={() => setState("framework-reading")}
-                  onCanvas={(evidenceId) => {
-                  setActiveFrameworkEvidenceId(evidenceId);
-                  setState("framework-evidence");
-                }}
-                activeEvidenceId={activeFrameworkEvidenceId}
-                  onBack={() => {
-                    setReturnFrameworkId(activeFrameworkId);
-                    setFrameworkOverviewSelectionId(activeFrameworkId);
-                    setState("frameworks-focus");
-                  }}
-                />
-                {isFrameworkEvidence && (
-                  <FrameworksScene
-                    state="framework-evidence"
-                    activeFrameworkId={activeFrameworkId}
-                    overviewSelectionId={frameworkOverviewSelectionId}
-                    activeSectionId={activeFrameworkSectionId}
-                    setActiveSectionId={setActiveFrameworkSectionId}
-                    onSelectFramework={setActiveFrameworkId}
-                    onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
-                    onExplore={() => setState("framework-reading")}
-                    onCanvas={(evidenceId) => {
-                  setActiveFrameworkEvidenceId(evidenceId);
-                  setState("framework-evidence");
-                }}
-                activeEvidenceId={activeFrameworkEvidenceId}
-                    onBack={() => {
-                      setActiveFrameworkEvidenceId(null);
-                      setState("framework-reading");
-                    }}
-                  />
-                )}
-              </>
-            )}
           </div>
 
           <div
@@ -352,6 +306,74 @@ export default function MobileAtlas() {
                   setState("system-awakened");
                 }}
               />
+            </div>
+          )}
+
+          {isFrameworkReadingDepth && (
+            <div
+              className="mobile-atlas-reading-layer mobile-atlas-framework-reading-layer"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 30,
+                overflow: "hidden",
+                pointerEvents: "auto",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: "50%",
+                  width: "min(100%, 430px)",
+                  transform: "translateX(-50%)",
+                  overflow: "hidden",
+                }}
+              >
+                <FrameworksScene
+                  state="framework-reading"
+                  activeFrameworkId={activeFrameworkId}
+                  overviewSelectionId={frameworkOverviewSelectionId}
+                  activeSectionId={activeFrameworkSectionId}
+                  setActiveSectionId={setActiveFrameworkSectionId}
+                  onSelectFramework={setActiveFrameworkId}
+                  onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
+                  onExplore={() => setState("framework-reading")}
+                  onCanvas={(evidenceId) => {
+                    setActiveFrameworkEvidenceId(evidenceId);
+                    setState("framework-evidence");
+                  }}
+                  activeEvidenceId={activeFrameworkEvidenceId}
+                  onBack={() => {
+                    setReturnFrameworkId(activeFrameworkId);
+                    setFrameworkOverviewSelectionId(activeFrameworkId);
+                    setState("frameworks-focus");
+                  }}
+                />
+
+                {isFrameworkEvidence && (
+                  <FrameworksScene
+                    state="framework-evidence"
+                    activeFrameworkId={activeFrameworkId}
+                    overviewSelectionId={frameworkOverviewSelectionId}
+                    activeSectionId={activeFrameworkSectionId}
+                    setActiveSectionId={setActiveFrameworkSectionId}
+                    onSelectFramework={setActiveFrameworkId}
+                    onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
+                    onExplore={() => setState("framework-reading")}
+                    onCanvas={(evidenceId) => {
+                      setActiveFrameworkEvidenceId(evidenceId);
+                      setState("framework-evidence");
+                    }}
+                    activeEvidenceId={activeFrameworkEvidenceId}
+                    onBack={() => {
+                      setActiveFrameworkEvidenceId(null);
+                      setState("framework-reading");
+                    }}
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
