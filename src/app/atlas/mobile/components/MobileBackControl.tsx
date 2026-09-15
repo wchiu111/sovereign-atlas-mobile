@@ -49,6 +49,8 @@ export default function MobileBackControl({
           fontSize: 12,
           opacity: 0.76,
           flexShrink: 0,
+          position: "relative",
+          top: -1,
         }}
       >
         ‹
