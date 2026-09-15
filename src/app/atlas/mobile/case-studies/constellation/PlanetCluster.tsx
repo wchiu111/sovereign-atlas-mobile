@@ -46,7 +46,7 @@ export default function PlanetCluster({
         </g>
       )}
       {planets.map((p, i) => {
-        const planetColor = planetColors?.[i] ?? color;
+        const planetColor = planetColors?.[i] ?? p.color ?? color;
         const rad = (p.angle * Math.PI) / 180;
         const authoredBase = baseLayoutTargets?.[i];
         const orbitX = authoredBase

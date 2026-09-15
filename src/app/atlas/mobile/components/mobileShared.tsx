@@ -66,7 +66,7 @@ export const MOBILE_STATES: readonly MobileState[] = [
   "frameworks-focus", "framework-reading", "framework-evidence",
 ];
 
-export interface Planet { angle: number; label: string; }
+export interface Planet { angle: number; label: string; color?: string; }
 export interface SystemDef {
   id: string; label: string; color: string;
   orbitPath: string; planets: Planet[];
