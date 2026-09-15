@@ -2,6 +2,7 @@ import { T } from "../../components/mobileShared";
 import type { FrameworkFocusItem } from "../frameworkOverviewData";
 import type { FrameworkOverviewGeometry } from "../frameworkGeometry";
 import { FRAMEWORK_POSITION_TRANSITION } from "../frameworkMotion";
+import { FRAMEWORK_TOPOLOGY } from "../frameworkTopology";
 
 export default function FrameworkNode({
   item,
@@ -33,6 +34,8 @@ export default function FrameworkNode({
   onSelect: () => void;
 }) {
   const coreR = selected ? 7.5 : 6.5;
+  const nodeColor =
+    FRAMEWORK_TOPOLOGY.find(({ id }) => id === item.id)?.color ?? T.frameworks;
   const siblingOpacity = selected ? 1 : parentSelected ? 0.86 : 0.78;
   const animationPlayState =
     ambientPaused && !selectionPulse ? "paused" : "running";
@@ -95,7 +98,7 @@ export default function FrameworkNode({
           />
           <circle
             r={selected ? 18 : 14}
-            fill={T.frameworks}
+            fill={nodeColor}
             opacity={selected ? 0.24 : 0.14}
             pointerEvents="none"
           />
@@ -120,7 +123,7 @@ export default function FrameworkNode({
         >
           <circle
             r={coreR}
-            fill={T.frameworks}
+            fill={nodeColor}
             opacity={selected ? 1 : 0.84}
             pointerEvents="none"
           />

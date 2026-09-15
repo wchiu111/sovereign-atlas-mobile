@@ -1,3 +1,4 @@
+import { STELLAR_PALETTE } from "../../constellation/stellarPalette";
 import type { MobileFrameworkId } from "./mobileFrameworkTypes";
 
 /**
@@ -16,6 +17,7 @@ export interface FrameworkTopologyItem {
   id: MobileFrameworkId;
   label: string;
   angle: number;
+  color: string;
   vector: {
     x: number;
     y: number;
@@ -38,6 +40,9 @@ function polarVector(angle: number) {
  * retired Application Kit still consumed a slot. This topology removes that
  * overlap and maps the five active frameworks onto the five visible positions.
  *
+ * Node colors mirror each framework's desktop signature stellar type while
+ * Frameworks green continues to own the domain rings, labels, and orientation.
+ *
  * Identity assignment minimizes movement from the current expanded overview:
  * - Authority Gradient → top
  * - Behavioral Architecture → upper-right
@@ -50,40 +55,45 @@ export const FRAMEWORK_TOPOLOGY: readonly FrameworkTopologyItem[] = [
     id: "authority-gradient",
     label: "AUTHORITY GRADIENT",
     angle: -100,
+    color: STELLAR_PALETTE.purpose,
     vector: polarVector(-100),
   },
   {
     id: "behavioral-architecture",
     label: "BEHAVIORAL ARCHITECTURE",
     angle: -28,
+    color: STELLAR_PALETTE.strategy,
     vector: polarVector(-28),
   },
   {
     id: "presence-navigation",
     label: "PRESENCE NAVIGATION",
     angle: 44,
+    color: STELLAR_PALETTE.strategy,
     vector: polarVector(44),
   },
   {
     id: "regenerative-systems",
     label: "REGENERATIVE SYSTEMS",
     angle: 116,
+    color: STELLAR_PALETTE.relational,
     vector: polarVector(116),
   },
   {
     id: "relational-ai-literacy",
     label: "RELATIONAL AI LITERACY",
     angle: 188,
+    color: STELLAR_PALETTE.relational,
     vector: polarVector(188),
   },
 ] as const;
 
 /**
  * `SystemNode` still consumes the lightweight Planet shape at the Atlas level.
- * Export it from the same topology so labels/angles cannot drift independently.
+ * Export it from the same topology so labels/angles/colors cannot drift independently.
  */
 export const FRAMEWORK_SYSTEM_PLANETS = FRAMEWORK_TOPOLOGY.map(
-  ({ label, angle }) => ({ label, angle }),
+  ({ label, angle, color }) => ({ label, angle, color }),
 );
 
 /**
