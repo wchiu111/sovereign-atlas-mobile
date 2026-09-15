@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { T, W, H } from "../components/mobileShared";
+import MobileReadingHeader from "../reading/MobileReadingHeader";
 import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
 import FrameworkOverviewConstellation from "../frameworks/constellation/FrameworkOverviewConstellation";
 import FrameworkPreviewDrawer from "../frameworks/surfaces/FrameworkPreviewDrawer";
@@ -29,65 +30,6 @@ type FWState =
   | "framework-reading"
   | "framework-evidence";
 
-function FrameworkReadingTopBar({
-  title,
-  onBack,
-}: {
-  title?: string;
-  onBack: () => void;
-}) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        padding: "22px 22px 0",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        pointerEvents: "none",
-      }}
-    >
-      <button
-        type="button"
-        onClick={onBack}
-        style={{
-          minWidth: 44,
-          minHeight: 44,
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          textAlign: "left",
-          pointerEvents: "auto",
-          cursor: "pointer",
-          fontFamily: T.mono,
-          fontSize: 9,
-          letterSpacing: "0.18em",
-          color: T.body,
-          opacity: 0.72,
-        }}
-      >
-        ‹ {title ? "FRAMEWORKS" : "ATLAS"}
-      </button>
-      <div
-        style={{
-          fontFamily: T.mono,
-          fontSize: 8.5,
-          letterSpacing: "0.18em",
-          color: T.frameworks,
-          opacity: 0.78,
-          textAlign: "right",
-          maxWidth: 230,
-        }}
-      >
-        {title ?? "FRAMEWORKS"}
-      </div>
-    </div>
-  );
-}
-
 function FrameworkReadingSurface({
   framework,
   activeSectionId,
@@ -105,11 +47,35 @@ function FrameworkReadingSurface({
     framework.sections.find((section) => section.id === activeSectionId) ??
     framework.sections[0];
 
+  const chromeRef = useRef<HTMLDivElement>(null);
+  const [chromeHeight, setChromeHeight] = useState(114);
+
   useEffect(() => {
     if (!framework.sections.some((section) => section.id === activeSectionId)) {
       setActiveSectionId(framework.sections[0]?.id ?? "");
     }
   }, [activeSectionId, framework.sections, setActiveSectionId]);
+
+  useEffect(() => {
+    const chrome = chromeRef.current;
+    if (!chrome) return;
+
+    const updateChromeHeight = () => {
+      const nextHeight = Math.ceil(chrome.getBoundingClientRect().height);
+      if (nextHeight > 0) setChromeHeight(nextHeight);
+    };
+
+    updateChromeHeight();
+
+    const observer = new ResizeObserver(updateChromeHeight);
+    observer.observe(chrome);
+    window.addEventListener("resize", updateChromeHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateChromeHeight);
+    };
+  }, []);
 
   if (!current) return null;
 
@@ -126,73 +92,119 @@ function FrameworkReadingSurface({
           "linear-gradient(to bottom, rgba(5,5,10,0.72), rgba(5,5,10,0.99) 180px)",
       }}
     >
-      <FrameworkReadingTopBar title={framework.title} onBack={onBack} />
-
       <div
+        ref={chromeRef}
         style={{
           position: "absolute",
-          top: 82,
-          left: 0,
-          right: 0,
-          borderBottom: `0.5px solid rgba(106,184,138,0.12)`,
-          overflowX: "auto",
-          display: "flex",
-          gap: 20,
-          padding: "0 22px",
-          minHeight: 52,
-          alignItems: "center",
+          inset: "0 0 auto 0",
+          zIndex: 10,
         }}
       >
-        {framework.sections.map((section) => {
-          const active = section.id === current.id;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => setActiveSectionId(section.id)}
-              style={{
-                flex: "0 0 auto",
-                minHeight: 44,
-                border: "none",
-                background: "transparent",
-                padding: 0,
-                fontFamily: T.mono,
-                fontSize: 8,
-                letterSpacing: "0.13em",
-                color: active ? T.frameworks : T.body,
-                opacity: active ? 0.94 : 0.44,
-                cursor: "pointer",
-              }}
-            >
-              {section.short} · {section.label}
-            </button>
-          );
-        })}
+        <MobileReadingHeader title={framework.title} onBack={onBack} />
+
+        <nav
+          aria-label={`${framework.title} framework sections`}
+          style={{
+            minHeight: 52,
+            background: "rgba(5,5,10,0.97)",
+            backdropFilter: "blur(22px)",
+            WebkitBackdropFilter: "blur(22px)",
+            borderBottom: "0.5px solid rgba(106,184,138,0.12)",
+          }}
+        >
+          <div
+            style={{
+              minHeight: 52,
+              overflowX: "auto",
+              overflowY: "hidden",
+              display: "flex",
+              alignItems: "stretch",
+              gap: "clamp(20px, 6vw, 26px)",
+              padding: "0 clamp(18px, 5.5vw, 24px)",
+              scrollbarWidth: "none",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehaviorX: "contain",
+              scrollSnapType: "x proximity",
+            }}
+          >
+            {framework.sections.map((section, index) => {
+              const active = section.id === current.id;
+              const number = String(index + 1).padStart(2, "0");
+
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => setActiveSectionId(section.id)}
+                  aria-current={active ? "location" : undefined}
+                  style={{
+                    position: "relative",
+                    flex: "0 0 auto",
+                    minHeight: 44,
+                    border: "none",
+                    borderRadius: 2,
+                    background: "transparent",
+                    padding: "0 0 2px",
+                    fontFamily: T.mono,
+                    fontSize: "clamp(9px, 2.4vw, 9.5px)",
+                    letterSpacing: "0.14em",
+                    opacity: active ? 0.98 : 0.52,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    scrollSnapAlign: "center",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      marginRight: 7,
+                      color: active ? T.frameworks : T.accentGold,
+                      opacity: active ? 0.96 : 0.58,
+                    }}
+                  >
+                    {number}
+                  </span>
+                  <span
+                    style={{
+                      color: active ? "#F0E9D8" : T.accentGold,
+                      opacity: active ? 0.96 : 0.68,
+                    }}
+                  >
+                    {section.label}
+                  </span>
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 1,
+                      background: T.frameworks,
+                      transform: `scaleX(${active ? 1 : 0})`,
+                      transformOrigin: "left center",
+                      transition: "transform 220ms ease, opacity 220ms ease",
+                      opacity: active ? 0.86 : 0,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </nav>
       </div>
 
       <div
         style={{
           position: "absolute",
-          top: 134,
+          top: chromeHeight,
           left: 0,
           right: 0,
           bottom: 0,
           overflowY: "auto",
-          padding: "28px 28px 80px",
+          padding: "34px 28px 80px",
         }}
       >
-        <div
-          style={{
-            fontFamily: T.mono,
-            fontSize: 7,
-            letterSpacing: "0.18em",
-            color: T.frameworks,
-            opacity: 0.72,
-            marginBottom: 10,
-          }}
-        >
-          {current.label} · {current.readingTime} MIN READ
-        </div>
         <h2
           style={{
             margin: "0 0 10px",
@@ -206,6 +218,7 @@ function FrameworkReadingSurface({
             .toLowerCase()
             .replace(/\b\w/g, (letter) => letter.toUpperCase())}
         </h2>
+
         <div
           style={{
             fontFamily: T.serif,
@@ -218,6 +231,7 @@ function FrameworkReadingSurface({
         >
           {current.subtitle}
         </div>
+
         <div
           style={{
             height: 0.5,
@@ -261,6 +275,7 @@ function FrameworkReadingSurface({
           >
             LAYER INSIGHT
           </div>
+
           <div
             style={{
               fontFamily: T.serif,
@@ -315,6 +330,7 @@ function FrameworkReadingSurface({
               >
                 {item.number} · {item.title.toUpperCase()} · INSPECT →
               </div>
+
               <div
                 style={{
                   fontFamily: T.serif,
@@ -425,6 +441,7 @@ function FrameworkEvidenceViewer({
         >
           ‹ {section.label}
         </button>
+
         <div
           style={{
             textAlign: "right",
@@ -524,85 +541,47 @@ function FrameworkEvidenceViewer({
               objectFit: item.imageFit,
               transform: `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`,
               transformOrigin: "center center",
-              userSelect: "none",
-              WebkitUserDrag: "none",
             }}
           />
         </div>
 
         <div
           style={{
-            minHeight: 44,
-            padding: "0 22px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            borderBottom: `0.5px solid rgba(106,184,138,0.10)`,
+            padding: "18px 22px 48px",
           }}
         >
           <div
             style={{
               fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.16em",
-              color: T.body,
-              opacity: 0.46,
-            }}
-          >
-            PINCH OR DOUBLE-TAP TO INSPECT
-          </div>
-          <button
-            type="button"
-            onClick={reset}
-            style={{
-              minWidth: 44,
-              minHeight: 44,
-              border: "none",
-              background: "transparent",
-              fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.14em",
+              fontSize: 8,
+              letterSpacing: "0.15em",
               color: T.frameworks,
-            }}
-          >
-            RESET
-          </button>
-        </div>
-
-        <div style={{ padding: "20px 28px 70px" }}>
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.16em",
-              color: T.frameworks,
-              opacity: 0.70,
+              opacity: 0.74,
               marginBottom: 8,
             }}
           >
-            CAPTION
+            {item.type.toUpperCase()}
           </div>
+
           <div
             style={{
               fontFamily: T.serif,
-              fontSize: 13.5,
-              lineHeight: 1.62,
-              color: T.body,
-              opacity: 0.84,
-              marginBottom: 18,
+              fontSize: 18,
+              lineHeight: 1.36,
+              color: "#F0E9D8",
+              marginBottom: 12,
             }}
           >
-            {item.caption}
+            {item.title}
           </div>
+
           <div
             style={{
-              borderTop: "0.5px solid rgba(232,213,163,0.08)",
-              paddingTop: 16,
               fontFamily: T.serif,
-              fontSize: 13,
+              fontSize: 14,
               lineHeight: 1.62,
               color: T.body,
-              opacity: 0.70,
+              opacity: 0.86,
             }}
           >
             {item.description}
@@ -615,68 +594,45 @@ function FrameworkEvidenceViewer({
 
 interface FrameworksSceneProps {
   state: FWState;
-  activeFrameworkId: MobileFrameworkId;
-  overviewSelectionId: import("../frameworks/frameworkGeometry").FrameworkOverviewId;
-  activeSectionId: string;
-  setActiveSectionId: (id: string) => void;
-  onSelectFramework: (id: MobileFrameworkId) => void;
-  onSelectParent: () => void;
-  onExplore: () => void;
-  onCanvas: (evidenceId: string) => void;
-  activeEvidenceId: string | null;
-  viewportUiTarget?: HTMLElement | null;
-  returnFrameworkId?: MobileFrameworkId | null;
-  onReturnFrameworkComplete?: () => void;
+  frameworkId: MobileFrameworkId | null;
   onBack: () => void;
+  onReadingBack: () => void;
+  onSelectFramework?: (id: MobileFrameworkId) => void;
 }
 
 export default function FrameworksScene({
   state,
-  activeFrameworkId,
-  overviewSelectionId,
-  activeSectionId,
-  setActiveSectionId,
-  onSelectFramework,
-  onSelectParent,
-  onExplore,
-  onCanvas,
-  activeEvidenceId,
-  viewportUiTarget = null,
-  returnFrameworkId = null,
-  onReturnFrameworkComplete,
+  frameworkId,
   onBack,
+  onReadingBack,
+  onSelectFramework,
 }: FrameworksSceneProps) {
-  const framework = mobileFrameworkFor(activeFrameworkId);
+  const framework = mobileFrameworkFor(frameworkId);
+  const [selectedId, setSelectedId] = useState("frameworks");
+  const [activeSectionId, setActiveSectionId] = useState(
+    framework.sections[0]?.id ?? "",
+  );
+  const [evidenceId, setEvidenceId] = useState<string | null>(null);
+
   const {
-    selectedId,
-    drawerItem,
-    drawerPhase,
     selectionPulseId,
-    labelsVisible,
-    chromeVisible,
-    drawerVisible,
-    prefersReducedMotion,
-    ambientPaused,
-    focusedEntryFrameworkId,
-    focusedEntryProgress,
-    isReturningFromReading,
-    focusedReturnProgress,
-    selectOverviewItem,
-    enterFocusedReading,
+    drawerPhase,
+    overviewChromeVisible,
+    enterReading,
+    exitOverview,
+    selectFramework,
   } = useFrameworksChoreography({
-    state,
-    activeFrameworkId,
-    overviewSelectionId,
-    returnFrameworkId,
-    onReturnFrameworkComplete,
+    framework,
+    onBack,
+    onReadingBack,
     onSelectFramework,
-    onSelectParent,
-    onExplore,
   });
 
-  const currentSection =
-    framework.sections.find((section) => section.id === activeSectionId) ??
-    framework.sections[0];
+  useEffect(() => {
+    if (framework.sections[0]?.id) {
+      setActiveSectionId(framework.sections[0].id);
+    }
+  }, [framework.id, framework.sections]);
 
   if (state === "framework-reading") {
     return (
@@ -684,74 +640,74 @@ export default function FrameworksScene({
         framework={framework}
         activeSectionId={activeSectionId}
         setActiveSectionId={setActiveSectionId}
-        onCanvas={onCanvas}
-        onBack={onBack}
+        onCanvas={(id) => {
+          setEvidenceId(id);
+        }}
+        onBack={onReadingBack}
       />
     );
   }
 
-  if (state === "framework-evidence" && currentSection) {
-    return (
+  if (state === "framework-evidence") {
+    const section =
+      framework.sections.find((item) => item.id === activeSectionId) ??
+      framework.sections[0];
+
+    return section ? (
       <FrameworkEvidenceViewer
         framework={framework}
-        section={currentSection}
-        evidenceId={activeEvidenceId}
-        onClose={onBack}
+        section={section}
+        evidenceId={evidenceId}
+        onClose={() => setEvidenceId(null)}
       />
-    );
+    ) : null;
   }
 
   return (
     <>
       <FrameworkSceneStyles />
 
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width={W}
-        height={H}
-        style={{ position: "absolute", inset: 0 }}
-        aria-label="Frameworks constellation"
-      >
-        <FrameworkOverviewConstellation
-          selectedId={selectedId}
-          selectionPulseId={selectionPulseId}
-          ambientPaused={ambientPaused}
-          labelsVisible={labelsVisible}
-          focusedEntryId={focusedEntryFrameworkId}
-          focusedEntryProgress={focusedEntryProgress}
-          focusedReturnId={
-            isReturningFromReading ? returnFrameworkId : null
-          }
-          focusedReturnProgress={focusedReturnProgress}
-          reducedMotion={prefersReducedMotion}
-          onSelect={selectOverviewItem}
-        />
-      </svg>
-
       <AtlasOverviewFrame
-        target={viewportUiTarget}
+        color={T.frameworks}
         chrome={
           <FrameworksChrome
-            visible={chromeVisible}
-            onExitToAtlas={onBack}
+            visible={overviewChromeVisible}
+            onBack={exitOverview}
           />
         }
-        narrative={
-          <FrameworkPreviewDrawer
-            item={drawerItem}
-            phase={drawerPhase}
-            arrivalVisible={drawerVisible}
-            reducedMotion={prefersReducedMotion}
-            closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
-            reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
-            onExplore={() => {
-              if (selectedId !== "frameworks") {
-                enterFocusedReading(selectedId);
-              }
+      >
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width={W}
+          height={H}
+          style={{
+            position: "absolute",
+            inset: 0,
+          }}
+          aria-hidden
+        >
+          <FrameworkOverviewConstellation
+            selectedId={selectedId}
+            selectionPulseId={selectionPulseId}
+            ambientPaused={drawerPhase !== "open"}
+            labelsVisible={drawerPhase === "open"}
+            onSelect={(id) => {
+              setSelectedId(id);
+              selectFramework(id);
             }}
           />
-        }
-      />
+        </svg>
+
+        <FrameworkPreviewDrawer
+          framework={framework}
+          phase={drawerPhase}
+          arrivalVisible={overviewChromeVisible}
+          reducedMotion={false}
+          closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
+          reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
+          onExplore={() => enterReading()}
+        />
+      </AtlasOverviewFrame>
     </>
   );
 }

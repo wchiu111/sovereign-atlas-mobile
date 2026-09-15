@@ -88,51 +88,6 @@ export default function MobileReadingSection({
             "transform 360ms cubic-bezier(0.22,1,0.36,1), opacity 280ms ease",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 10,
-            marginBottom: 12,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: "clamp(8px, 2.2vw, 8.5px)",
-              letterSpacing: "0.14em",
-              color: T.caseStudies,
-              opacity: 0.56,
-            }}
-          >
-            {section.number}
-          </div>
-          <div
-            style={{
-              minWidth: 0,
-              fontFamily: T.mono,
-              fontSize: "clamp(8.5px, 2.3vw, 9px)",
-              letterSpacing: "0.18em",
-              color: T.caseStudies,
-              opacity: 0.84,
-            }}
-          >
-            {section.label}
-          </div>
-          <div
-            style={{
-              flexShrink: 0,
-              fontFamily: T.mono,
-              fontSize: "clamp(7.5px, 2vw, 8px)",
-              letterSpacing: "0.14em",
-              color: T.caseStudies,
-              opacity: 0.54,
-            }}
-          >
-            OF {String(totalSections).padStart(2, "0")}
-          </div>
-        </div>
-
         <h2
           style={{
             margin: "0 0 10px",
@@ -287,6 +242,7 @@ export default function MobileReadingSection({
         >
           SECTION INSIGHT
         </div>
+
         <div
           style={{
             maxWidth: 326,
