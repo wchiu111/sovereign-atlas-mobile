@@ -441,7 +441,6 @@ function FrameworkEvidenceViewer({
         >
           ‹ {section.label}
         </button>
-
         <div
           style={{
             textAlign: "right",
@@ -541,47 +540,85 @@ function FrameworkEvidenceViewer({
               objectFit: item.imageFit,
               transform: `translate3d(${translate.x}px, ${translate.y}px, 0) scale(${scale})`,
               transformOrigin: "center center",
+              userSelect: "none",
+              WebkitUserDrag: "none",
             }}
           />
         </div>
 
         <div
           style={{
-            padding: "18px 22px 48px",
+            minHeight: 44,
+            padding: "0 22px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: `0.5px solid rgba(106,184,138,0.10)`,
           }}
         >
           <div
             style={{
               fontFamily: T.mono,
-              fontSize: 8,
-              letterSpacing: "0.15em",
+              fontSize: 7,
+              letterSpacing: "0.16em",
+              color: T.body,
+              opacity: 0.46,
+            }}
+          >
+            PINCH OR DOUBLE-TAP TO INSPECT
+          </div>
+          <button
+            type="button"
+            onClick={reset}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              border: "none",
+              background: "transparent",
+              fontFamily: T.mono,
+              fontSize: 7,
+              letterSpacing: "0.14em",
               color: T.frameworks,
-              opacity: 0.74,
+            }}
+          >
+            RESET
+          </button>
+        </div>
+
+        <div style={{ padding: "20px 28px 70px" }}>
+          <div
+            style={{
+              fontFamily: T.mono,
+              fontSize: 7,
+              letterSpacing: "0.16em",
+              color: T.frameworks,
+              opacity: 0.70,
               marginBottom: 8,
             }}
           >
-            {item.type.toUpperCase()}
+            CAPTION
           </div>
-
           <div
             style={{
               fontFamily: T.serif,
-              fontSize: 18,
-              lineHeight: 1.36,
-              color: "#F0E9D8",
-              marginBottom: 12,
-            }}
-          >
-            {item.title}
-          </div>
-
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14,
+              fontSize: 13.5,
               lineHeight: 1.62,
               color: T.body,
-              opacity: 0.86,
+              opacity: 0.84,
+              marginBottom: 18,
+            }}
+          >
+            {item.caption}
+          </div>
+          <div
+            style={{
+              borderTop: "0.5px solid rgba(232,213,163,0.08)",
+              paddingTop: 16,
+              fontFamily: T.serif,
+              fontSize: 13,
+              lineHeight: 1.62,
+              color: T.body,
+              opacity: 0.70,
             }}
           >
             {item.description}
@@ -594,45 +631,68 @@ function FrameworkEvidenceViewer({
 
 interface FrameworksSceneProps {
   state: FWState;
-  frameworkId: MobileFrameworkId | null;
+  activeFrameworkId: MobileFrameworkId;
+  overviewSelectionId: import("../frameworks/frameworkGeometry").FrameworkOverviewId;
+  activeSectionId: string;
+  setActiveSectionId: (id: string) => void;
+  onSelectFramework: (id: MobileFrameworkId) => void;
+  onSelectParent: () => void;
+  onExplore: () => void;
+  onCanvas: (evidenceId: string) => void;
+  activeEvidenceId: string | null;
+  viewportUiTarget?: HTMLElement | null;
+  returnFrameworkId?: MobileFrameworkId | null;
+  onReturnFrameworkComplete?: () => void;
   onBack: () => void;
-  onReadingBack: () => void;
-  onSelectFramework?: (id: MobileFrameworkId) => void;
 }
 
 export default function FrameworksScene({
   state,
-  frameworkId,
-  onBack,
-  onReadingBack,
+  activeFrameworkId,
+  overviewSelectionId,
+  activeSectionId,
+  setActiveSectionId,
   onSelectFramework,
+  onSelectParent,
+  onExplore,
+  onCanvas,
+  activeEvidenceId,
+  viewportUiTarget = null,
+  returnFrameworkId = null,
+  onReturnFrameworkComplete,
+  onBack,
 }: FrameworksSceneProps) {
-  const framework = mobileFrameworkFor(frameworkId);
-  const [selectedId, setSelectedId] = useState("frameworks");
-  const [activeSectionId, setActiveSectionId] = useState(
-    framework.sections[0]?.id ?? "",
-  );
-  const [evidenceId, setEvidenceId] = useState<string | null>(null);
-
+  const framework = mobileFrameworkFor(activeFrameworkId);
   const {
-    selectionPulseId,
+    selectedId,
+    drawerItem,
     drawerPhase,
-    overviewChromeVisible,
-    enterReading,
-    exitOverview,
-    selectFramework,
+    selectionPulseId,
+    labelsVisible,
+    chromeVisible,
+    drawerVisible,
+    prefersReducedMotion,
+    ambientPaused,
+    focusedEntryFrameworkId,
+    focusedEntryProgress,
+    isReturningFromReading,
+    focusedReturnProgress,
+    selectOverviewItem,
+    enterFocusedReading,
   } = useFrameworksChoreography({
-    framework,
-    onBack,
-    onReadingBack,
+    state,
+    activeFrameworkId,
+    overviewSelectionId,
+    returnFrameworkId,
+    onReturnFrameworkComplete,
     onSelectFramework,
+    onSelectParent,
+    onExplore,
   });
 
-  useEffect(() => {
-    if (framework.sections[0]?.id) {
-      setActiveSectionId(framework.sections[0].id);
-    }
-  }, [framework.id, framework.sections]);
+  const currentSection =
+    framework.sections.find((section) => section.id === activeSectionId) ??
+    framework.sections[0];
 
   if (state === "framework-reading") {
     return (
@@ -640,74 +700,74 @@ export default function FrameworksScene({
         framework={framework}
         activeSectionId={activeSectionId}
         setActiveSectionId={setActiveSectionId}
-        onCanvas={(id) => {
-          setEvidenceId(id);
-        }}
-        onBack={onReadingBack}
+        onCanvas={onCanvas}
+        onBack={onBack}
       />
     );
   }
 
-  if (state === "framework-evidence") {
-    const section =
-      framework.sections.find((item) => item.id === activeSectionId) ??
-      framework.sections[0];
-
-    return section ? (
+  if (state === "framework-evidence" && currentSection) {
+    return (
       <FrameworkEvidenceViewer
         framework={framework}
-        section={section}
-        evidenceId={evidenceId}
-        onClose={() => setEvidenceId(null)}
+        section={currentSection}
+        evidenceId={activeEvidenceId}
+        onClose={onBack}
       />
-    ) : null;
+    );
   }
 
   return (
     <>
       <FrameworkSceneStyles />
 
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        width={W}
+        height={H}
+        style={{ position: "absolute", inset: 0 }}
+        aria-label="Frameworks constellation"
+      >
+        <FrameworkOverviewConstellation
+          selectedId={selectedId}
+          selectionPulseId={selectionPulseId}
+          ambientPaused={ambientPaused}
+          labelsVisible={labelsVisible}
+          focusedEntryId={focusedEntryFrameworkId}
+          focusedEntryProgress={focusedEntryProgress}
+          focusedReturnId={
+            isReturningFromReading ? returnFrameworkId : null
+          }
+          focusedReturnProgress={focusedReturnProgress}
+          reducedMotion={prefersReducedMotion}
+          onSelect={selectOverviewItem}
+        />
+      </svg>
+
       <AtlasOverviewFrame
-        color={T.frameworks}
+        target={viewportUiTarget}
         chrome={
           <FrameworksChrome
-            visible={overviewChromeVisible}
-            onBack={exitOverview}
+            visible={chromeVisible}
+            onExitToAtlas={onBack}
           />
         }
-      >
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          width={W}
-          height={H}
-          style={{
-            position: "absolute",
-            inset: 0,
-          }}
-          aria-hidden
-        >
-          <FrameworkOverviewConstellation
-            selectedId={selectedId}
-            selectionPulseId={selectionPulseId}
-            ambientPaused={drawerPhase !== "open"}
-            labelsVisible={drawerPhase === "open"}
-            onSelect={(id) => {
-              setSelectedId(id);
-              selectFramework(id);
+        narrative={
+          <FrameworkPreviewDrawer
+            item={drawerItem}
+            phase={drawerPhase}
+            arrivalVisible={drawerVisible}
+            reducedMotion={prefersReducedMotion}
+            closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
+            reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
+            onExplore={() => {
+              if (selectedId !== "frameworks") {
+                enterFocusedReading(selectedId);
+              }
             }}
           />
-        </svg>
-
-        <FrameworkPreviewDrawer
-          framework={framework}
-          phase={drawerPhase}
-          arrivalVisible={overviewChromeVisible}
-          reducedMotion={false}
-          closeDurationMs={FRAMEWORK_DRAWER_CLOSE_DURATION}
-          reducedDurationMs={FRAMEWORK_REDUCED_MOTION_DRAWER_DURATION}
-          onExplore={() => enterReading()}
-        />
-      </AtlasOverviewFrame>
+        }
+      />
     </>
   );
 }
