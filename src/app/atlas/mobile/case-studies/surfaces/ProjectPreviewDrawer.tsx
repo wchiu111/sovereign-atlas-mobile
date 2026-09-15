@@ -25,6 +25,7 @@ export default function ProjectPreviewDrawer({
   return (
     <AtlasOverviewDrawer
       title={item.label}
+      titleColor={T.caseStudies}
       color={color}
       countLabel={isCaseStudies ? "4 PROJECTS" : undefined}
       phase={phase}
@@ -50,7 +51,7 @@ export default function ProjectPreviewDrawer({
               fontFamily: T.mono,
               fontSize: 12.5,
               letterSpacing: "0.14em",
-              color: item.color,
+              color: T.caseStudies,
               opacity: 0.98,
               cursor: "pointer",
               borderRadius: 3,

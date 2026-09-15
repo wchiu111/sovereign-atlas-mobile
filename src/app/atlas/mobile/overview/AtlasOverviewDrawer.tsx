@@ -6,6 +6,7 @@ import type { AtlasOverviewDrawerPhase } from "./atlasOverviewTypes";
 export interface AtlasOverviewDrawerProps {
   title: string;
   color: string;
+  titleColor?: string;
   countLabel?: string;
   phase: AtlasOverviewDrawerPhase;
   arrivalVisible?: boolean;
@@ -33,6 +34,7 @@ export interface AtlasOverviewDrawerProps {
 export default function AtlasOverviewDrawer({
   title,
   color,
+  titleColor,
   countLabel,
   phase,
   arrivalVisible = true,
@@ -104,7 +106,7 @@ export default function AtlasOverviewDrawer({
               fontSize: 22,
               fontWeight: 600,
               letterSpacing: "0.10em",
-              color,
+              color: titleColor ?? color,
               opacity: 0.98,
               lineHeight: 1.1,
             }}
