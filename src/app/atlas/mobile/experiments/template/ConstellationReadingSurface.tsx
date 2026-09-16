@@ -209,6 +209,17 @@ export default function ConstellationReadingSurface<TId extends string>({
           outline-offset: 3px;
         }
 
+        .atlas-template-reading-scroll {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .atlas-template-reading-scroll::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+          display: none;
+        }
+
         @media (min-width: 431px) {
           .atlas-template-reading {
             max-width: 430px;
@@ -256,6 +267,7 @@ export default function ConstellationReadingSurface<TId extends string>({
 
       <div
         ref={scrollRef}
+        className="atlas-template-reading-scroll"
         role="main"
         aria-label={`${item.title} experiment reading`}
         style={{
@@ -281,7 +293,7 @@ export default function ConstellationReadingSurface<TId extends string>({
             style={{
               scrollMarginTop: 138,
               padding:
-                "clamp(34px, 9vw, 40px) clamp(22px, 6.6vw, 28px) clamp(54px, 14vw, 64px)",
+                "clamp(32px, 8.4vw, 38px) clamp(24px, 6.8vw, 28px) clamp(52px, 13vw, 60px)",
               borderBottom:
                 "0.5px solid rgba(232,213,163,0.08)",
             }}
@@ -291,7 +303,7 @@ export default function ConstellationReadingSurface<TId extends string>({
                 style={{
                   margin: "0 0 10px",
                   fontFamily: T.serif,
-                  fontSize: "clamp(30px, 8vw, 34px)",
+                  fontSize: "clamp(28px, 7.4vw, 32px)",
                   fontWeight: 600,
                   lineHeight: 1.08,
                   color: "#F0E9D8",
@@ -307,7 +319,7 @@ export default function ConstellationReadingSurface<TId extends string>({
               <div
                 style={{
                   fontFamily: T.serif,
-                  fontSize: 19,
+                  fontSize: 17.5,
                   lineHeight: 1.3,
                   color: T.accentGold,
                   opacity: 0.88,
@@ -321,7 +333,7 @@ export default function ConstellationReadingSurface<TId extends string>({
               style={{
                 height: 0.5,
                 background: "rgba(232,213,163,0.10)",
-                marginBottom: 24,
+                marginBottom: 22,
               }}
             />
 
@@ -329,12 +341,12 @@ export default function ConstellationReadingSurface<TId extends string>({
               <p
                 key={index}
                 style={{
-                  margin: "0 0 18px",
+                  margin: "0 0 17px",
                   fontFamily: T.serif,
-                  fontSize: "clamp(15px, 4.1vw, 16px)",
+                  fontSize: "clamp(14.5px, 3.85vw, 15.5px)",
                   color: "#F0E9D8",
-                  opacity: 0.86,
-                  lineHeight: 1.7,
+                  opacity: 0.84,
+                  lineHeight: 1.72,
                 }}
               >
                 {paragraph}
@@ -344,8 +356,8 @@ export default function ConstellationReadingSurface<TId extends string>({
             <aside
               style={{
                 borderLeft: `1.5px solid ${domainColor}4D`,
-                paddingLeft: 16,
-                margin: "28px 0",
+                paddingLeft: 15,
+                margin: "26px 0 24px",
               }}
             >
               <div
@@ -364,10 +376,10 @@ export default function ConstellationReadingSurface<TId extends string>({
               <div
                 style={{
                   fontFamily: T.serif,
-                  fontSize: 14,
+                  fontSize: 13.25,
                   color: T.body,
-                  opacity: 0.84,
-                  lineHeight: 1.58,
+                  opacity: 0.78,
+                  lineHeight: 1.6,
                   fontStyle: "italic",
                 }}
               >

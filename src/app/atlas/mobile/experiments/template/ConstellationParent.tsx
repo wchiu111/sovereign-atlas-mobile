@@ -73,13 +73,13 @@ export default function ConstellationParent<TParentId extends string>({
           <circle
             r={selected ? 74 : 62}
             fill={parent.color}
-            opacity={selected ? 0.10 : 0.035}
+            opacity={selected ? 0.085 : 0.028}
             pointerEvents="none"
           />
           <circle
             r={selected ? 48 : 42}
             fill={parent.color}
-            opacity={selected ? 0.18 : 0.065}
+            opacity={selected ? 0.15 : 0.052}
             pointerEvents="none"
           />
         </g>
@@ -97,7 +97,7 @@ export default function ConstellationParent<TParentId extends string>({
             fill="none"
             stroke={parent.color}
             strokeWidth={selected ? 0.72 : 0.42}
-            opacity={selected ? 0.36 : 0.14}
+            opacity={selected ? 0.32 : 0.12}
             pointerEvents="none"
           />
           <circle
@@ -105,7 +105,7 @@ export default function ConstellationParent<TParentId extends string>({
             fill="none"
             stroke={parent.color}
             strokeWidth={0.35}
-            opacity={selected ? 0.23 : 0.09}
+            opacity={selected ? 0.20 : 0.075}
             pointerEvents="none"
           />
         </g>
@@ -122,7 +122,7 @@ export default function ConstellationParent<TParentId extends string>({
         <circle
           r={selected ? 14 : 11}
           fill={parent.color}
-          opacity={selected ? 1 : 0.55}
+          opacity={selected ? 0.96 : 0.52}
           pointerEvents="none"
         />
       </g>
