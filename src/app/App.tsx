@@ -1,5 +1,5 @@
-import MobileAtlas from "./atlas/mobile/MobileAtlas";
+import ExperimentsTemplatePrototype from "../../src/app/atlas/mobile/experiments/ExperimentsTemplatePrototype";
 
 export default function App() {
-  return <MobileAtlas />;
+  return <ExperimentsTemplatePrototype />;
 }
