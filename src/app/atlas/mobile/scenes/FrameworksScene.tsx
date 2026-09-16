@@ -5,7 +5,7 @@
  * Framework identity and authored overview/reading data come from the registry.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { T, W, H } from "../components/mobileShared";
 import MobileReadingHeader from "../reading/MobileReadingHeader";
 import { mobileFrameworkFor } from "../frameworks/frameworkRegistry";
@@ -43,18 +43,33 @@ function FrameworkReadingSurface({
   onCanvas: (evidenceId: string) => void;
   onBack: () => void;
 }) {
-  const current =
-    framework.sections.find((section) => section.id === activeSectionId) ??
-    framework.sections[0];
-
+  const scrollRef = useRef<HTMLDivElement>(null);
   const chromeRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef(new Map<string, HTMLElement>());
+  const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
+
   const [chromeHeight, setChromeHeight] = useState(114);
+  const [headerElevated, setHeaderElevated] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  const sectionIds = useMemo(
+    () => framework.sections.map((section) => section.id),
+    [framework.sections],
+  );
 
   useEffect(() => {
-    if (!framework.sections.some((section) => section.id === activeSectionId)) {
-      setActiveSectionId(framework.sections[0]?.id ?? "");
-    }
-  }, [activeSectionId, framework.sections, setActiveSectionId]);
+    const firstId = framework.sections[0]?.id ?? "";
+    setActiveSectionId(firstId);
+    scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [framework.id, framework.sections, setActiveSectionId]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPrefersReducedMotion(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
 
   useEffect(() => {
     const chrome = chromeRef.current;
@@ -77,17 +92,93 @@ function FrameworkReadingSurface({
     };
   }, []);
 
-  if (!current) return null;
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || sectionIds.length === 0) return;
 
-  const evidence = framework.evidence.filter(
-    (item) => item.sectionId === current.id || item.sectionId === "*",
-  );
+    let frame = 0;
+
+    const updateActiveSection = () => {
+      cancelAnimationFrame(frame);
+      setHeaderElevated(scroller.scrollTop > 12);
+
+      frame = requestAnimationFrame(() => {
+        const rootTop = scroller.getBoundingClientRect().top;
+        const activationLine = rootTop + 156;
+
+        let bestId = sectionIds[0];
+        let bestDistance = Number.POSITIVE_INFINITY;
+
+        for (const id of sectionIds) {
+          const node = sectionRefs.current.get(id);
+          if (!node) continue;
+
+          const rect = node.getBoundingClientRect();
+          const distance = Math.abs(rect.top - activationLine);
+
+          if (rect.top <= activationLine + 24 && distance < bestDistance) {
+            bestId = id;
+            bestDistance = distance;
+          }
+        }
+
+        const lastId = sectionIds[sectionIds.length - 1];
+        const lastNode = sectionRefs.current.get(lastId);
+
+        if (
+          lastNode &&
+          scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 24
+        ) {
+          bestId = lastId;
+        }
+
+        setActiveSectionId(bestId);
+      });
+    };
+
+    updateActiveSection();
+    scroller.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      scroller.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [sectionIds, setActiveSectionId]);
+
+  useEffect(() => {
+    const activeButton = buttonRefs.current.get(activeSectionId);
+    activeButton?.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeSectionId, prefersReducedMotion]);
+
+  const scrollToSection = (id: string) => {
+    const node = sectionRefs.current.get(id);
+    const scroller = scrollRef.current;
+    if (!node || !scroller) return;
+
+    setActiveSectionId(id);
+
+    const scrollerTop = scroller.getBoundingClientRect().top;
+    const nodeTop = node.getBoundingClientRect().top;
+    const target = scroller.scrollTop + nodeTop - scrollerTop - 2;
+
+    scroller.scrollTo({
+      top: target,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  };
 
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
+        overflow: "hidden",
         background:
           "linear-gradient(to bottom, rgba(5,5,10,0.72), rgba(5,5,10,0.99) 180px)",
       }}
@@ -100,7 +191,11 @@ function FrameworkReadingSurface({
           zIndex: 10,
         }}
       >
-        <MobileReadingHeader title={framework.title} onBack={onBack} />
+        <MobileReadingHeader
+          title={framework.title}
+          onBack={onBack}
+          elevated={headerElevated}
+        />
 
         <nav
           aria-label={`${framework.title} framework sections`}
@@ -128,14 +223,18 @@ function FrameworkReadingSurface({
             }}
           >
             {framework.sections.map((section, index) => {
-              const active = section.id === current.id;
+              const active = section.id === activeSectionId;
               const number = String(index + 1).padStart(2, "0");
 
               return (
                 <button
                   key={section.id}
+                  ref={(node) => {
+                    if (node) buttonRefs.current.set(section.id, node);
+                    else buttonRefs.current.delete(section.id);
+                  }}
                   type="button"
-                  onClick={() => setActiveSectionId(section.id)}
+                  onClick={() => scrollToSection(section.id)}
                   aria-current={active ? "location" : undefined}
                   style={{
                     position: "relative",
@@ -195,6 +294,9 @@ function FrameworkReadingSurface({
       </div>
 
       <div
+        ref={scrollRef}
+        role="main"
+        aria-label={`${framework.title} framework reading`}
         style={{
           position: "absolute",
           top: chromeHeight,
@@ -202,151 +304,180 @@ function FrameworkReadingSurface({
           right: 0,
           bottom: 0,
           overflowY: "auto",
-          padding:
-            "clamp(34px, 9vw, 40px) clamp(22px, 6.6vw, 28px) 80px",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehaviorY: "contain",
         }}
       >
-        <h2
-          style={{
-            margin: "0 0 10px",
-            fontFamily: T.serif,
-            fontSize: "clamp(30px, 8vw, 34px)",
-            fontWeight: 600,
-            lineHeight: 1.08,
-            color: "#F0E9D8",
-          }}
-        >
-          {current.label
-            .toLowerCase()
-            .replace(/\b\w/g, (letter) => letter.toUpperCase())}
-        </h2>
+        {framework.sections.map((section) => {
+          const evidence = framework.evidence.filter(
+            (item) => item.sectionId === section.id || item.sectionId === "*",
+          );
 
-        <div
-          style={{
-            fontFamily: T.serif,
-            fontSize: 19,
-            lineHeight: 1.3,
-            color: T.accentGold,
-            opacity: 0.88,
-            marginBottom: 18,
-          }}
-        >
-          {current.subtitle}
-        </div>
-
-        <div
-          style={{
-            height: 0.5,
-            background: "rgba(232,213,163,0.10)",
-            marginBottom: 24,
-          }}
-        />
-
-        {current.content.split("\n\n").map((paragraph, index) => (
-          <p
-            key={index}
-            style={{
-              margin: "0 0 18px",
-              fontFamily: T.serif,
-              fontSize: "clamp(15px, 4.1vw, 16px)",
-              color: "#F0E9D8",
-              opacity: 0.86,
-              lineHeight: 1.7,
-            }}
-          >
-            {paragraph}
-          </p>
-        ))}
-
-        <aside
-          style={{
-            borderLeft: `1.5px solid rgba(106,184,138,0.30)`,
-            paddingLeft: 16,
-            margin: "28px 0",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: T.mono,
-              fontSize: 7,
-              letterSpacing: "0.18em",
-              color: T.frameworks,
-              opacity: 0.72,
-              marginBottom: 8,
-            }}
-          >
-            LAYER INSIGHT
-          </div>
-
-          <div
-            style={{
-              fontFamily: T.serif,
-              fontSize: 14,
-              color: T.body,
-              opacity: 0.84,
-              lineHeight: 1.58,
-              fontStyle: "italic",
-            }}
-          >
-            “{current.insight}”
-          </div>
-        </aside>
-
-        {evidence.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onCanvas(item.id)}
-            style={{
-              width: "100%",
-              borderRadius: 4,
-              border: `0.5px solid rgba(106,184,138,0.22)`,
-              overflow: "hidden",
-              cursor: "pointer",
-              padding: 0,
-              background: "rgba(5,5,10,0.88)",
-              textAlign: "left",
-            }}
-          >
-            <img
-              src={item.image}
-              alt={item.alt}
-              style={{
-                width: "100%",
-                height: 150,
-                objectFit: item.imageFit,
-                display: "block",
-                opacity: 0.88,
+          return (
+            <section
+              key={section.id}
+              id={`mobile-framework-reading-${section.id}`}
+              ref={(node) => {
+                if (node) sectionRefs.current.set(section.id, node);
+                else sectionRefs.current.delete(section.id);
               }}
-            />
-            <div style={{ padding: "11px 14px 13px" }}>
-              <div
-                style={{
-                  fontFamily: T.mono,
-                  fontSize: 7.5,
-                  letterSpacing: "0.14em",
-                  color: T.frameworks,
-                  opacity: 0.74,
-                  marginBottom: 5,
-                }}
-              >
-                {item.number} · {item.title.toUpperCase()} · INSPECT →
+              data-section-id={section.id}
+              style={{
+                scrollMarginTop: 138,
+                padding:
+                  "clamp(34px, 9vw, 40px) clamp(22px, 6.6vw, 28px) clamp(54px, 14vw, 64px)",
+                borderBottom: "0.5px solid rgba(232,213,163,0.08)",
+              }}
+            >
+              <div style={{ marginBottom: 18 }}>
+                <h2
+                  style={{
+                    margin: "0 0 10px",
+                    fontFamily: T.serif,
+                    fontSize: "clamp(30px, 8vw, 34px)",
+                    fontWeight: 600,
+                    lineHeight: 1.08,
+                    color: "#F0E9D8",
+                  }}
+                >
+                  {section.label
+                    .toLowerCase()
+                    .replace(/\b\w/g, (letter) => letter.toUpperCase())}
+                </h2>
+
+                <div
+                  style={{
+                    fontFamily: T.serif,
+                    fontSize: 19,
+                    lineHeight: 1.3,
+                    color: T.accentGold,
+                    opacity: 0.88,
+                  }}
+                >
+                  {section.subtitle}
+                </div>
               </div>
 
               <div
                 style={{
-                  fontFamily: T.serif,
-                  fontSize: 13,
-                  lineHeight: 1.52,
-                  color: T.body,
-                  opacity: 0.78,
+                  height: 0.5,
+                  background: "rgba(232,213,163,0.10)",
+                  marginBottom: 24,
+                }}
+              />
+
+              {section.content.split("\n\n").map((paragraph, index) => (
+                <p
+                  key={index}
+                  style={{
+                    margin: "0 0 18px",
+                    fontFamily: T.serif,
+                    fontSize: "clamp(15px, 4.1vw, 16px)",
+                    color: "#F0E9D8",
+                    opacity: 0.86,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {paragraph}
+                </p>
+              ))}
+
+              <aside
+                style={{
+                  borderLeft: "1.5px solid rgba(106,184,138,0.30)",
+                  paddingLeft: 16,
+                  margin: "28px 0",
                 }}
               >
-                {item.caption}
-              </div>
-            </div>
-          </button>
-        ))}
+                <div
+                  style={{
+                    fontFamily: T.mono,
+                    fontSize: 7,
+                    letterSpacing: "0.18em",
+                    color: T.frameworks,
+                    opacity: 0.72,
+                    marginBottom: 8,
+                  }}
+                >
+                  LAYER INSIGHT
+                </div>
+
+                <div
+                  style={{
+                    fontFamily: T.serif,
+                    fontSize: 14,
+                    color: T.body,
+                    opacity: 0.84,
+                    lineHeight: 1.58,
+                    fontStyle: "italic",
+                  }}
+                >
+                  “{section.insight}”
+                </div>
+              </aside>
+
+              {evidence.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveSectionId(section.id);
+                    onCanvas(item.id);
+                  }}
+                  style={{
+                    width: "100%",
+                    borderRadius: 4,
+                    border: "0.5px solid rgba(106,184,138,0.22)",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    padding: 0,
+                    background: "rgba(5,5,10,0.88)",
+                    textAlign: "left",
+                  }}
+                >
+                  <img
+                    src={item.image}
+                    alt={item.alt}
+                    style={{
+                      width: "100%",
+                      height: 150,
+                      objectFit: item.imageFit,
+                      display: "block",
+                      opacity: 0.88,
+                    }}
+                  />
+                  <div style={{ padding: "11px 14px 13px" }}>
+                    <div
+                      style={{
+                        fontFamily: T.mono,
+                        fontSize: 7.5,
+                        letterSpacing: "0.14em",
+                        color: T.frameworks,
+                        opacity: 0.74,
+                        marginBottom: 5,
+                      }}
+                    >
+                      {item.number} · {item.title.toUpperCase()} · INSPECT →
+                    </div>
+
+                    <div
+                      style={{
+                        fontFamily: T.serif,
+                        fontSize: 13,
+                        lineHeight: 1.52,
+                        color: T.body,
+                        opacity: 0.78,
+                      }}
+                    >
+                      {item.caption}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

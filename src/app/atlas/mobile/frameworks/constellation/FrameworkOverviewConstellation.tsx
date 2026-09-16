@@ -13,6 +13,16 @@ import {
 import FrameworkNode from "./FrameworkNode";
 import FrameworkParent from "./FrameworkParent";
 
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function smoothSegment(progress: number, start: number, end: number) {
+  const span = Math.max(0.0001, end - start);
+  const raw = clamp01((progress - start) / span);
+  return raw * raw * (3 - 2 * raw);
+}
+
 export default function FrameworkOverviewConstellation({
   selectedId,
   selectionPulseId,
@@ -40,8 +50,20 @@ export default function FrameworkOverviewConstellation({
   const transitionLocked =
     focusedEntryId !== null || focusedReturnId !== null;
 
+  const entryContextFade = focusedEntryId
+    ? smoothSegment(focusedEntryProgress, 0.18, 0.78)
+    : 0;
+
+  const entryScaleProgress = focusedEntryId
+    ? smoothSegment(focusedEntryProgress, 0.04, 0.88)
+    : 0;
+
+  const entryLabelFade = focusedEntryId
+    ? smoothSegment(focusedEntryProgress, 0.58, 0.96)
+    : 0;
+
   const relationFocusOpacity = focusedEntryId
-    ? 1 - focusedEntryProgress
+    ? 1 - entryContextFade
     : focusedReturnId
     ? focusedReturnProgress
     : 1;
@@ -89,7 +111,7 @@ export default function FrameworkOverviewConstellation({
         const focusOpacity = focusedEntryId
           ? isFocusedEntry
             ? 1
-            : 1 - focusedEntryProgress
+            : 1 - entryContextFade
           : focusedReturnId
           ? isFocusedReturn
             ? 1
@@ -99,7 +121,7 @@ export default function FrameworkOverviewConstellation({
         const focusScale = isFocusedEntry
           ? reducedMotion
             ? 1
-            : 1 + 0.18 * focusedEntryProgress
+            : 1 + 0.10 * entryScaleProgress
           : isFocusedReturn
           ? reducedMotion
             ? 1
@@ -107,12 +129,7 @@ export default function FrameworkOverviewConstellation({
           : 1;
 
         const entryLabelOpacity = isFocusedEntry
-          ? focusedEntryProgress < 0.68
-            ? 1
-            : Math.max(
-                0,
-                1 - (focusedEntryProgress - 0.68) / 0.32,
-              )
+          ? 1 - entryLabelFade
           : 1;
 
         const returnLabelOpacity = focusedReturnId

@@ -40,6 +40,11 @@ export default function FrameworkNode({
   const animationPlayState =
     ambientPaused && !selectionPulse ? "paused" : "running";
 
+  const spatialTransition = interactive
+    ? FRAMEWORK_POSITION_TRANSITION
+    : "none";
+  const labelTransition = interactive ? "opacity 240ms ease" : "none";
+
   const activate = () => {
     if (interactive) onSelect();
   };
@@ -64,7 +69,7 @@ export default function FrameworkNode({
       style={{
         cursor: interactive ? "pointer" : "default",
         opacity: siblingOpacity * focusOpacity,
-        transition: FRAMEWORK_POSITION_TRANSITION,
+        transition: spatialTransition,
         outline: "none",
         pointerEvents: interactive ? "auto" : "none",
         WebkitTapHighlightColor: "transparent",
@@ -74,7 +79,7 @@ export default function FrameworkNode({
         style={{
           transform: `translate(${geometry.x}px,${geometry.y}px) scale(${focusScale})`,
           transformOrigin: `${geometry.x}px ${geometry.y}px`,
-          transition: FRAMEWORK_POSITION_TRANSITION,
+          transition: spatialTransition,
         }}
       >
         <g
@@ -147,7 +152,7 @@ export default function FrameworkNode({
             : 0
         }
         pointerEvents="none"
-        style={{ transition: "opacity 240ms ease" }}
+        style={{ transition: labelTransition }}
       >
         {item.labelLines.map((line, index) => (
           <tspan
