@@ -29,6 +29,9 @@ export default function CaseStudyOverviewConstellation({
   reducedMotion?: boolean;
 }) {
   const caseStudiesSelected = selectedId === "case-studies";
+  const caseStudiesPulse = selectionPulseId === "case-studies";
+  const parentAnimationPlayState =
+    ambientPaused || caseStudiesPulse ? "paused" : "running";
 
   return (
     <g>
@@ -69,29 +72,50 @@ export default function CaseStudyOverviewConstellation({
           className={
             transitionPreview
               ? undefined
-              : selectionPulseId === "case-studies"
+              : caseStudiesPulse
               ? "atlas-selection-pulse"
-              : caseStudiesSelected
-              ? "atlas-parent-core-selected"
-              : "atlas-parent-core-available"
+              : undefined
           }
           style={{
-            animationDelay:
-              selectionPulseId === "case-studies" || caseStudiesSelected
-                ? "0s"
-                : "0.45s",
-            animationPlayState:
-              ambientPaused && selectionPulseId !== "case-studies"
-                ? "paused"
-                : "running",
+            animationPlayState: caseStudiesPulse ? "running" : "paused",
           }}
         >
-          <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
-          <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
-          <circle r={57} fill="none" stroke={T.caseStudies} strokeWidth={caseStudiesSelected ? 0.75 : 0.45} opacity={caseStudiesSelected ? 0.38 : 0.16} />
-          <circle r={34} fill="none" stroke={T.caseStudies} strokeWidth={0.35} opacity={caseStudiesSelected ? 0.24 : 0.10} />
+          <g
+            className={transitionPreview ? undefined : "atlas-case-studies-atmosphere"}
+            style={{
+              animationDelay: "-1.4s",
+              animationPlayState: parentAnimationPlayState,
+            }}
+          >
+            <circle r={74} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.11 : 0.04} />
+            <circle r={48} fill={T.caseStudies} opacity={caseStudiesSelected ? 0.20 : 0.08} />
+          </g>
+
+          <g
+            className={transitionPreview ? undefined : "atlas-case-studies-rings"}
+            style={{
+              animationDelay: "-3.1s",
+              animationPlayState: parentAnimationPlayState,
+              filter: "drop-shadow(0 0 3px rgba(138,174,200,0.18))",
+            }}
+          >
+            <circle r={57} fill="none" stroke={T.caseStudies} strokeWidth={caseStudiesSelected ? 0.75 : 0.45} opacity={caseStudiesSelected ? 0.38 : 0.16} />
+            <circle r={34} fill="none" stroke={T.caseStudies} strokeWidth={0.35} opacity={caseStudiesSelected ? 0.24 : 0.10} />
+          </g>
+        </g>
+
+        <g
+          className={transitionPreview ? undefined : "atlas-case-studies-core"}
+          style={{
+            animationDelay: "-4.8s",
+            animationPlayState: parentAnimationPlayState,
+            filter:
+              "drop-shadow(0 0 2px rgba(138,174,200,0.55)) drop-shadow(0 0 8px rgba(138,174,200,0.12))",
+          }}
+        >
           <circle r={14} fill={T.caseStudies} opacity={caseStudiesSelected ? 1 : 0.58} />
         </g>
+
         <circle r={34} fill="transparent" pointerEvents="all" />
 
         <text
@@ -113,6 +137,7 @@ export default function CaseStudyOverviewConstellation({
         const isSelected = selectedId === project.id;
         const isFocusedEntry = focusedEntryId === project.id;
         const isFocusedReturn = focusedReturnId === project.id;
+        const projectPulse = selectionPulseId === project.id;
         const siblingEntryOpacity = focusedEntryId
           ? isFocusedEntry
             ? 1
@@ -151,6 +176,15 @@ export default function CaseStudyOverviewConstellation({
             ? ["SOVEREIGN", "ATLAS"]
             : [project.label];
 
+        const breathDelay = PROJECT_BREATH_DELAYS[index] ?? 0;
+        const animationPlayState =
+          ambientPaused || projectPulse || focusedEntryId || focusedReturnId
+            ? "paused"
+            : "running";
+        const outerDuration = isSelected ? 6.8 : 5.8 + breathDelay * 0.18;
+        const innerDuration = isSelected ? 5.8 : 4.9 + breathDelay * 0.12;
+        const coreDuration = isSelected ? 7.2 : 6.4 + breathDelay * 0.14;
+
         return (
           <g
             key={project.id}
@@ -165,69 +199,82 @@ export default function CaseStudyOverviewConstellation({
             }}
           >
             <g
-              className={
-                transitionPreview || isSelected
-                  ? undefined
-                  : caseStudiesSelected
-                  ? "atlas-node-brightness-parent"
-                  : "atlas-node-brightness-sibling"
-              }
               style={{
                 transform: `translate(${layout.x}px,${layout.y}px) scale(${focusedScale})`,
                 transformOrigin: `${layout.x}px ${layout.y}px`,
                 transition: focusedEntryId || focusedReturnId
                   ? "none"
                   : `transform 280ms ${CASE_STUDIES_PULL_EASE}`,
-                animationDelay: transitionPreview
-                  ? "0s"
-                  : `${PROJECT_BREATH_DELAYS[index]}s`,
-                animationPlayState: ambientPaused ? "paused" : "running",
               }}
             >
               <g
                 className={
                   transitionPreview
                     ? undefined
-                    : selectionPulseId === project.id
+                    : projectPulse
                     ? "atlas-selection-pulse"
-                    : isSelected
-                    ? "atlas-halo-selected"
-                    : "atlas-halo-available"
+                    : undefined
                 }
                 style={{
-                  animationDelay:
-                    transitionPreview || selectionPulseId === project.id
-                      ? "0s"
-                      : `${PROJECT_BREATH_DELAYS[index]}s`,
-                  animationPlayState:
-                    ambientPaused && selectionPulseId !== project.id
-                      ? "paused"
-                      : "running",
+                  animationPlayState: projectPulse ? "running" : "paused",
                   opacity: focusedHaloOpacity,
                 }}
               >
-                <circle r={isSelected ? 30 : 24} fill={project.color} opacity={isSelected ? 0.13 : 0.07} />
-                <circle r={isSelected ? 18 : 14} fill={project.color} opacity={isSelected ? 0.24 : 0.14} />
-                <circle r={isSelected ? 21 : 17} fill="none" stroke={project.color} strokeWidth={isSelected ? 0.7 : 0.5} opacity={isSelected ? 0.44 : 0.24} />
+                <g
+                  className={transitionPreview ? undefined : "atlas-project-atmosphere"}
+                  style={{
+                    animationDelay: `-${breathDelay + 0.65}s`,
+                    animationDuration: `${outerDuration}s`,
+                    animationPlayState,
+                  }}
+                >
+                  <circle
+                    r={isSelected ? 30 : 24}
+                    fill={project.color}
+                    opacity={isSelected ? 0.13 : 0.07}
+                  />
+                </g>
+
+                <g
+                  className={transitionPreview ? undefined : "atlas-project-inner"}
+                  style={{
+                    animationDelay: `-${breathDelay * 0.72 + 0.28}s`,
+                    animationDuration: `${innerDuration}s`,
+                    animationPlayState,
+                    filter: `drop-shadow(0 0 2.5px ${project.color}55)`,
+                  }}
+                >
+                  <circle
+                    r={isSelected ? 18 : 14}
+                    fill={project.color}
+                    opacity={isSelected ? 0.24 : 0.14}
+                  />
+                  <circle
+                    r={isSelected ? 21 : 17}
+                    fill="none"
+                    stroke={project.color}
+                    strokeWidth={isSelected ? 0.7 : 0.5}
+                    opacity={isSelected ? 0.44 : 0.24}
+                  />
+                </g>
               </g>
 
               <g
-                className={
-                  transitionPreview
-                    ? undefined
-                    : isSelected
-                    ? "atlas-core-selected"
-                    : "atlas-core-available"
-                }
+                className={transitionPreview ? undefined : "atlas-project-core"}
                 style={{
-                  animationDelay: transitionPreview
-                    ? "0s"
-                    : `${PROJECT_BREATH_DELAYS[index]}s`,
-                  animationPlayState: ambientPaused ? "paused" : "running",
+                  animationDelay: `-${breathDelay * 0.48 + 1.1}s`,
+                  animationDuration: `${coreDuration}s`,
+                  animationPlayState,
+                  filter: `drop-shadow(0 0 2px ${project.color}88) drop-shadow(0 0 6px ${project.color}22)`,
                 }}
               >
-                <circle r={isSelected ? 7.5 : 6.5} fill={project.color} opacity={isSelected ? 1 : 0.84} />
+                <circle
+                  r={isSelected ? 7.5 : 6.5}
+                  fill={project.color}
+                  opacity={isSelected ? 1 : 0.84}
+                />
               </g>
+
               <circle r={28} fill="transparent" pointerEvents="all" />
             </g>
 

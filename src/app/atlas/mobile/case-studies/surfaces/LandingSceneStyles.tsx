@@ -19,56 +19,93 @@ export default function LandingSceneStyles() {
           }
         }
 
-        @keyframes atlasParentCoreAvailableBreath {
+        @keyframes atlasProjectAtmosphereBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.32;
+            opacity: 0.56;
           }
-          50% {
-            transform: scale(1.026);
-            opacity: 0.74;
+          44% {
+            transform: scale(1.10);
+            opacity: 0.96;
+          }
+          72% {
+            transform: scale(1.035);
+            opacity: 0.72;
           }
         }
 
-        @keyframes atlasAvailableHaloBreath {
+        @keyframes atlasProjectInnerBreath {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.92;
+            opacity: 0.80;
           }
           50% {
-            transform: scale(1.08);
+            transform: scale(1.045);
             opacity: 1;
           }
+          76% {
+            transform: scale(1.014);
+            opacity: 0.88;
+          }
         }
 
-        @keyframes atlasAvailableCoreBreath {
+        @keyframes atlasProjectCoreBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.96;
+          }
+          48% {
+            transform: scale(1.018);
+            opacity: 1;
+          }
+          74% {
+            transform: scale(1.007);
+            opacity: 0.985;
+          }
+        }
+
+        @keyframes atlasCaseStudiesAtmosphereBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.50;
+          }
+          46% {
+            transform: scale(1.045);
+            opacity: 0.92;
+          }
+          72% {
+            transform: scale(1.016);
+            opacity: 0.66;
+          }
+        }
+
+        @keyframes atlasCaseStudiesRingBreath {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.74;
+          }
+          52% {
+            transform: scale(1.020);
+            opacity: 1;
+          }
+          78% {
+            transform: scale(1.008);
+            opacity: 0.86;
+          }
+        }
+
+        @keyframes atlasCaseStudiesCoreBreath {
           0%, 100% {
             transform: scale(1);
             opacity: 0.96;
           }
           50% {
-            transform: scale(1.018);
+            transform: scale(1.012);
             opacity: 1;
           }
-        }
-
-        @keyframes atlasSelectedHaloBreath {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 0.90;
-          }
-          50% {
-            transform: scale(1.035);
-            opacity: 1;
-          }
-        }
-
-        @keyframes atlasSelectedCoreBreath {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.010);
+          76% {
+            transform: scale(1.004);
+            opacity: 0.985;
           }
         }
 
@@ -98,10 +135,12 @@ export default function LandingSceneStyles() {
           }
         }
 
-        .atlas-halo-available,
-        .atlas-halo-selected,
-        .atlas-core-available,
-        .atlas-core-selected,
+        .atlas-project-atmosphere,
+        .atlas-project-inner,
+        .atlas-project-core,
+        .atlas-case-studies-atmosphere,
+        .atlas-case-studies-rings,
+        .atlas-case-studies-core,
         .atlas-selection-pulse,
         .atlas-parent-core-selected {
           transform-box: fill-box;
@@ -109,20 +148,34 @@ export default function LandingSceneStyles() {
           will-change: transform, opacity;
         }
 
-        .atlas-halo-available {
-          animation: atlasAvailableHaloBreath 4.2s ease-in-out infinite;
+        .atlas-project-atmosphere {
+          animation-name: atlasProjectAtmosphereBreath;
+          animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+          animation-iteration-count: infinite;
         }
 
-        .atlas-core-available {
-          animation: atlasAvailableCoreBreath 4.2s ease-in-out infinite;
+        .atlas-project-inner {
+          animation-name: atlasProjectInnerBreath;
+          animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+          animation-iteration-count: infinite;
         }
 
-        .atlas-halo-selected {
-          animation: atlasSelectedHaloBreath 5.8s ease-in-out infinite;
+        .atlas-project-core {
+          animation-name: atlasProjectCoreBreath;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
         }
 
-        .atlas-core-selected {
-          animation: atlasSelectedCoreBreath 5.8s ease-in-out infinite;
+        .atlas-case-studies-atmosphere {
+          animation: atlasCaseStudiesAtmosphereBreath 8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+        }
+
+        .atlas-case-studies-rings {
+          animation: atlasCaseStudiesRingBreath 7.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+
+        .atlas-case-studies-core {
+          animation: atlasCaseStudiesCoreBreath 8.6s ease-in-out infinite;
         }
 
         .atlas-selection-pulse {
@@ -131,13 +184,6 @@ export default function LandingSceneStyles() {
 
         .atlas-parent-core-selected {
           animation: atlasCoreBreath 6.2s ease-in-out infinite;
-        }
-
-        .atlas-parent-core-available {
-          transform-box: fill-box;
-          transform-origin: center;
-          animation: atlasParentCoreAvailableBreath 5.2s ease-in-out infinite;
-          will-change: transform, opacity;
         }
 
         .atlas-ambient-paused {
@@ -155,20 +201,20 @@ export default function LandingSceneStyles() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .atlas-halo-available,
-          .atlas-halo-selected,
-          .atlas-core-available,
-          .atlas-core-selected,
+          .atlas-project-atmosphere,
+          .atlas-project-inner,
+          .atlas-project-core,
+          .atlas-case-studies-atmosphere,
+          .atlas-case-studies-rings,
+          .atlas-case-studies-core,
           .atlas-selection-pulse,
           .atlas-parent-core-selected,
-          .atlas-parent-core-available,
           .atlas-node-brightness-parent,
           .atlas-node-brightness-sibling {
             animation: none !important;
             transform: none !important;
           }
         }
-`}
-    </style>
+`}</style>
   );
 }
