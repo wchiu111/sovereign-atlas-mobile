@@ -1,60 +1,82 @@
 export default function FrameworkSceneStyles() {
   return (
     <style>{`
-      @keyframes frameworkAvailableHaloBreath {
+      @keyframes frameworkNodeAtmosphereBreath {
         0%, 100% {
           transform: scale(1);
-          opacity: 0.92;
+          opacity: 0.56;
         }
-        50% {
-          transform: scale(1.08);
-          opacity: 1;
+        44% {
+          transform: scale(1.10);
+          opacity: 0.96;
+        }
+        72% {
+          transform: scale(1.035);
+          opacity: 0.72;
         }
       }
 
-      @keyframes frameworkAvailableCoreBreath {
+      @keyframes frameworkNodeInnerBreath {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 0.80;
+        }
+        50% {
+          transform: scale(1.045);
+          opacity: 1;
+        }
+        76% {
+          transform: scale(1.014);
+          opacity: 0.88;
+        }
+      }
+
+      @keyframes frameworkNodeCoreBreath {
         0%, 100% {
           transform: scale(1);
           opacity: 0.96;
         }
-        50% {
+        48% {
           transform: scale(1.018);
           opacity: 1;
         }
+        74% {
+          transform: scale(1.007);
+          opacity: 0.985;
+        }
       }
 
-      @keyframes frameworkSelectedHaloBreath {
+      @keyframes frameworkParentAtmosphereBreath {
         0%, 100% {
           transform: scale(1);
-          opacity: 0.90;
+          opacity: 0.50;
         }
-        50% {
-          transform: scale(1.035);
+        46% {
+          transform: scale(1.045);
+          opacity: 0.92;
+        }
+        72% {
+          transform: scale(1.016);
+          opacity: 0.66;
+        }
+      }
+
+      @keyframes frameworkParentRingBreath {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 0.74;
+        }
+        52% {
+          transform: scale(1.020);
           opacity: 1;
         }
-      }
-
-      @keyframes frameworkSelectedCoreBreath {
-        0%, 100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.010);
+        78% {
+          transform: scale(1.008);
+          opacity: 0.86;
         }
       }
 
-      @keyframes frameworkParentAvailableBreath {
-        0%, 100% {
-          transform: scale(1);
-          opacity: 0.34;
-        }
-        50% {
-          transform: scale(1.026);
-          opacity: 0.76;
-        }
-      }
-
-      @keyframes frameworkParentSelectedBreath {
+      @keyframes frameworkParentCoreBreath {
         0%, 100% {
           transform: scale(1);
           opacity: 0.96;
@@ -62,6 +84,10 @@ export default function FrameworkSceneStyles() {
         50% {
           transform: scale(1.012);
           opacity: 1;
+        }
+        76% {
+          transform: scale(1.004);
+          opacity: 0.985;
         }
       }
 
@@ -80,40 +106,46 @@ export default function FrameworkSceneStyles() {
         }
       }
 
-      .framework-halo-available,
-      .framework-halo-selected,
-      .framework-core-available,
-      .framework-core-selected,
-      .framework-parent-available,
-      .framework-parent-selected,
+      .framework-node-atmosphere,
+      .framework-node-inner,
+      .framework-node-core,
+      .framework-parent-atmosphere,
+      .framework-parent-rings,
+      .framework-parent-core,
       .framework-selection-pulse {
         transform-box: fill-box;
         transform-origin: center;
         will-change: transform, opacity;
       }
 
-      .framework-halo-available {
-        animation: frameworkAvailableHaloBreath 4.2s ease-in-out infinite;
+      .framework-node-atmosphere {
+        animation-name: frameworkNodeAtmosphereBreath;
+        animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+        animation-iteration-count: infinite;
       }
 
-      .framework-core-available {
-        animation: frameworkAvailableCoreBreath 4.2s ease-in-out infinite;
+      .framework-node-inner {
+        animation-name: frameworkNodeInnerBreath;
+        animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+        animation-iteration-count: infinite;
       }
 
-      .framework-halo-selected {
-        animation: frameworkSelectedHaloBreath 5.8s ease-in-out infinite;
+      .framework-node-core {
+        animation-name: frameworkNodeCoreBreath;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
       }
 
-      .framework-core-selected {
-        animation: frameworkSelectedCoreBreath 5.8s ease-in-out infinite;
+      .framework-parent-atmosphere {
+        animation: frameworkParentAtmosphereBreath 8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
       }
 
-      .framework-parent-available {
-        animation: frameworkParentAvailableBreath 5.2s ease-in-out infinite;
+      .framework-parent-rings {
+        animation: frameworkParentRingBreath 7.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
       }
 
-      .framework-parent-selected {
-        animation: frameworkParentSelectedBreath 6.2s ease-in-out infinite;
+      .framework-parent-core {
+        animation: frameworkParentCoreBreath 8.6s ease-in-out infinite;
       }
 
       .framework-selection-pulse {
@@ -125,15 +157,16 @@ export default function FrameworkSceneStyles() {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .framework-halo-available,
-        .framework-halo-selected,
-        .framework-core-available,
-        .framework-core-selected,
-        .framework-parent-available,
-        .framework-parent-selected,
+        .framework-node-atmosphere,
+        .framework-node-inner,
+        .framework-node-core,
+        .framework-parent-atmosphere,
+        .framework-parent-rings,
+        .framework-parent-core,
         .framework-selection-pulse {
           animation: none !important;
           transform: none !important;
+          opacity: 1;
         }
       }
     `}</style>
