@@ -2,12 +2,14 @@
  * MobileAtlas — Sovereign Atlas mobile prototype orchestrator.
  */
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   T,
   W,
   H,
-  EX_POS,
+  NEXUS,
+  ORBIT_R,
+  SYSTEMS,
   MOBILE_STATES,
   useStarfield,
   type MobileState,
@@ -16,6 +18,10 @@ import LandingScene from "./scenes/LandingScene";
 import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
 import ExperimentsScene from "./experiments/ExperimentsScene";
+import SystemNode from "./case-studies/constellation/SystemNode";
+import ExperimentsOverviewConstellation from "./experiments/constellation/ExperimentsOverviewConstellation";
+import useExperimentsAtlasTransition from "./experiments/hooks/useExperimentsAtlasTransition";
+import { EXPERIMENTS_PARENT_CORE } from "./experiments/config/experimentsTopology";
 import type { MobileCaseStudyProjectId } from "./reading/mobileReadingTypes";
 import type { MobileFrameworkId } from "./frameworks/mobileFrameworkTypes";
 import type { FrameworkOverviewId } from "./frameworks/frameworkGeometry";
@@ -137,6 +143,55 @@ export default function MobileAtlas() {
     useState<MobileExperimentId>(DEFAULT_MOBILE_EXPERIMENT_ID);
   const [returnExperimentId, setReturnExperimentId] =
     useState<MobileExperimentId | null>(null);
+  const [returningExperimentsToAtlas, setReturningExperimentsToAtlas] =
+    useState(false);
+
+  const completeExperimentAtlasEntry = useCallback(() => {
+    setStateRaw("experiments-focus");
+  }, []);
+
+  const completeExperimentAtlasReturn = useCallback(() => {
+    setReturningExperimentsToAtlas(false);
+  }, []);
+
+  const {
+    entryPhase: experimentEntryPhase,
+    resolveT: experimentResolveT,
+    prefersReducedMotion: experimentPrefersReducedMotion,
+    reducedEntryProgress: experimentReducedEntryProgress,
+    reducedExitProgress: experimentReducedExitProgress,
+
+    enterExperiments,
+
+    entryInProgress: experimentEntryInProgress,
+    reducedEntryInProgress: experimentReducedEntryInProgress,
+    reducedExitInProgress: experimentReducedExitInProgress,
+    entryProgress: experimentEntryProgress,
+    resolvingOverview: resolvingExperimentOverview,
+
+    landingStartX: experimentLandingStartX,
+    landingStartY: experimentLandingStartY,
+    animatedExperimentX,
+    animatedExperimentY,
+    animatedExperimentOrbitR,
+    selectedSystemScale: experimentSelectedSystemScale,
+    travelingSystemOpacity: experimentTravelingSystemOpacity,
+    overviewResolveOpacity: experimentOverviewResolveOpacity,
+    overviewResolveScale: experimentOverviewResolveScale,
+    overviewResolveTargets: experimentOverviewResolveTargets,
+
+    exitScale: experimentExitScale,
+    exitTranslateX: experimentExitTranslateX,
+    exitTranslateY: experimentExitTranslateY,
+    exitBackgroundT: experimentExitBackgroundT,
+    exitChromeT: experimentExitChromeT,
+
+    contextRecede: experimentContextRecede,
+  } = useExperimentsAtlasTransition({
+    returningToAtlas: returningExperimentsToAtlas,
+    onEnterComplete: completeExperimentAtlasEntry,
+    onReturnComplete: completeExperimentAtlasReturn,
+  });
 
   const debugMode = isDebugMode();
 
@@ -190,6 +245,35 @@ export default function MobileAtlas() {
   const isExperimentsOverview = state === "experiments-focus";
   const isExperimentReading = state === "experiment-reading";
 
+  const experimentsAtlasTransitionActive =
+    experimentEntryInProgress || returningExperimentsToAtlas;
+
+  const experimentsLandingOpacity = returningExperimentsToAtlas
+    ? experimentExitBackgroundT
+    : experimentEntryInProgress
+    ? experimentReducedEntryInProgress
+      ? 1 - experimentReducedEntryProgress
+      : experimentContextRecede.opacity
+    : 1;
+
+  const experimentsLandingScale = returningExperimentsToAtlas
+    ? 0.978 + (1 - 0.978) * experimentExitBackgroundT
+    : experimentEntryInProgress
+    ? experimentReducedEntryInProgress
+      ? 1 - 0.012 * experimentReducedEntryProgress
+      : experimentContextRecede.scale
+    : 1;
+
+  const experimentsViewportUiOpacity = returningExperimentsToAtlas
+    ? experimentExitChromeT
+    : experimentEntryInProgress
+    ? experimentReducedEntryInProgress
+      ? 1 - experimentReducedEntryProgress
+      : Math.max(0, 1 - experimentEntryProgress * 1.35)
+    : 1;
+
+  const experimentsSystem = SYSTEMS[1];
+
   return (
     <>
       <style>{`
@@ -202,6 +286,11 @@ export default function MobileAtlas() {
         .mobile-atlas-system-hit-target:focus-visible {
           outline: 1.5px solid rgba(166,139,212,0.9);
           outline-offset: 3px;
+        }
+
+        .mobile-atlas-landing-wrap[data-experiments-transitioning="true"]
+        [data-system-id="experiments"] {
+          opacity: 0 !important;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -292,6 +381,25 @@ export default function MobileAtlas() {
             }}
           >
             {isLanding && (
+              <div
+                className="mobile-atlas-landing-wrap"
+                data-experiments-transitioning={
+                  experimentsAtlasTransitionActive ? "true" : "false"
+                }
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity: experimentsLandingOpacity,
+                  transform: `scale(${experimentsLandingScale})`,
+                  transformOrigin: `${NEXUS.x}px ${NEXUS.y + 26}px`,
+                  transition: experimentsAtlasTransitionActive
+                    ? "opacity 260ms ease, transform 560ms cubic-bezier(0.22,1,0.36,1)"
+                    : "none",
+                  pointerEvents: experimentsAtlasTransitionActive
+                    ? "none"
+                    : "auto",
+                }}
+              >
               <LandingScene
                 state={
                   state as
@@ -336,6 +444,7 @@ export default function MobileAtlas() {
                   setState("atlas-landing");
                 }}
               />
+              </div>
             )}
 
             {state === "atlas-landing" && (
@@ -344,14 +453,17 @@ export default function MobileAtlas() {
                 className="mobile-atlas-system-hit-target"
                 aria-label="Open Experiments"
                 onClick={() => {
+                  setReturningExperimentsToAtlas(false);
                   setReturnExperimentId(null);
-                  setState("experiments-focus");
+                  enterExperiments();
                 }}
+                disabled={
+                  experimentEntryInProgress || returningExperimentsToAtlas
+                }
                 style={{
                   position: "absolute",
-                  // LandingScene visually offsets the two upper systems by 18px.
-                  left: EX_POS.x - 56,
-                  top: EX_POS.y + 18 - 56,
+                  left: experimentLandingStartX - 56,
+                  top: experimentLandingStartY - 56,
                   width: 112,
                   height: 112,
                   zIndex: 8,
@@ -363,6 +475,110 @@ export default function MobileAtlas() {
                   WebkitTapHighlightColor: "transparent",
                 }}
               />
+            )}
+
+            {state === "atlas-landing" &&
+              (experimentEntryInProgress || returningExperimentsToAtlas) && (
+              <svg
+                viewBox={`0 0 ${W} ${H}`}
+                width={W}
+                height={H}
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 10,
+                  pointerEvents: "none",
+                  overflow: "visible",
+                }}
+              >
+                {experimentEntryInProgress && (
+                  <>
+                    <g
+                      style={{
+                        opacity: experimentTravelingSystemOpacity,
+                        transform: `scale(${experimentSelectedSystemScale})`,
+                        transformOrigin: `${animatedExperimentX}px ${animatedExperimentY}px`,
+                        transition: resolvingExperimentOverview
+                          ? "opacity 180ms ease"
+                          : "transform 760ms cubic-bezier(0.22,1,0.36,1), opacity 180ms ease",
+                      }}
+                    >
+                      <SystemNode
+                        sys={experimentsSystem}
+                        cx={animatedExperimentX}
+                        cy={animatedExperimentY}
+                        orbitR={animatedExperimentOrbitR}
+                        awakened
+                        dimmed={false}
+                        showLabel={false}
+                        resolveTargets={
+                          resolvingExperimentOverview
+                            ? experimentOverviewResolveTargets
+                            : undefined
+                        }
+                        resolveT={
+                          resolvingExperimentOverview
+                            ? experimentResolveT
+                            : 0
+                        }
+                      />
+                    </g>
+
+                    {resolvingExperimentOverview && (
+                      <g
+                        style={{
+                          opacity:
+                            experimentResolveT < 0.82
+                              ? 0
+                              : experimentOverviewResolveOpacity,
+                          transform: `scale(${experimentOverviewResolveScale})`,
+                          transformOrigin: `${EXPERIMENTS_PARENT_CORE.x}px ${EXPERIMENTS_PARENT_CORE.y}px`,
+                          transition: "opacity 120ms ease",
+                        }}
+                      >
+                        <ExperimentsOverviewConstellation
+                          selectedId="experiments"
+                          selectionPulseId={null}
+                          ambientPaused
+                          labelsVisible={false}
+                          focusedEntryId={null}
+                          focusedEntryProgress={0}
+                          focusedReturnId={null}
+                          focusedReturnProgress={0}
+                          reducedMotion={experimentPrefersReducedMotion}
+                          onSelect={() => {}}
+                        />
+                      </g>
+                    )}
+                  </>
+                )}
+
+                {returningExperimentsToAtlas && (
+                  <g
+                    style={{
+                      opacity: experimentReducedExitInProgress
+                        ? 1 - experimentReducedExitProgress
+                        : 1,
+                      transform: `translate(${experimentExitTranslateX}px, ${experimentExitTranslateY}px) scale(${experimentExitScale})`,
+                      transformOrigin: `${EXPERIMENTS_PARENT_CORE.x}px ${EXPERIMENTS_PARENT_CORE.y}px`,
+                    }}
+                  >
+                    <ExperimentsOverviewConstellation
+                      selectedId="experiments"
+                      selectionPulseId={null}
+                      ambientPaused
+                      labelsVisible={false}
+                      focusedEntryId={null}
+                      focusedEntryProgress={0}
+                      focusedReturnId={null}
+                      focusedReturnProgress={0}
+                      reducedMotion={experimentPrefersReducedMotion}
+                      onSelect={() => {}}
+                    />
+                  </g>
+                )}
+              </svg>
             )}
 
             {isFW && !isFrameworkReadingDepth && (
@@ -433,6 +649,7 @@ export default function MobileAtlas() {
                 }}
                 onBack={() => {
                   setReturnExperimentId(null);
+                  setReturningExperimentsToAtlas(true);
                   setState("atlas-landing");
                 }}
               />
@@ -452,6 +669,10 @@ export default function MobileAtlas() {
               zIndex: 20,
               pointerEvents: "none",
               overflow: "hidden",
+              opacity: experimentsViewportUiOpacity,
+              transition: experimentsAtlasTransitionActive
+                ? "opacity 220ms ease"
+                : "none",
             }}
           />
 

@@ -10,14 +10,22 @@ import {
   ATLAS_OVERVIEW_SELECTION_EASE,
   ATLAS_OVERVIEW_SELECTION_PULSE_DURATION,
 } from "../../overview/atlasOverviewMotion";
+import {
+  ATLAS_SYSTEM_ACKNOWLEDGE_DELAY,
+  ATLAS_SYSTEM_ENTRY_DURATION,
+  ATLAS_SYSTEM_EXIT_DURATION,
+  ATLAS_SYSTEM_PULL_EASE,
+  ATLAS_SYSTEM_RESOLVE_DURATION,
+  ATLAS_SYSTEM_RESOLVE_START,
+} from "../../overview/atlasSystemTransitionMotion";
 import type { ConstellationMotionConfig } from "../template/constellationTypes";
 
 /**
  * Experiments is the first intentionally templated constellation.
  *
- * Shared overview timings remain sourced from the Atlas interaction vocabulary.
- * The longer focused-reading handoff mirrors the motion polish validated on
- * Frameworks without changing the shared default used by existing systems.
+ * Overview behavior stays config-driven while its top-level Atlas entry now
+ * uses the same acknowledge -> pull -> resolve grammar as Case Studies and
+ * Frameworks.
  */
 export const EXPERIMENTS_MOTION: ConstellationMotionConfig = {
   selectionPulseMs: ATLAS_OVERVIEW_SELECTION_PULSE_DURATION,
@@ -32,3 +40,18 @@ export const EXPERIMENTS_MOTION: ConstellationMotionConfig = {
   returnReducedMs: ATLAS_OVERVIEW_REDUCED_RETURN_DURATION,
   positionTransition: `transform 0.52s ${ATLAS_OVERVIEW_SELECTION_EASE}`,
 } as const;
+
+export const EXPERIMENTS_ATLAS_ENTRY_DURATION =
+  ATLAS_SYSTEM_ENTRY_DURATION;
+export const EXPERIMENTS_ATLAS_EXIT_DURATION =
+  ATLAS_SYSTEM_EXIT_DURATION;
+export const EXPERIMENTS_ATLAS_ACKNOWLEDGE_DELAY =
+  ATLAS_SYSTEM_ACKNOWLEDGE_DELAY;
+export const EXPERIMENTS_ATLAS_RESOLVE_START =
+  ATLAS_SYSTEM_RESOLVE_START;
+export const EXPERIMENTS_ATLAS_RESOLVE_DURATION =
+  ATLAS_SYSTEM_RESOLVE_DURATION;
+export const EXPERIMENTS_ATLAS_PULL_EASE =
+  ATLAS_SYSTEM_PULL_EASE;
+export const EXPERIMENTS_ATLAS_REDUCED_DURATION =
+  ATLAS_OVERVIEW_REDUCED_HANDOFF_DURATION;

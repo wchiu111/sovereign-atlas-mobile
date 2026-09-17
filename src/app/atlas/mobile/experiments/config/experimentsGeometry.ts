@@ -3,58 +3,34 @@ import type {
   ConstellationNodeGeometry,
   ConstellationRelation,
 } from "../template/constellationTypes";
+import {
+  EXPERIMENTS_PARENT_CORE,
+  EXPERIMENTS_TOPOLOGY,
+} from "./experimentsTopology";
 
-export const EXPERIMENTS_PARENT_CORE = { x: 195, y: 270 } as const;
+export { EXPERIMENTS_PARENT_CORE } from "./experimentsTopology";
 
 /**
- * Authored, intentionally non-uniform overview geometry.
+ * Expanded Experiments geometry is derived from the same relative topology
+ * used by the top-level Atlas miniature.
  *
- * The template accepts explicit geometry instead of forcing every future
- * constellation into a circle. Experiments uses an irregular five-node field
- * to keep the system exploratory while preserving readable mobile spacing.
+ * The constellation remains intentionally non-uniform, but selection and
+ * system entry now change scale and emphasis rather than node identity/angle.
  */
-export const EXPERIMENTS_OVERVIEW_LAYOUT: readonly ConstellationNodeGeometry<MobileExperimentId>[] = [
-  {
-    id: "ai-evaluation",
-    x: 94,
-    y: 164,
-    labelX: 94,
-    labelY: 198,
-    anchor: "middle",
-  },
-  {
-    id: "authority-drift",
-    x: 294,
-    y: 166,
-    labelX: 294,
-    labelY: 200,
-    anchor: "middle",
-  },
-  {
-    id: "design-philosophy",
-    x: 318,
-    y: 294,
-    labelX: 318,
-    labelY: 328,
-    anchor: "middle",
-  },
-  {
-    id: "gestalt-principles",
-    x: 232,
-    y: 378,
-    labelX: 232,
-    labelY: 412,
-    anchor: "middle",
-  },
-  {
-    id: "think-like-a-designer",
-    x: 72,
-    y: 326,
-    labelX: 72,
-    labelY: 360,
-    anchor: "middle",
-  },
-] as const;
+export const EXPERIMENTS_OVERVIEW_LAYOUT: readonly ConstellationNodeGeometry<MobileExperimentId>[] =
+  EXPERIMENTS_TOPOLOGY.map(({ id, vector }) => {
+    const x = EXPERIMENTS_PARENT_CORE.x + vector.x;
+    const y = EXPERIMENTS_PARENT_CORE.y + vector.y;
+
+    return {
+      id,
+      x,
+      y,
+      labelX: x,
+      labelY: y + 34,
+      anchor: "middle" as const,
+    };
+  });
 
 function point(id: MobileExperimentId) {
   return (
@@ -75,13 +51,7 @@ const gestalt = point("gestalt-principles");
 const thinking = point("think-like-a-designer");
 
 export const EXPERIMENTS_RELATIONS: readonly ConstellationRelation[] = [
-  ...([
-    "ai-evaluation",
-    "authority-drift",
-    "design-philosophy",
-    "gestalt-principles",
-    "think-like-a-designer",
-  ] as const).map((id) => ({
+  ...EXPERIMENTS_TOPOLOGY.map(({ id }) => ({
     id: `parent-${id}`,
     d: spoke(id),
     strength: "primary" as const,
