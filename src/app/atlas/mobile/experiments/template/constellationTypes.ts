@@ -7,6 +7,18 @@ export interface ConstellationOverviewCopy {
   keyDiscovery: string;
 }
 
+export interface ConstellationEvidence {
+  id: string;
+  image?: string;
+  imageFit: "contain" | "cover";
+  alt: string;
+  number: string;
+  title: string;
+  type: string;
+  description: string;
+  caption: string;
+}
+
 export interface ConstellationSection {
   id: string;
   label: string;
@@ -15,6 +27,7 @@ export interface ConstellationSection {
   readingTime: number;
   content: string;
   insight: string;
+  evidence?: readonly ConstellationEvidence[];
 }
 
 export interface ConstellationItem<TId extends string = string> {

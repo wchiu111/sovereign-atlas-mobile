@@ -8,6 +8,8 @@ import {
 import { T } from "../../components/mobileShared";
 import MobileReadingHeader from "../../reading/MobileReadingHeader";
 import ConstellationSectionRail from "./ConstellationSectionRail";
+import ConstellationEvidenceStrip from "./ConstellationEvidenceStrip";
+import ConstellationEvidenceViewer from "./ConstellationEvidenceViewer";
 import type {
   ConstellationItem,
   ConstellationSection,
@@ -38,6 +40,11 @@ export default function ConstellationReadingSurface<TId extends string>({
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [chromeHeight, setChromeHeight] = useState(114);
   const [isExiting, setIsExiting] = useState(false);
+  const [activeEvidence, setActiveEvidence] = useState<{
+    section: ConstellationSection;
+    index: number;
+    triggerId: string;
+  } | null>(null);
   const exitTimerRef = useRef<number | null>(null);
 
   const sectionIds = useMemo(
@@ -47,6 +54,7 @@ export default function ConstellationReadingSurface<TId extends string>({
 
   useEffect(() => {
     setActiveId(sections[0]?.id ?? "");
+    setActiveEvidence(null);
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [item.id, sections]);
 
@@ -161,12 +169,27 @@ export default function ConstellationReadingSurface<TId extends string>({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") requestBack();
+      if (event.key === "Escape" && activeEvidence === null) {
+        requestBack();
+      }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
+
+  const closeEvidence = () => {
+    const triggerId = activeEvidence?.triggerId;
+    setActiveEvidence(null);
+
+    if (triggerId) {
+      requestAnimationFrame(() => {
+        document.getElementById(triggerId)?.focus({
+          preventScroll: true,
+        });
+      });
+    }
+  };
 
   const scrollToSection = (id: string) => {
     const node = sectionRefs.current.get(id);
@@ -347,11 +370,28 @@ export default function ConstellationReadingSurface<TId extends string>({
                   color: "#F0E9D8",
                   opacity: 0.84,
                   lineHeight: 1.72,
+                  whiteSpace: "pre-line",
                 }}
               >
                 {paragraph}
               </p>
             ))}
+
+            {section.evidence && section.evidence.length > 0 && (
+              <ConstellationEvidenceStrip
+                evidence={section.evidence}
+                domainColor={domainColor}
+                itemId={item.id}
+                sectionId={section.id}
+                onInspect={(index, triggerId) => {
+                  setActiveEvidence({
+                    section,
+                    index,
+                    triggerId,
+                  });
+                }}
+              />
+            )}
 
             <aside
               style={{
@@ -405,6 +445,28 @@ export default function ConstellationReadingSurface<TId extends string>({
           END OF EXPERIMENT
         </div>
       </div>
+
+      {activeEvidence &&
+        activeEvidence.section.evidence &&
+        activeEvidence.section.evidence.length > 0 && (
+          <ConstellationEvidenceViewer
+            items={activeEvidence.section.evidence}
+            index={activeEvidence.index}
+            sectionLabel={activeEvidence.section.label}
+            domainColor={domainColor}
+            onIndexChange={(index) => {
+              setActiveEvidence((current) =>
+                current
+                  ? {
+                      ...current,
+                      index,
+                    }
+                  : current,
+              );
+            }}
+            onClose={closeEvidence}
+          />
+        )}
     </div>
   );
 }
