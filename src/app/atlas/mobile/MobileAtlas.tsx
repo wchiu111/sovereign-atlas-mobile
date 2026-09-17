@@ -4,19 +4,42 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import {
-  T, W, H, MOBILE_STATES,
+  T,
+  W,
+  H,
+  EX_POS,
+  MOBILE_STATES,
   useStarfield,
   type MobileState,
 } from "./components/mobileShared";
 import LandingScene from "./scenes/LandingScene";
 import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
+import ExperimentsScene from "./experiments/ExperimentsScene";
 import type { MobileCaseStudyProjectId } from "./reading/mobileReadingTypes";
 import type { MobileFrameworkId } from "./frameworks/mobileFrameworkTypes";
 import type { FrameworkOverviewId } from "./frameworks/frameworkGeometry";
-import { DEFAULT_MOBILE_FRAMEWORK_ID, mobileFrameworkFor } from "./frameworks/frameworkRegistry";
+import type { MobileExperimentId } from "./experiments/experimentsTypes";
+import {
+  DEFAULT_MOBILE_FRAMEWORK_ID,
+  mobileFrameworkFor,
+} from "./frameworks/frameworkRegistry";
+import {
+  DEFAULT_MOBILE_EXPERIMENT_ID,
+} from "./experiments/config/experimentsContent";
 
-const STATE_LABELS: Record<MobileState, string> = {
+type AtlasRuntimeState =
+  | MobileState
+  | "experiments-focus"
+  | "experiment-reading";
+
+const RUNTIME_STATES: readonly AtlasRuntimeState[] = [
+  ...MOBILE_STATES,
+  "experiments-focus",
+  "experiment-reading",
+];
+
+const STATE_LABELS: Record<AtlasRuntimeState, string> = {
   "atlas-landing":      "A · Landing",
   "system-awakened":    "B · CS Awakened",
   "system-overview":    "C · CS Overview",
@@ -24,18 +47,57 @@ const STATE_LABELS: Record<MobileState, string> = {
   "frameworks-focus":   "J · FW Overview",
   "framework-reading":  "K · FW Reading",
   "framework-evidence": "L · FW Evidence",
+  "experiments-focus":  "M · EX Overview",
+  "experiment-reading": "N · EX Reading",
 };
 
-const STATE_GROUPS: { label: string; color: string; states: MobileState[] }[] = [
-  { label: "LANDING", color: T.gold, states: ["atlas-landing", "system-awakened", "system-overview"] },
-  { label: "CASE STUDIES", color: T.caseStudies, states: ["project-reading"] },
-  { label: "FRAMEWORKS", color: T.frameworks, states: ["frameworks-focus", "framework-reading", "framework-evidence"] },
+const STATE_GROUPS: {
+  label: string;
+  color: string;
+  states: AtlasRuntimeState[];
+}[] = [
+  {
+    label: "LANDING",
+    color: T.gold,
+    states: ["atlas-landing", "system-awakened", "system-overview"],
+  },
+  {
+    label: "CASE STUDIES",
+    color: T.caseStudies,
+    states: ["project-reading"],
+  },
+  {
+    label: "FRAMEWORKS",
+    color: T.frameworks,
+    states: ["frameworks-focus", "framework-reading", "framework-evidence"],
+  },
+  {
+    label: "EXPERIMENTS",
+    color: T.experiments,
+    states: ["experiments-focus", "experiment-reading"],
+  },
 ];
 
-const LANDING_STATES: readonly MobileState[] = ["atlas-landing", "system-awakened", "system-overview"];
-const CS_READING_STATES: readonly MobileState[] = ["project-reading"];
-const FW_STATES: readonly MobileState[] = ["frameworks-focus", "framework-reading", "framework-evidence"];
+const LANDING_STATES: readonly AtlasRuntimeState[] = [
+  "atlas-landing",
+  "system-awakened",
+  "system-overview",
+];
+const CS_READING_STATES: readonly AtlasRuntimeState[] = [
+  "project-reading",
+];
+const FW_STATES: readonly AtlasRuntimeState[] = [
+  "frameworks-focus",
+  "framework-reading",
+  "framework-evidence",
+];
 
+function debugRgb(color: string) {
+  if (color === T.gold) return "232,213,163";
+  if (color === T.caseStudies) return "138,174,200";
+  if (color === T.experiments) return "166,139,212";
+  return "106,184,138";
+}
 
 function isDebugMode() {
   if (typeof window === "undefined") return false;
@@ -48,8 +110,11 @@ export default function MobileAtlas() {
   useStarfield(canvasRef);
 
   const [sceneScale, setSceneScale] = useState(1);
-  const [viewportUiTarget, setViewportUiTarget] = useState<HTMLDivElement | null>(null);
-  const [state, setStateRaw] = useState<MobileState>("atlas-landing");
+  const [viewportUiTarget, setViewportUiTarget] =
+    useState<HTMLDivElement | null>(null);
+  const [state, setStateRaw] =
+    useState<AtlasRuntimeState>("atlas-landing");
+
   const [activeFrameworkId, setActiveFrameworkId] =
     useState<MobileFrameworkId>(DEFAULT_MOBILE_FRAMEWORK_ID);
   const [frameworkOverviewSelectionId, setFrameworkOverviewSelectionId] =
@@ -62,10 +127,17 @@ export default function MobileAtlas() {
     useState<MobileFrameworkId | null>(null);
   const [returningFrameworksToAtlas, setReturningFrameworksToAtlas] =
     useState(false);
+
   const [activeCaseStudyProjectId, setActiveCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
   const [returnCaseStudyProjectId, setReturnCaseStudyProjectId] =
     useState<MobileCaseStudyProjectId | null>(null);
+
+  const [activeExperimentId, setActiveExperimentId] =
+    useState<MobileExperimentId>(DEFAULT_MOBILE_EXPERIMENT_ID);
+  const [returnExperimentId, setReturnExperimentId] =
+    useState<MobileExperimentId | null>(null);
+
   const debugMode = isDebugMode();
 
   useLayoutEffect(() => {
@@ -98,16 +170,25 @@ export default function MobileAtlas() {
     };
   }, []);
 
-  function setState(next: MobileState) {
-    if ((MOBILE_STATES as readonly string[]).includes(next)) setStateRaw(next);
-    else setStateRaw("atlas-landing");
+  function setState(next: AtlasRuntimeState) {
+    if ((RUNTIME_STATES as readonly string[]).includes(next)) {
+      setStateRaw(next);
+    } else {
+      setStateRaw("atlas-landing");
+    }
   }
 
-  const isLanding = (LANDING_STATES as readonly string[]).includes(state);
-  const isCSReading = (CS_READING_STATES as readonly string[]).includes(state);
-  const isFW = (FW_STATES as readonly string[]).includes(state);
-  const isFrameworkReadingDepth = state === "framework-reading" || state === "framework-evidence";
+  const isLanding =
+    (LANDING_STATES as readonly string[]).includes(state);
+  const isCSReading =
+    (CS_READING_STATES as readonly string[]).includes(state);
+  const isFW =
+    (FW_STATES as readonly string[]).includes(state);
+  const isFrameworkReadingDepth =
+    state === "framework-reading" || state === "framework-evidence";
   const isFrameworkEvidence = state === "framework-evidence";
+  const isExperimentsOverview = state === "experiments-focus";
+  const isExperimentReading = state === "experiment-reading";
 
   return (
     <>
@@ -117,6 +198,12 @@ export default function MobileAtlas() {
         .mobile-atlas-root { overscroll-behavior: contain; touch-action: manipulation; }
         .mobile-atlas-root * { scrollbar-width: none; -ms-overflow-style: none; }
         .mobile-atlas-root *::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+        .mobile-atlas-system-hit-target:focus-visible {
+          outline: 1.5px solid rgba(166,139,212,0.9);
+          outline-offset: 3px;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .mobile-atlas-root *,
           .mobile-atlas-root *::before,
@@ -145,7 +232,13 @@ export default function MobileAtlas() {
         }}
       >
         {debugMode && (
-          <div style={{ color: "rgba(232,213,163,0.32)", fontSize: 9, letterSpacing: "0.32em" }}>
+          <div
+            style={{
+              color: "rgba(232,213,163,0.32)",
+              fontSize: 9,
+              letterSpacing: "0.32em",
+            }}
+          >
             SOVEREIGN ATLAS · MOBILE PROTOTYPE · 390 × 844
           </div>
         )}
@@ -178,34 +271,49 @@ export default function MobileAtlas() {
             }}
           />
 
-          <div style={{
-            position: "relative",
-            width: W,
-            height: H,
-            overflow: "hidden",
-            overscrollBehavior: "contain",
-            borderRadius: debugMode ? 48 : 0,
-            border: debugMode ? "1.5px solid rgba(232,213,163,0.10)" : "none",
-            boxShadow: debugMode
-              ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
-              : "none",
-            background: "transparent",
-            flexShrink: 0,
-            transform: `scale(${sceneScale})`,
-            transformOrigin: "center center",
-          }}>
+          <div
+            style={{
+              position: "relative",
+              width: W,
+              height: H,
+              overflow: "hidden",
+              overscrollBehavior: "contain",
+              borderRadius: debugMode ? 48 : 0,
+              border: debugMode
+                ? "1.5px solid rgba(232,213,163,0.10)"
+                : "none",
+              boxShadow: debugMode
+                ? "0 0 0 6px rgba(5,5,10,0.9), 0 0 80px rgba(138,174,200,0.055), 0 40px 120px rgba(0,0,0,0.85)"
+                : "none",
+              background: "transparent",
+              flexShrink: 0,
+              transform: `scale(${sceneScale})`,
+              transformOrigin: "center center",
+            }}
+          >
             {isLanding && (
               <LandingScene
-                state={state as "atlas-landing" | "system-awakened" | "system-overview"}
-                onSelectCaseStudies={() => setState("system-awakened")}
+                state={
+                  state as
+                    | "atlas-landing"
+                    | "system-awakened"
+                    | "system-overview"
+                }
+                onSelectCaseStudies={() =>
+                  setState("system-awakened")
+                }
                 onSelectFrameworks={() => {
                   setReturningFrameworksToAtlas(false);
                   setFrameworkOverviewSelectionId("frameworks");
                   setReturnFrameworkId(null);
                   setState("frameworks-focus");
                 }}
-                onOverviewExpand={() => setState("system-overview")}
-                onOverviewBack={() => setState("system-awakened")}
+                onOverviewExpand={() =>
+                  setState("system-overview")
+                }
+                onOverviewBack={() =>
+                  setState("system-awakened")
+                }
                 onSelectProject={(projectId) => {
                   setActiveCaseStudyProjectId(projectId);
                   setReturnCaseStudyProjectId(null);
@@ -215,7 +323,9 @@ export default function MobileAtlas() {
                 onReturnProjectComplete={() => {
                   setReturnCaseStudyProjectId(null);
                 }}
-                returningFromFrameworks={returningFrameworksToAtlas}
+                returningFromFrameworks={
+                  returningFrameworksToAtlas
+                }
                 onFrameworkReturnComplete={() => {
                   setReturningFrameworksToAtlas(false);
                 }}
@@ -228,6 +338,33 @@ export default function MobileAtlas() {
               />
             )}
 
+            {state === "atlas-landing" && (
+              <button
+                type="button"
+                className="mobile-atlas-system-hit-target"
+                aria-label="Open Experiments"
+                onClick={() => {
+                  setReturnExperimentId(null);
+                  setState("experiments-focus");
+                }}
+                style={{
+                  position: "absolute",
+                  // LandingScene visually offsets the two upper systems by 18px.
+                  left: EX_POS.x - 56,
+                  top: EX_POS.y + 18 - 56,
+                  width: 112,
+                  height: 112,
+                  zIndex: 8,
+                  border: "none",
+                  borderRadius: "50%",
+                  background: "transparent",
+                  padding: 0,
+                  cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              />
+            )}
+
             {isFW && !isFrameworkReadingDepth && (
               <FrameworksScene
                 state="frameworks-focus"
@@ -236,10 +373,13 @@ export default function MobileAtlas() {
                 activeSectionId={activeFrameworkSectionId}
                 setActiveSectionId={setActiveFrameworkSectionId}
                 onSelectFramework={(frameworkId) => {
-                  const nextFramework = mobileFrameworkFor(frameworkId);
+                  const nextFramework =
+                    mobileFrameworkFor(frameworkId);
                   setReturnFrameworkId(null);
                   setActiveFrameworkId(frameworkId);
-                  setActiveFrameworkSectionId(nextFramework.sections[0]?.id ?? "");
+                  setActiveFrameworkSectionId(
+                    nextFramework.sections[0]?.id ?? "",
+                  );
                   setActiveFrameworkEvidenceId(null);
                   setFrameworkOverviewSelectionId(frameworkId);
                 }}
@@ -249,7 +389,9 @@ export default function MobileAtlas() {
                 }}
                 onExplore={() => {
                   setReturnFrameworkId(null);
-                  setFrameworkOverviewSelectionId(activeFrameworkId);
+                  setFrameworkOverviewSelectionId(
+                    activeFrameworkId,
+                  );
                   setState("framework-reading");
                 }}
                 onCanvas={(evidenceId) => {
@@ -266,6 +408,31 @@ export default function MobileAtlas() {
                   setReturnFrameworkId(null);
                   setFrameworkOverviewSelectionId("frameworks");
                   setReturningFrameworksToAtlas(true);
+                  setState("atlas-landing");
+                }}
+              />
+            )}
+
+            {isExperimentsOverview && (
+              <ExperimentsScene
+                state="experiments-focus"
+                activeExperimentId={activeExperimentId}
+                returnExperimentId={returnExperimentId}
+                viewportUiTarget={viewportUiTarget}
+                onSelectExperiment={(experimentId) => {
+                  setReturnExperimentId(null);
+                  setActiveExperimentId(experimentId);
+                }}
+                onExplore={(experimentId) => {
+                  setReturnExperimentId(null);
+                  setActiveExperimentId(experimentId);
+                  setState("experiment-reading");
+                }}
+                onReturnExperimentComplete={() => {
+                  setReturnExperimentId(null);
+                }}
+                onBack={() => {
+                  setReturnExperimentId(null);
                   setState("atlas-landing");
                 }}
               />
@@ -302,7 +469,9 @@ export default function MobileAtlas() {
               <ReadingScene
                 projectId={activeCaseStudyProjectId}
                 onBack={() => {
-                  setReturnCaseStudyProjectId(activeCaseStudyProjectId);
+                  setReturnCaseStudyProjectId(
+                    activeCaseStudyProjectId,
+                  );
                   setState("system-awakened");
                 }}
               />
@@ -334,12 +503,20 @@ export default function MobileAtlas() {
                 <FrameworksScene
                   state="framework-reading"
                   activeFrameworkId={activeFrameworkId}
-                  overviewSelectionId={frameworkOverviewSelectionId}
+                  overviewSelectionId={
+                    frameworkOverviewSelectionId
+                  }
                   activeSectionId={activeFrameworkSectionId}
-                  setActiveSectionId={setActiveFrameworkSectionId}
+                  setActiveSectionId={
+                    setActiveFrameworkSectionId
+                  }
                   onSelectFramework={setActiveFrameworkId}
-                  onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
-                  onExplore={() => setState("framework-reading")}
+                  onSelectParent={() =>
+                    setFrameworkOverviewSelectionId("frameworks")
+                  }
+                  onExplore={() =>
+                    setState("framework-reading")
+                  }
                   onCanvas={(evidenceId) => {
                     setActiveFrameworkEvidenceId(evidenceId);
                     setState("framework-evidence");
@@ -347,7 +524,9 @@ export default function MobileAtlas() {
                   activeEvidenceId={activeFrameworkEvidenceId}
                   onBack={() => {
                     setReturnFrameworkId(activeFrameworkId);
-                    setFrameworkOverviewSelectionId(activeFrameworkId);
+                    setFrameworkOverviewSelectionId(
+                      activeFrameworkId,
+                    );
                     setState("frameworks-focus");
                   }}
                 />
@@ -356,17 +535,31 @@ export default function MobileAtlas() {
                   <FrameworksScene
                     state="framework-evidence"
                     activeFrameworkId={activeFrameworkId}
-                    overviewSelectionId={frameworkOverviewSelectionId}
-                    activeSectionId={activeFrameworkSectionId}
-                    setActiveSectionId={setActiveFrameworkSectionId}
+                    overviewSelectionId={
+                      frameworkOverviewSelectionId
+                    }
+                    activeSectionId={
+                      activeFrameworkSectionId
+                    }
+                    setActiveSectionId={
+                      setActiveFrameworkSectionId
+                    }
                     onSelectFramework={setActiveFrameworkId}
-                    onSelectParent={() => setFrameworkOverviewSelectionId("frameworks")}
-                    onExplore={() => setState("framework-reading")}
+                    onSelectParent={() =>
+                      setFrameworkOverviewSelectionId(
+                        "frameworks",
+                      )
+                    }
+                    onExplore={() =>
+                      setState("framework-reading")
+                    }
                     onCanvas={(evidenceId) => {
                       setActiveFrameworkEvidenceId(evidenceId);
                       setState("framework-evidence");
                     }}
-                    activeEvidenceId={activeFrameworkEvidenceId}
+                    activeEvidenceId={
+                      activeFrameworkEvidenceId
+                    }
                     onBack={() => {
                       setActiveFrameworkEvidenceId(null);
                       setState("framework-reading");
@@ -376,91 +569,166 @@ export default function MobileAtlas() {
               </div>
             </div>
           )}
+
+          {isExperimentReading && (
+            <div
+              className="mobile-atlas-reading-layer mobile-atlas-experiment-reading-layer"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 30,
+                overflow: "hidden",
+                pointerEvents: "auto",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: "50%",
+                  width: "min(100%, 430px)",
+                  transform: "translateX(-50%)",
+                  overflow: "hidden",
+                }}
+              >
+                <ExperimentsScene
+                  state="experiment-reading"
+                  activeExperimentId={activeExperimentId}
+                  onBack={() => {
+                    setReturnExperimentId(activeExperimentId);
+                    setState("experiments-focus");
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {debugMode && (
           <>
-            <div style={{ color: "rgba(232,213,163,0.28)", fontSize: 8.5, letterSpacing: "0.22em", textAlign: "center" }}>
+            <div
+              style={{
+                color: "rgba(232,213,163,0.28)",
+                fontSize: 8.5,
+                letterSpacing: "0.22em",
+                textAlign: "center",
+              }}
+            >
               {STATE_LABELS[state]}
             </div>
 
-            <div style={{
-              borderTop: "0.5px solid rgba(232,213,163,0.10)",
-              paddingTop: 20,
-              width: "100%",
-              maxWidth: 560,
-            }}>
-              <div style={{
-                fontFamily: T.mono,
-                fontSize: 7,
-                letterSpacing: "0.22em",
-                color: "rgba(232,213,163,0.22)",
-                marginBottom: 14,
-                textAlign: "center",
-              }}>
-                DEV · STATE SWITCHER · NOT PART OF MOBILE EXPERIENCE
+            <div
+              style={{
+                borderTop:
+                  "0.5px solid rgba(232,213,163,0.10)",
+                paddingTop: 20,
+                width: "100%",
+                maxWidth: 560,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: T.mono,
+                  fontSize: 7,
+                  letterSpacing: "0.22em",
+                  color: "rgba(232,213,163,0.22)",
+                  marginBottom: 14,
+                  textAlign: "center",
+                }}
+              >
+                DEV · STATE SWITCHER · NOT PART OF MOBILE
+                EXPERIENCE
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {STATE_GROUPS.map((group) => (
-                  <div key={group.label} style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                    <div style={{
-                      fontFamily: T.mono,
-                      fontSize: 6,
-                      letterSpacing: "0.18em",
-                      color: group.color,
-                      opacity: 0.28,
-                      minWidth: 80,
-                      paddingRight: 8,
-                      textAlign: "right",
-                    }}>
-                      {group.label}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                {STATE_GROUPS.map((group) => {
+                  const rgb = debugRgb(group.color);
+
+                  return (
+                    <div
+                      key={group.label}
+                      style={{
+                        display: "flex",
+                        gap: 4,
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: T.mono,
+                          fontSize: 6,
+                          letterSpacing: "0.18em",
+                          color: group.color,
+                          opacity: 0.28,
+                          minWidth: 80,
+                          paddingRight: 8,
+                          textAlign: "right",
+                        }}
+                      >
+                        {group.label}
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 2,
+                          flexWrap: "wrap",
+                          background: `rgba(${rgb},0.05)`,
+                          borderRadius: 4,
+                          padding: 2,
+                        }}
+                      >
+                        {group.states.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setState(s)}
+                            style={{
+                              background:
+                                state === s
+                                  ? `rgba(${rgb},0.16)`
+                                  : "transparent",
+                              border: "none",
+                              color:
+                                state === s
+                                  ? group.color
+                                  : `${group.color}66`,
+                              fontFamily: T.mono,
+                              fontSize: 7.5,
+                              letterSpacing: "0.14em",
+                              padding: "7px 10px",
+                              cursor: "pointer",
+                              borderRadius: 3,
+                              transition: "all 0.2s ease",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {STATE_LABELS[s]}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div style={{
-                      display: "flex",
-                      gap: 2,
-                      flexWrap: "wrap",
-                      background: `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.05)`,
-                      borderRadius: 4,
-                      padding: 2,
-                    }}>
-                      {group.states.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setState(s)}
-                          style={{
-                            background: state === s
-                              ? `rgba(${group.color === T.gold ? "232,213,163" : group.color === T.caseStudies ? "138,174,200" : "106,184,138"},0.16)`
-                              : "transparent",
-                            border: "none",
-                            color: state === s ? group.color : `${group.color}66`,
-                            fontFamily: T.mono,
-                            fontSize: 7.5,
-                            letterSpacing: "0.14em",
-                            padding: "7px 10px",
-                            cursor: "pointer",
-                            borderRadius: 3,
-                            transition: "all 0.2s ease",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {STATE_LABELS[s]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            <div style={{
-              color: "rgba(232,213,163,0.12)",
-              fontSize: 7.5,
-              letterSpacing: "0.14em",
-              textAlign: "center",
-              lineHeight: 1.7,
-            }}>
-              MOBILE PROTOTYPE · Focused Mode Pass 2
+            <div
+              style={{
+                color: "rgba(232,213,163,0.12)",
+                fontSize: 7.5,
+                letterSpacing: "0.14em",
+                textAlign: "center",
+                lineHeight: 1.7,
+              }}
+            >
+              MOBILE PROTOTYPE · Experiments Connected
             </div>
           </>
         )}
