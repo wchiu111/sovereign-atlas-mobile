@@ -3,6 +3,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { T } from "../../components/mobileShared";
 
 const MAX_DRAG = 72;
@@ -112,7 +113,7 @@ export default function ObservatorySwipeEntry({
     reset();
   };
 
-  return (
+  const entryControl = (
     <button
       type="button"
       aria-label="Enter Observatory. Swipe up or tap."
@@ -134,17 +135,19 @@ export default function ObservatorySwipeEntry({
       className="mobile-atlas-system-hit-target"
       style={{
         position: "absolute",
-        left: 105,
+        left: "50%",
         bottom: 20,
         width: 180,
         height: 94,
-        zIndex: 12,
+        zIndex: 26,
+        transform: "translateX(-50%)",
         border: 0,
         borderRadius: 10,
         background: "transparent",
         padding: 0,
         cursor: disabled ? "default" : "ns-resize",
         touchAction: "none",
+        pointerEvents: "auto",
         WebkitTapHighlightColor: "transparent",
         opacity: disabled ? 0.35 : 1,
       }}
@@ -224,9 +227,10 @@ export default function ObservatorySwipeEntry({
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: 4,
+          bottom: 10,
           fontFamily: T.mono,
           fontSize: 9,
+          lineHeight: 1.1,
           letterSpacing: "0.20em",
           color: T.identityGold,
           opacity: 0.70 + progress * 0.22,
@@ -241,4 +245,23 @@ export default function ObservatorySwipeEntry({
       </span>
     </button>
   );
+
+  /**
+   * ENTER OBSERVATORY is rendered by LandingScene inside the unscaled
+   * viewport-UI layer. The gesture control must live in that same coordinate
+   * system; otherwise the authored 390×844 scene scale shifts SWIPE UP above
+   * the primary label on shorter/wider previews.
+   */
+  if (typeof document !== "undefined") {
+    const runtimeViewport =
+      document.querySelector<HTMLElement>(
+        ".mobile-atlas-runtime-viewport",
+      );
+
+    if (runtimeViewport) {
+      return createPortal(entryControl, runtimeViewport);
+    }
+  }
+
+  return entryControl;
 }
