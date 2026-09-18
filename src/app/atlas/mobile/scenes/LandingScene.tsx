@@ -859,7 +859,7 @@ export default function LandingScene({
           }}
         >
           <div style={{ width: 0.5, height: 18, background: "rgba(232,213,163,0.18)" }} />
-          <div style={{ fontFamily: T.mono, fontSize: 7.5, letterSpacing: "0.24em", color: T.identityGold, opacity: 0.72 }}>ENTER OBSERVATORY</div>
+          <div style={{ fontFamily: T.mono, fontSize: 11.5, letterSpacing: "0.24em", color: T.identityGold, opacity: 0.72 }}>ENTER OBSERVATORY</div>
         </div>
       )}
 

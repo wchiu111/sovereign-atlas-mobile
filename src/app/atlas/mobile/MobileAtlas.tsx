@@ -2,7 +2,7 @@
  * MobileAtlas — Sovereign Atlas mobile prototype orchestrator.
  */
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   T,
   W,
@@ -18,6 +18,14 @@ import LandingScene from "./scenes/LandingScene";
 import ReadingScene from "./scenes/ReadingScene";
 import FrameworksScene from "./scenes/FrameworksScene";
 import ExperimentsScene from "./experiments/ExperimentsScene";
+import ObservatoryScene from "./observatory/ObservatoryScene";
+import ObservatorySwipeEntry from "./observatory/components/ObservatorySwipeEntry";
+import ObservatorySpatialTransition, {
+  OBSERVATORY_SPATIAL_TRANSITION_DURATION,
+  atlasSpatialAnimation,
+  observatorySpatialAnimation,
+  type ObservatorySpatialDirection,
+} from "./observatory/components/ObservatorySpatialTransition";
 import SystemNode from "./case-studies/constellation/SystemNode";
 import ExperimentsOverviewConstellation from "./experiments/constellation/ExperimentsOverviewConstellation";
 import useExperimentsAtlasTransition from "./experiments/hooks/useExperimentsAtlasTransition";
@@ -38,6 +46,14 @@ type AtlasRuntimeState =
   | MobileState
   | "experiments-focus"
   | "experiment-reading";
+
+type ObservatoryRuntimePhase =
+  | "closed"
+  | "pre-enter"
+  | "entering"
+  | "open"
+  | "exiting";
+
 
 const RUNTIME_STATES: readonly AtlasRuntimeState[] = [
   ...MOBILE_STATES,
@@ -193,6 +209,95 @@ export default function MobileAtlas() {
     onReturnComplete: completeExperimentAtlasReturn,
   });
 
+  const [observatoryPhase, setObservatoryPhase] =
+    useState<ObservatoryRuntimePhase>("closed");
+  const [observatoryPrefersReducedMotion, setObservatoryPrefersReducedMotion] =
+    useState(false);
+  const observatoryTimerRef = useRef<number | null>(null);
+  const observatoryRafRef = useRef<number | null>(null);
+
+  const observatoryVisible = observatoryPhase !== "closed";
+  const observatoryDirection: ObservatorySpatialDirection | null =
+    observatoryPhase === "entering"
+      ? "toObservatory"
+      : observatoryPhase === "exiting"
+      ? "toAtlas"
+      : null;
+  const observatoryTransitionDuration = observatoryPrefersReducedMotion
+    ? 160
+    : OBSERVATORY_SPATIAL_TRANSITION_DURATION;
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setObservatoryPrefersReducedMotion(media.matches);
+    sync();
+    media.addEventListener?.("change", sync);
+    return () => media.removeEventListener?.("change", sync);
+  }, []);
+
+  const clearObservatoryTransition = useCallback(() => {
+    if (observatoryTimerRef.current !== null) {
+      window.clearTimeout(observatoryTimerRef.current);
+      observatoryTimerRef.current = null;
+    }
+    if (observatoryRafRef.current !== null) {
+      cancelAnimationFrame(observatoryRafRef.current);
+      observatoryRafRef.current = null;
+    }
+  }, []);
+
+  const enterObservatory = useCallback(() => {
+    if (
+      observatoryVisible ||
+      experimentEntryInProgress ||
+      returningExperimentsToAtlas
+    ) {
+      return;
+    }
+
+    clearObservatoryTransition();
+    setObservatoryPhase("pre-enter");
+
+    observatoryRafRef.current = requestAnimationFrame(() => {
+      observatoryRafRef.current = requestAnimationFrame(() => {
+        setObservatoryPhase("entering");
+        observatoryRafRef.current = null;
+      });
+    });
+
+    observatoryTimerRef.current = window.setTimeout(() => {
+      setObservatoryPhase("open");
+      observatoryTimerRef.current = null;
+    }, observatoryTransitionDuration);
+  }, [
+    clearObservatoryTransition,
+    experimentEntryInProgress,
+    observatoryTransitionDuration,
+    observatoryVisible,
+    returningExperimentsToAtlas,
+  ]);
+
+  const exitObservatory = useCallback(() => {
+    if (!observatoryVisible || observatoryPhase === "exiting") return;
+
+    clearObservatoryTransition();
+    setObservatoryPhase("exiting");
+
+    observatoryTimerRef.current = window.setTimeout(() => {
+      setObservatoryPhase("closed");
+      observatoryTimerRef.current = null;
+    }, observatoryTransitionDuration);
+  }, [
+    clearObservatoryTransition,
+    observatoryPhase,
+    observatoryTransitionDuration,
+    observatoryVisible,
+  ]);
+
+  useEffect(() => {
+    return () => clearObservatoryTransition();
+  }, [clearObservatoryTransition]);
+
   const debugMode = isDebugMode();
 
   useLayoutEffect(() => {
@@ -288,6 +393,11 @@ export default function MobileAtlas() {
           outline-offset: 3px;
         }
 
+        .mobile-atlas-observatory-layer button:focus-visible {
+          outline: 1.5px solid rgba(232,200,109,0.92);
+          outline-offset: 3px;
+        }
+
         .mobile-atlas-landing-wrap[data-experiments-transitioning="true"]
         [data-system-id="experiments"] {
           opacity: 0 !important;
@@ -376,10 +486,58 @@ export default function MobileAtlas() {
                 : "none",
               background: "transparent",
               flexShrink: 0,
+              zIndex:
+                observatoryPhase === "entering"
+                  ? 46
+                  : observatoryPhase === "exiting"
+                  ? 44
+                  : 1,
+              visibility:
+                observatoryPhase === "open" ? "hidden" : "visible",
               transform: `scale(${sceneScale})`,
               transformOrigin: "center center",
+              pointerEvents: observatoryVisible
+                ? "none"
+                : "auto",
             }}
           >
+            <div
+              className="mobile-atlas-spatial-layer"
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+                opacity:
+                  observatoryPhase === "open" ||
+                  (observatoryPrefersReducedMotion &&
+                    observatoryPhase === "entering")
+                    ? 0
+                    : 1,
+                filter:
+                  observatoryPhase === "open"
+                    ? "blur(4px) saturate(0.76)"
+                    : undefined,
+                clipPath:
+                  observatoryPhase === "open"
+                    ? "circle(29% at 50% 44%)"
+                    : undefined,
+                transform:
+                  observatoryPhase === "open"
+                    ? "scale(0.6)"
+                    : "scale(1)",
+                transformOrigin: "50% 44%",
+                animation:
+                  observatoryPrefersReducedMotion
+                    ? undefined
+                    : atlasSpatialAnimation(observatoryDirection),
+                transition:
+                  observatoryPrefersReducedMotion &&
+                  observatoryDirection
+                    ? "opacity 160ms ease"
+                    : undefined,
+                willChange: "transform, clip-path, filter, opacity",
+              }}
+            >
             {isLanding && (
               <div
                 className="mobile-atlas-landing-wrap"
@@ -476,6 +634,19 @@ export default function MobileAtlas() {
                 }}
               />
             )}
+
+            {state === "atlas-landing" &&
+              !observatoryVisible &&
+              !experimentEntryInProgress &&
+              !returningExperimentsToAtlas && (
+                <ObservatorySwipeEntry
+                  disabled={
+                    experimentEntryInProgress ||
+                    returningExperimentsToAtlas
+                  }
+                  onCommit={enterObservatory}
+                />
+              )}
 
             {state === "atlas-landing" &&
               (experimentEntryInProgress || returningExperimentsToAtlas) && (
@@ -654,7 +825,69 @@ export default function MobileAtlas() {
                 }}
               />
             )}
+            </div>
           </div>
+
+          {observatoryVisible && (
+            <div
+              className="mobile-atlas-observatory-layer"
+              style={{
+                position: "absolute",
+                width: W,
+                height: H,
+                zIndex:
+                  observatoryPhase === "exiting" ? 46 : 44,
+                overflow: "hidden",
+                flexShrink: 0,
+                transform: `scale(${sceneScale})`,
+                transformOrigin: "center center",
+                pointerEvents:
+                  observatoryPhase === "open" ? "auto" : "none",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity:
+                    observatoryPhase === "pre-enter" ||
+                    (observatoryPrefersReducedMotion &&
+                      observatoryPhase === "exiting")
+                      ? 0
+                      : 1,
+                  transform:
+                    observatoryPhase === "pre-enter"
+                      ? "scale(1.04)"
+                      : "scale(1)",
+                  filter:
+                    observatoryPhase === "pre-enter"
+                      ? "blur(7px)"
+                      : "blur(0px)",
+                  transformOrigin: "50% 44%",
+                  animation:
+                    observatoryPrefersReducedMotion
+                      ? undefined
+                      : observatorySpatialAnimation(
+                          observatoryDirection,
+                        ),
+                  transition: observatoryPrefersReducedMotion
+                    ? "opacity 160ms ease, filter 160ms ease"
+                    : undefined,
+                  willChange: "transform, filter, opacity",
+                }}
+              >
+                <ObservatoryScene
+                  onReturnToAtlas={exitObservatory}
+                />
+              </div>
+            </div>
+          )}
+
+          {observatoryDirection && !observatoryPrefersReducedMotion && (
+            <ObservatorySpatialTransition
+              direction={observatoryDirection}
+            />
+          )}
 
           <div
             ref={(node) => setViewportUiTarget(node)}
@@ -669,8 +902,12 @@ export default function MobileAtlas() {
               zIndex: 20,
               pointerEvents: "none",
               overflow: "hidden",
-              opacity: experimentsViewportUiOpacity,
-              transition: experimentsAtlasTransitionActive
+              opacity: observatoryVisible
+                ? 0
+                : experimentsViewportUiOpacity,
+              transition: observatoryVisible
+                ? "opacity 180ms ease"
+                : experimentsAtlasTransitionActive
                 ? "opacity 220ms ease"
                 : "none",
             }}
