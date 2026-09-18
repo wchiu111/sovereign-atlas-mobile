@@ -1,6 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { T } from "../components/mobileShared";
-import { OBSERVATORY_HOTSPOTS, observatoryHotspotFor } from "./config/observatoryHotspots";
+import {
+  OBSERVATORY_HOTSPOTS,
+  observatoryHotspotFor,
+} from "./config/observatoryHotspots";
 import { OBSERVATORY_MOTION } from "./config/observatoryMotion";
 import ObservatoryEnvironment from "./environment/ObservatoryEnvironment";
 import ObservatoryObjectReactions from "./environment/ObservatoryObjectReactions";
@@ -125,9 +133,32 @@ export default function ObservatoryScene({
     }
   }
 
+  function handleRoomPointerDown(
+    event: ReactPointerEvent<HTMLElement>,
+  ) {
+    if (active || !selected) return;
+
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+
+    if (
+      target.closest(
+        '[data-observatory-hotspot], [data-observatory-interactive="true"], .observatory-mobile-focus-shell',
+      )
+    ) {
+      return;
+    }
+
+    setSelected(null);
+  }
+
+  const environmentHotspot =
+    activeHotspot ?? selectedHotspot;
+
   return (
     <main
       aria-label="Wilson Chiu Observatory"
+      onPointerDown={handleRoomPointerDown}
       style={{
         position: "absolute",
         inset: 0,
@@ -192,10 +223,12 @@ export default function ObservatoryScene({
         camera={camera}
         reducedMotion={reducedMotion}
         paused={active !== null}
+        selected={Boolean(environmentHotspot)}
       >
         <ObservatoryObjectReactions
-          hotspot={activeHotspot ?? selectedHotspot}
-          focused={active !== null}
+          hotspots={OBSERVATORY_HOTSPOTS}
+          selectedId={selected}
+          focusedId={active}
         />
 
         <div
@@ -203,7 +236,7 @@ export default function ObservatoryScene({
             position: "absolute",
             inset: 0,
             zIndex: 8,
-            opacity: active ? 0.16 : 1,
+            opacity: active ? 0.14 : 1,
             transition:
               `opacity ${OBSERVATORY_MOTION.hotspotMs}ms ease`,
             pointerEvents: active ? "none" : "auto",

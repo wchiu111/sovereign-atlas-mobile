@@ -3,9 +3,14 @@ import type { ObservatoryHotspotDefinition } from "../observatoryTypes";
 /**
  * Portrait-authored interaction coordinates for the 390 × 844 mobile stage.
  *
- * The production background is wider than the viewport and is rendered with
- * object-fit: cover. These coordinates are authored against the centered
- * 390 × 844 crop.
+ * These values reflect the latest Figma Observatory composition:
+ * - Enter Atlas centered in the upper field
+ * - Journey / Contact anchored to the left environment
+ * - Philosophy anchored to the right environment
+ * - About Wilson centered on the floor axis
+ *
+ * Labels are authored independently from node centers so they can align to the
+ * environmental objects without relying on connector lines.
  */
 export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
   {
@@ -14,10 +19,10 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     eyebrow: "Profile archive",
     description: "Trace the path from early exploration to Sovereign Design.",
     color: "#FFB14A",
-    x: 78,
-    y: 292,
-    labelX: 28,
-    labelY: 252,
+    x: 79,
+    y: 313,
+    labelX: 70,
+    labelY: 334,
     align: "left",
     camera: {
       translateX: 22,
@@ -32,10 +37,10 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     description: "Open a channel and begin a conversation.",
     color: "#33D1A1",
     x: 116,
-    y: 406,
-    labelX: 136,
-    labelY: 382,
-    align: "left",
+    y: 435,
+    labelX: 116,
+    labelY: 456,
+    align: "center",
     camera: {
       translateX: 18,
       translateY: -8,
@@ -49,9 +54,9 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     description: "Identity, values, approach, and how I think and build.",
     color: "#6AA7FF",
     x: 195,
-    y: 544,
+    y: 582,
     labelX: 195,
-    labelY: 512,
+    labelY: 612,
     align: "center",
     camera: {
       translateX: 0,
@@ -65,10 +70,10 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     eyebrow: "Reference library",
     description: "The principles, influences, and beliefs that shape the work.",
     color: "#A879FF",
-    x: 326,
-    y: 410,
-    labelX: 270,
-    labelY: 386,
+    x: 316,
+    y: 443,
+    labelX: 274,
+    labelY: 407,
     align: "left",
     camera: {
       translateX: -20,
@@ -82,11 +87,11 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     eyebrow: "Knowledge system",
     description: "Explore case studies, experiments, and frameworks.",
     color: "#D4AF37",
-    x: 350,
-    y: 274,
-    labelX: 275,
-    labelY: 248,
-    align: "left",
+    x: 196,
+    y: 256,
+    labelX: 196,
+    labelY: 280,
+    align: "center",
     camera: {
       translateX: -24,
       translateY: 14,

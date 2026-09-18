@@ -1,6 +1,8 @@
 import { T } from "../../components/mobileShared";
 import type { ObservatoryHotspotDefinition } from "../observatoryTypes";
 
+const LABEL_WIDTH = 140;
+
 export default function ObservatoryHotspot({
   hotspot,
   selected,
@@ -14,6 +16,18 @@ export default function ObservatoryHotspot({
   disabled: boolean;
   onSelect: () => void;
 }) {
+  const buttonLeft = hotspot.x - 26;
+  const buttonTop = hotspot.y - 26;
+  const labelLocalX = hotspot.labelX - buttonLeft;
+  const labelLocalY = hotspot.labelY - buttonTop;
+
+  const labelTransform =
+    hotspot.align === "center"
+      ? "translateX(-50%)"
+      : hotspot.align === "right"
+      ? "translateX(-100%)"
+      : undefined;
+
   const textAlign =
     hotspot.align === "center"
       ? "center"
@@ -32,8 +46,8 @@ export default function ObservatoryHotspot({
       className="observatory-mobile-focusable"
       style={{
         position: "absolute",
-        left: hotspot.x - 26,
-        top: hotspot.y - 26,
+        left: buttonLeft,
+        top: buttonTop,
         width: 52,
         height: 52,
         border: 0,
@@ -42,8 +56,7 @@ export default function ObservatoryHotspot({
         background: "transparent",
         cursor: disabled ? "default" : "pointer",
         opacity: subdued ? 0.42 : 1,
-        transition:
-          "opacity 240ms ease, filter 240ms ease",
+        transition: "opacity 240ms ease, filter 240ms ease",
         WebkitTapHighlightColor: "transparent",
       }}
     >
@@ -89,29 +102,10 @@ export default function ObservatoryHotspot({
         aria-hidden="true"
         style={{
           position: "absolute",
-          left:
-            hotspot.align === "right"
-              ? hotspot.labelX - hotspot.x - 96
-              : hotspot.labelX - hotspot.x + 26,
-          top: hotspot.labelY - hotspot.y + 24,
-          width: hotspot.align === "center" ? 0 : 60,
-          height: 0.5,
-          background: `linear-gradient(${
-            hotspot.align === "right" ? "270deg" : "90deg"
-          }, ${hotspot.color}66, transparent)`,
-          pointerEvents: "none",
-        }}
-      />
-
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left:
-            hotspot.labelX - hotspot.x -
-            (hotspot.align === "center" ? 70 : hotspot.align === "right" ? 152 : -34),
-          top: hotspot.labelY - hotspot.y - 8,
-          width: hotspot.align === "center" ? 140 : 118,
+          left: labelLocalX,
+          top: labelLocalY,
+          width: LABEL_WIDTH,
+          transform: labelTransform,
           fontFamily: T.mono,
           fontSize: 8,
           lineHeight: 1.25,

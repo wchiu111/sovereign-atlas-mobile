@@ -11,6 +11,8 @@ export default function ObservatoryPreview({
   return (
     <section
       aria-label={`${hotspot.label} preview`}
+      data-observatory-interactive="true"
+      onPointerDown={(event) => event.stopPropagation()}
       style={{
         position: "absolute",
         left: 18,
@@ -24,7 +26,7 @@ export default function ObservatoryPreview({
           "linear-gradient(180deg, rgba(6,8,14,0.88), rgba(4,6,11,0.96))",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
-        boxShadow: "0 18px 46px rgba(0,0,0,0.34)",
+        boxShadow: `0 18px 46px rgba(0,0,0,0.34), 0 0 34px ${hotspot.color}0E`,
         animation:
           "observatoryMobilePreviewIn 320ms cubic-bezier(0.16,1,0.3,1) both",
       }}

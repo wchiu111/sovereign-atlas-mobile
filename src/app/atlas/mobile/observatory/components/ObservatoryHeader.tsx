@@ -10,11 +10,12 @@ export default function ObservatoryHeader({
       aria-label="Observatory"
       style={{
         position: "absolute",
-        top: "calc(18px + env(safe-area-inset-top, 0px))",
-        left: 22,
-        right: 22,
+        top: "calc(68px + env(safe-area-inset-top, 0px))",
+        left: 4.5,
+        right: 4.5,
         zIndex: 12,
         pointerEvents: "none",
+        textAlign: "center",
         opacity: quiet ? 0.22 : 1,
         transition: "opacity 300ms ease",
       }}
@@ -22,10 +23,12 @@ export default function ObservatoryHeader({
       <div
         style={{
           fontFamily: T.mono,
-          fontSize: 9,
-          letterSpacing: "0.28em",
+          fontSize: 11,
+          lineHeight: "14.9px",
+          letterSpacing: "2.78px",
           color: T.identityGold,
-          opacity: 0.94,
+          opacity: 1,
+          whiteSpace: "nowrap",
         }}
       >
         OBSERVATORY
@@ -33,27 +36,18 @@ export default function ObservatoryHeader({
 
       <div
         style={{
-          marginTop: 7,
+          marginTop: 4,
           fontFamily: T.serif,
-          fontSize: 12.5,
-          letterSpacing: "0.04em",
+          fontSize: 11,
+          lineHeight: "20.7px",
+          letterSpacing: "0.55px",
           color: T.body,
-          opacity: 0.52,
+          opacity: 0.75,
+          whiteSpace: "nowrap",
         }}
       >
         Choose a destination
       </div>
-
-      <div
-        aria-hidden
-        style={{
-          width: 36,
-          height: 0.5,
-          marginTop: 10,
-          background:
-            "linear-gradient(90deg, rgba(232,200,109,0.58), transparent)",
-        }}
-      />
     </header>
   );
 }
