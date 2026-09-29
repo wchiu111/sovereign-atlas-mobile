@@ -8,12 +8,14 @@ export default function ObservatoryEnvironment({
   reducedMotion,
   paused = false,
   selected = false,
+  presentationScale,
   children,
 }: {
   camera: ObservatoryCameraTarget;
   reducedMotion: boolean;
   paused?: boolean;
   selected?: boolean;
+  presentationScale: number;
   children?: ReactNode;
 }) {
   return (
@@ -150,7 +152,19 @@ export default function ObservatoryEnvironment({
             }}
           />
 
-          {children}
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: 390,
+              height: 844,
+              transform: `translate(-50%, -50%) scale(${presentationScale})`,
+              transformOrigin: "center center",
+            }}
+          >
+            {children}
+          </div>
         </div>
       </div>
 

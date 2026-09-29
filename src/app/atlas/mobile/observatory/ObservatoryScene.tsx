@@ -27,10 +27,12 @@ import type {
 
 interface ObservatorySceneProps {
   onReturnToAtlas: () => void;
+  presentationScale: number;
 }
 
 export default function ObservatoryScene({
   onReturnToAtlas,
+  presentationScale,
 }: ObservatorySceneProps) {
   const [selected, setSelected] =
     useState<ObservatoryDestinationId | null>(null);
@@ -224,6 +226,7 @@ export default function ObservatoryScene({
         reducedMotion={reducedMotion}
         paused={active !== null}
         selected={Boolean(environmentHotspot)}
+        presentationScale={presentationScale}
       >
         <ObservatoryObjectReactions
           hotspots={OBSERVATORY_HOTSPOTS}
@@ -257,37 +260,51 @@ export default function ObservatoryScene({
         </div>
       </ObservatoryEnvironment>
 
-      <ObservatoryHeader quiet={active !== null} />
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: 390,
+          height: 844,
+          zIndex: 10,
+          transform: `translate(-50%, -50%) scale(${presentationScale})`,
+          transformOrigin: "center center",
+          pointerEvents: "none",
+        }}
+      >
+        <ObservatoryHeader quiet={active !== null} />
 
-      {!active && selectedHotspot && (
-        <ObservatoryPreview
-          key={selectedHotspot.id}
-          hotspot={selectedHotspot}
-          onExplore={() => commit(selectedHotspot.id)}
-        />
-      )}
+        {!active && selectedHotspot && (
+          <ObservatoryPreview
+            key={selectedHotspot.id}
+            hotspot={selectedHotspot}
+            onExplore={() => commit(selectedHotspot.id)}
+          />
+        )}
 
-      {!active && !selected && !hasInteracted && (
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom:
-              "calc(26px + env(safe-area-inset-bottom, 0px))",
-            zIndex: 11,
-            textAlign: "center",
-            fontFamily: T.mono,
-            fontSize: 7,
-            letterSpacing: "0.22em",
-            color: T.identityGold,
-            opacity: 0.58,
-          }}
-        >
-          TAP A DESTINATION
-        </div>
-      )}
+        {!active && !selected && !hasInteracted && (
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom:
+                "calc(26px + env(safe-area-inset-bottom, 0px))",
+              zIndex: 11,
+              textAlign: "center",
+              fontFamily: T.mono,
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              color: T.identityGold,
+              opacity: 0.68,
+            }}
+          >
+            TAP A DESTINATION
+          </div>
+        )}
+      </div>
 
       {active && activeHotspot && (
         <ObservatoryFocusShell

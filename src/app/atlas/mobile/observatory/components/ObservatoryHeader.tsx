@@ -23,9 +23,9 @@ export default function ObservatoryHeader({
       <div
         style={{
           fontFamily: T.mono,
-          fontSize: 11,
-          lineHeight: "14.9px",
-          letterSpacing: "2.78px",
+          fontSize: 15,
+          lineHeight: "19px",
+          letterSpacing: "3.2px",
           color: T.identityGold,
           opacity: 1,
           whiteSpace: "nowrap",
@@ -38,9 +38,9 @@ export default function ObservatoryHeader({
         style={{
           marginTop: 4,
           fontFamily: T.serif,
-          fontSize: 11,
-          lineHeight: "20.7px",
-          letterSpacing: "0.55px",
+          fontSize: 13,
+          lineHeight: "20px",
+          letterSpacing: "0.5px",
           color: T.body,
           opacity: 0.75,
           whiteSpace: "nowrap",

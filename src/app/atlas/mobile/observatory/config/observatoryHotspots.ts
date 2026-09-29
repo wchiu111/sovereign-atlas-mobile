@@ -3,14 +3,9 @@ import type { ObservatoryHotspotDefinition } from "../observatoryTypes";
 /**
  * Portrait-authored interaction coordinates for the 390 × 844 mobile stage.
  *
- * These values reflect the latest Figma Observatory composition:
- * - Enter Atlas centered in the upper field
- * - Journey / Contact anchored to the left environment
- * - Philosophy anchored to the right environment
- * - About Wilson centered on the floor axis
- *
- * Labels are authored independently from node centers so they can align to the
- * environmental objects without relying on connector lines.
+ * Label positions include the latest Figma refinements:
+ * - Journey sits farther below its node for clearer separation.
+ * - Philosophy is moved below its node to match the other destinations.
  */
 export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
   {
@@ -22,7 +17,7 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     x: 79,
     y: 313,
     labelX: 70,
-    labelY: 334,
+    labelY: 348,
     align: "left",
     camera: {
       translateX: 22,
@@ -73,7 +68,7 @@ export const OBSERVATORY_HOTSPOTS: readonly ObservatoryHotspotDefinition[] = [
     x: 316,
     y: 443,
     labelX: 274,
-    labelY: 407,
+    labelY: 478,
     align: "left",
     camera: {
       translateX: -20,

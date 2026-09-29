@@ -35,6 +35,17 @@ export default function ObservatoryHotspot({
       ? "right"
       : "left";
 
+  const backdropCenterX =
+    hotspot.align === "center"
+      ? 26
+      : hotspot.align === "right"
+      ? labelLocalX - LABEL_WIDTH * 0.28
+      : labelLocalX + LABEL_WIDTH * 0.28;
+
+  const backdropCenterY = 26 + (labelLocalY - 26) * 0.22;
+  const backdropWidth = hotspot.align === "center" ? 150 : 164;
+  const backdropHeight = 78;
+
   return (
     <button
       type="button"
@@ -61,13 +72,31 @@ export default function ObservatoryHotspot({
       }}
     >
       <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: backdropCenterX,
+          top: backdropCenterY,
+          width: backdropWidth,
+          height: backdropHeight,
+          transform: "translate(-50%, -50%)",
+          borderRadius: 999,
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.16) 45%, rgba(0,0,0,0.08) 62%, rgba(0,0,0,0) 78%)",
+          opacity: selected ? 0.96 : 0.9,
+          pointerEvents: "none",
+          transition: "opacity 240ms ease",
+        }}
+      />
+
+      <span
         aria-hidden
         style={{
           position: "absolute",
           left: "50%",
           top: "50%",
-          width: selected ? 34 : 28,
-          height: selected ? 34 : 28,
+          width: selected ? 42 : 34,
+          height: selected ? 42 : 34,
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           border: `0.75px solid ${hotspot.color}${
@@ -86,8 +115,8 @@ export default function ObservatoryHotspot({
           position: "absolute",
           left: "50%",
           top: "50%",
-          width: selected ? 8 : 6,
-          height: selected ? 8 : 6,
+          width: selected ? 10 : 8,
+          height: selected ? 10 : 8,
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           background: hotspot.color,
@@ -107,9 +136,9 @@ export default function ObservatoryHotspot({
           width: LABEL_WIDTH,
           transform: labelTransform,
           fontFamily: T.mono,
-          fontSize: 8,
+          fontSize: 12,
           lineHeight: 1.25,
-          letterSpacing: "0.16em",
+          letterSpacing: "0.14em",
           textAlign,
           color: selected ? hotspot.color : T.body,
           opacity: selected ? 0.98 : 0.72,

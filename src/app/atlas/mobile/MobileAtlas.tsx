@@ -132,6 +132,7 @@ export default function MobileAtlas() {
   useStarfield(canvasRef);
 
   const [sceneScale, setSceneScale] = useState(1);
+  const [observatoryScale, setObservatoryScale] = useState(1);
   const [viewportUiTarget, setViewportUiTarget] =
     useState<HTMLDivElement | null>(null);
   const [state, setStateRaw] =
@@ -320,6 +321,7 @@ export default function MobileAtlas() {
         maxPresentationScale,
       );
       setSceneScale(nextScale);
+      setObservatoryScale(Math.min(width / W, height / H));
     }
 
     updateSceneScale();
@@ -833,14 +835,10 @@ export default function MobileAtlas() {
               className="mobile-atlas-observatory-layer"
               style={{
                 position: "absolute",
-                width: W,
-                height: H,
+                inset: 0,
                 zIndex:
                   observatoryPhase === "exiting" ? 46 : 44,
                 overflow: "hidden",
-                flexShrink: 0,
-                transform: `scale(${sceneScale})`,
-                transformOrigin: "center center",
                 pointerEvents:
                   observatoryPhase === "open" ? "auto" : "none",
               }}
@@ -878,6 +876,7 @@ export default function MobileAtlas() {
               >
                 <ObservatoryScene
                   onReturnToAtlas={exitObservatory}
+                  presentationScale={observatoryScale}
                 />
               </div>
             </div>
